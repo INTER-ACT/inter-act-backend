@@ -15,9 +15,18 @@ class CreateUsersTable extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->increments('id');
-            $table->string('name');
-            $table->string('email')->unique();
-            $table->string('password');
+            $table->integer('role_id')->unsigned();//TODO: set not nullable if not default
+            $table->string('username', 64)->unique();
+            $table->string('email', 254)->unique();
+            $table->text('password');
+            $table->string('first_name', 64);
+            $table->string('last_name', 64);
+            $table->boolean('is_male');
+            $table->integer('postal_code')->unsigned();
+            $table->string('city', 254);
+            $table->string('job', 254);
+            $table->string('graduation', 254);
+            $table->integer('year_of_birth')->unsigned();
             $table->rememberToken();
             $table->timestamps();
         });
@@ -26,10 +35,11 @@ class CreateUsersTable extends Migration
     /**
      * Reverse the migrations.
      *
-     * @return void
+     * @return voida
      */
     public function down()
     {
         Schema::dropIfExists('users');
+        //TODO: Drop foreign keys in down-methods???
     }
 }
