@@ -19,6 +19,7 @@ class CreateDiscussionsTable extends Migration
             $table->string('title', 254);
             $table->text('law_text');
             $table->text('law_explanation');
+            $table->dateTime('archived_at');
             $table->timestamps();
         });
     }
