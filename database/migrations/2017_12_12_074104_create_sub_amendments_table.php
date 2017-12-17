@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
+use \App\Amendments\SubAmendment;
 
 class CreateSubAmendmentsTable extends Migration
 {
@@ -19,10 +20,10 @@ class CreateSubAmendmentsTable extends Migration
             $table->integer('user_id')->unsigned();
             $table->text('updated_text');
             $table->text('explanation');
-            $table->enum('status', ['pending', 'accepted', 'rejected']);    //TODO: document possible values
-            $table->integer('amendment_version')->unsigned();
-            $table->timestamp('handled_at');
-            $table->text('handle_explanation');
+            $table->enum('status', [SubAmendment::PENDING_STATUS, SubAmendment::ACCEPTED_STATUS, SubAmendment::REJECTED_STATUS]);    //TODO: document possible values
+            $table->integer('amendment_version')->default(1)->unsigned();   //TODO: make inaccessible?
+            $table->timestamp('handled_at')->nullable();
+            $table->text('handle_explanation')->nullable();
             $table->timestamps();
         });
     }

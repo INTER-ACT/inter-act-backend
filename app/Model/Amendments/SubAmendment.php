@@ -1,11 +1,30 @@
 <?php
 
-namespace App;
+namespace App\Amendments;
 
+use App\Comments\Comment;
+use App\Comments\ICommentable;
+use App\Reports\IReportable;
+use App\Reports\Report;
+use App\Tags\ITaggable;
+use App\Tags\Tag;
+use App\Traits\TTaggablePost;
+use App\User;
 use Illuminate\Database\Eloquent\Model;
 
-class SubAmendment extends Model
+class SubAmendment extends Model implements ITaggable, IReportable, IRatable, ICommentable
 {
+    use TTaggablePost;
+
+    const PENDING_STATUS = 'pending';
+    const ACCEPTED_STATUS = 'accepted';
+    const REJECTED_STATUS = 'rejected';
+
+    public function getIdProperty()
+    {
+        return $this->id;
+    }
+
     public function user()
     {
         return $this->belongsTo(User::class);
@@ -33,7 +52,7 @@ class SubAmendment extends Model
 
     public function rating_aspects()
     {
-        return $this->with('ratings.rating_aspect');    //TODO can be omitted --> same as Amendment::with('ratings.rating_aspect')
+        return $this->morphToMany(RatingAspect::class, 'ratable', 'ratable_rating_aspects');
     }
 
     public function reports()

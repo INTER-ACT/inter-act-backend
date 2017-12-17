@@ -1,11 +1,13 @@
 <?php
 
-namespace App;
+namespace App\Amendments;
 
+use App\IModel;
+use App\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 
-class RatableRatingAspect extends Model
+class RatableRatingAspect extends Model implements IModel
 {
     public function ratable()
     {
@@ -17,6 +19,11 @@ class RatableRatingAspect extends Model
         return $this->belongsTo(RatingAspect::class);
     }
 
+    public function user_ratings()
+    {
+        return $this->belongsToMany(User::class, 'rating_aspect_rating');
+    }
+
     public function scopeOfRatable($query, int $ratable_id, string $ratable_type)
     {
         return DB::table($this->table)
@@ -26,5 +33,10 @@ class RatableRatingAspect extends Model
         /*return RatableRatingAspect::with(['ratable' => function($query) use($ratable_id, $ratable_type){
             return $query->where([['ratable_id', $ratable_id], ['ratable_type', $ratable_type]]);
         }]);*/
+    }
+
+    public function getIdProperty()
+    {
+        return $this->id;
     }
 }

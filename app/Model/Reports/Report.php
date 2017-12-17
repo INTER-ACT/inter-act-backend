@@ -1,10 +1,11 @@
 <?php
 
-namespace App;
+namespace App\Reports;
 
+use App\IModel;
 use Illuminate\Database\Eloquent\Model;
 
-class Report extends Model
+class Report extends Model implements IModel
 {
     public function reportable()
     {
@@ -14,5 +15,10 @@ class Report extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function getIdProperty()
+    {
+        return $this->id;
     }
 }

@@ -2,11 +2,16 @@
 
 namespace App;
 
-use Illuminate\Notifications\Notifiable;
+use App\Amendments\Amendment;
+use App\Amendments\SubAmendment;
+use App\Comments\Comment;
+use App\Discussions\Discussion;
+use App\Report;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
 use Mockery\Exception;
 
-class User extends Authenticatable
+class User extends Authenticatable implements IModel
 {
     use Notifiable;
 
@@ -87,13 +92,13 @@ class User extends Authenticatable
     }
 
     //TODO: change in documentation (was planned as scope)
-    public static function usersOfRole(Role $role)
+    public static function ofRole(Role $role)
     {
         return User::with('role')->where('role.role_name', '=', $role->name)->get();
     }
 
     //TODO: change in documentation (was planned as scope)
-    public static function usersWithPermission(string $permission)  //TODO: enum instead of string
+    public static function withPermission(string $permission)  //TODO: enum instead of string
     {
         return User::with(['role.permissions' => function($query) use ($permission){
             $query->where('name', $permission);
@@ -103,5 +108,10 @@ class User extends Authenticatable
         $users->filter(function($user){
            return $user->role()->permissions()->contains('name', '$permission');
         });*/
+    }
+
+    function getIdProperty()    //TODO: Class instead of IModel interface
+    {
+        return $this->id;
     }
 }

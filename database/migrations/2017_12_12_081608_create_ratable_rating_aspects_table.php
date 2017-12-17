@@ -15,7 +15,7 @@ class CreateRatableRatingAspectsTable extends Migration
     {
         Schema::create('ratable_rating_aspects', function (Blueprint $table) {
             $table->increments('id');
-            $table->integer('rating_aspect_id')->unsigned();
+            $table->integer('rating_aspect_id')->unsigned();    //TODO: change in documentation (previously ratingaspect_id)
             $table->morphs('ratable');
             $table->timestamps();
 

@@ -1,11 +1,25 @@
 <?php
 
-namespace App;
+namespace App\Discussions;
 
+use App\Amendments\Amendment;
+use App\Comments\Comment;
+use App\Comments\ICommentable;
+use App\Tags\ITaggable;
+use App\Tags\Tag;
+use App\Traits\TTaggablePost;
+use App\User;
 use Illuminate\Database\Eloquent\Model;
 
-class Discussion extends Model
+class Discussion extends Model implements ITaggable, ICommentable
 {
+    use TTaggablePost;
+
+    public function getIdProperty()
+    {
+        return $this->id;
+    }
+
     public function user()
     {
         return $this->belongsTo(User::class);

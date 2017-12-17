@@ -27,7 +27,7 @@ class CreateUsersTable extends Migration
             $table->string('job', 254);
             $table->string('graduation', 254);
             $table->integer('year_of_birth')->unsigned();
-            $table->rememberToken();
+            $table->rememberToken();    //TODO: is this needed with OAuth2?
             $table->timestamps();
         });
     }
