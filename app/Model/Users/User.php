@@ -6,7 +6,7 @@ use App\Amendments\Amendment;
 use App\Amendments\SubAmendment;
 use App\Comments\Comment;
 use App\Discussions\Discussion;
-use App\Report;
+use App\Reports\Report;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Mockery\Exception;
@@ -48,7 +48,7 @@ class User extends Authenticatable implements IModel
         return $this->hasMany(Amendment::class);
     }
 
-    public function subAmendments()
+    public function sub_amendments()
     {
         return $this->hasMany(SubAmendment::class);
     }
@@ -66,7 +66,7 @@ class User extends Authenticatable implements IModel
 
     public function rated_comments()
     {
-        return $this->belongsToMany(Comment::class)
+        return $this->belongsToMany(Comment::class, 'comment_ratings', 'user_id', 'comment_id')
             ->withTimestamps()
             ->withPivot('rating_score');
     }
@@ -74,21 +74,6 @@ class User extends Authenticatable implements IModel
     public function reports()
     {
         return $this->hasMany(Report::class);
-    }
-
-    public function reported_amendments()
-    {
-        return $this->morphedByMany(Amendment::class, 'reportable');
-    }
-
-    public function reported_subamendments()
-    {
-        return $this->morphedByMany(SubAmendment::class, 'reportable');
-    }
-
-    public function reported_comments()
-    {
-        return $this->morphedByMany(Comment::class, 'reportable');
     }
 
     //TODO: change in documentation (was planned as scope)

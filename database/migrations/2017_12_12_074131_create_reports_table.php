@@ -17,7 +17,7 @@ class CreateReportsTable extends Migration
             $table->increments('id');
             $table->integer('user_id')->unsigned();
             $table->morphs('reportable');
-            $table->text('explanation');
+            $table->text('explanation')->nullable();
             $table->timestamps();
 
             $table->foreign('user_id')->references('id')->on('users');

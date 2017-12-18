@@ -13,7 +13,7 @@ use App\Amendments\RatableRatingAspect;
 use App\Comments\Comment;
 use App\Reports\Report;
 
-class UserTableSeeder extends Seeder
+class TestDataSeeder extends Seeder
 {
     /**
      * Run the database seeds.
@@ -23,10 +23,8 @@ class UserTableSeeder extends Seeder
      */
     public function run(Faker $faker)
     {
-        $output = new \Symfony\Component\Console\Output\ConsoleOutput(2);   //TODO: fix ourput
-
-        $output->writeln('run-start');
-        //throw new Exception("run-start");
+        //$output = new \Symfony\Component\Console\Output\ConsoleOutput(2);   //TODO: fix output or remove if not necessary anymore
+        //$output->writeln('run-start');
 
         $admin = Role::getAdmin();
         $expert = Role::getExpert();
@@ -34,8 +32,7 @@ class UserTableSeeder extends Seeder
         $standard_user = Role::getStandardUser();
         $guest = Role::getGuest();
 
-        $output->writeln('roles seeded');
-        //throw new Exception("roles seeded");
+        //$output->writeln('roles seeded');
 
         $fremdeInhalte = Tag::getNutzungFremderInhalte();
         $socialMedia = Tag::getSozialeMedien();
@@ -48,8 +45,7 @@ class UserTableSeeder extends Seeder
         $wirtschaftlicheInteressen = Tag::getWirtschaftlicheInteressen();
         $userGeneratedContent = Tag::getUserGeneratedContent();
 
-        $output->writeln('tags seeded');
-        //throw new Exception("tags seeded");
+        //$output->writeln('tags seeded');
 
         $users = [
             $this->CreateUser($admin),
@@ -65,8 +61,7 @@ class UserTableSeeder extends Seeder
             $this->CreateUser($guest)
         ];
 
-        $output->writeln('users seeded');
-        //throw new Exception("users seeded");
+        //$output->writeln('users seeded');
 
         $discussions = [
             $this->CreateDiscussion($users[0], null, [$fremdeInhalte, $socialMedia]),
@@ -77,7 +72,7 @@ class UserTableSeeder extends Seeder
             $this->CreateDiscussion($users[1], $faker->dateTimeBetween(), [$socialMedia, $bildungWissenschaft, $respektAnerkennung, $downloadStreaming])
             ];
 
-        $output->writeln('discussions seeded');
+        //$output->writeln('discussions seeded');
 
         $aspects = [$this->CreateRatingAspect('fair'),
             $this->CreateRatingAspect('unfair'),
@@ -90,7 +85,7 @@ class UserTableSeeder extends Seeder
             $this->CreateRatingAspect('interessant'),
             $this->CreateRatingAspect('unwichtig')];
 
-        $output->writeln('ratingAspects seeded');
+        //$output->writeln('ratingAspects seeded');
 
         $amendments = [
             $this->CreateAmendment($users[0], $discussions[0], [$fremdeInhalte, $socialMedia]),
@@ -101,7 +96,7 @@ class UserTableSeeder extends Seeder
             $this->CreateAmendment($users[7], $discussions[4], [$kultErbe, $userGeneratedContent])
         ];
 
-        $output->writeln('amendments seeded');
+        //$output->writeln('amendments seeded');
 
         $subamendments = [
             $this->CreateSubAmendment($users[1], $amendments[0], [$fremdeInhalte, $socialMedia], SubAmendment::ACCEPTED_STATUS),
@@ -114,14 +109,14 @@ class UserTableSeeder extends Seeder
             $this->CreateSubAmendment($users[8], $amendments[4], [$freiheitenNutzer], SubAmendment::PENDING_STATUS),
         ];
 
-        $output->writeln('subamendments seeded');
+        //$output->writeln('subamendments seeded');
 
         foreach ($amendments as $amendment)
             $amendment->rating_aspects()->attach(array_map(function($item){return $item->id;}, $aspects));
         foreach ($subamendments as $subamendment)
             $subamendment->rating_aspects()->attach(array_map(function($item){return $item->id;}, $aspects));
 
-        $output->writeln('ratingAspects to ratables seeded');
+        //$output->writeln('ratingAspects to ratables seeded');
 
         $this->CreateRating($users[0], $amendments[0], $aspects[0]);
         $this->CreateRating($users[2], $amendments[0], $aspects[0]);
@@ -132,7 +127,7 @@ class UserTableSeeder extends Seeder
         $this->CreateRating($users[7], $subamendments[2], $aspects[8]);
         $this->CreateRating($users[8], $amendments[0], $aspects[0]);
 
-        $output->writeln('ratings seeded');
+        //$output->writeln('ratings seeded');
 
         $comments = [
             $this->CreateComment($users[0], $discussions[1]),
@@ -151,7 +146,7 @@ class UserTableSeeder extends Seeder
         array_push($comments, $this->CreateComment($users[10], $subamendments[1]));
         array_push($comments, $this->CreateComment($users[10], $comments[12]));
 
-        $output->writeln('comments seeded');
+        //$output->writeln('comments seeded');
 
         $this->CreateCommentRating($users[0], $comments[0], 1);
         $this->CreateCommentRating($users[2], $comments[0], 1);
@@ -162,7 +157,7 @@ class UserTableSeeder extends Seeder
         $this->CreateCommentRating($users[7], $comments[1], 1);
         $this->CreateCommentRating($users[8], $comments[1], -1);
 
-        $output->writeln('comment_ratings seeded');
+        //$output->writeln('comment_ratings seeded');
 
         $reports = [
             $this->CreateReport($users[6], $amendments[0]),
@@ -172,7 +167,7 @@ class UserTableSeeder extends Seeder
             $this->CreateReport($users[8], $comments[0]),
         ];
 
-        $output->writeln('reports seeded');
+        //$output->writeln('reports seeded');
     }
 
     private function CreateUser(Role $role)
@@ -233,7 +228,7 @@ class UserTableSeeder extends Seeder
 
     private function CreateCommentRating(User $user, Comment $comment, int $rating)
     {
-        $comment->rating_users()->attach($user, ['rating_score' => $rating]);
+        $comment->rating_users()->attach($user->id, ['rating_score' => $rating]);
     }
 
     private function CreateRating(User $user, \App\Amendments\IRatable $ratable, RatingAspect $ratingAspect)

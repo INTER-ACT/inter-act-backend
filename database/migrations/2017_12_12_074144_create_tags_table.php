@@ -17,7 +17,7 @@ class CreateTagsTable extends Migration
             $table->increments('id');
             $table->string('name', 64)->unique('name_unique');
             $table->text('description');
-            $table->timestamps();
+            $table->timestamps();   //TODO: remove?
         });
 
         Schema::create('taggables', function (Blueprint $table) {

@@ -13,6 +13,7 @@ class Role extends Model implements IModel
     const STANDARD_USER_NAME = 'standard_user';
     const GUEST_NAME = 'guest';
 
+    //TODO: Seed Roles, Permissions, Tags, ... already at application boot?
     public static function getAdmin()
     {
         return Role::CreateRoleIfNotExists(Role::ADMIN_NAME, [Permission::getAdministrate(), Permission::getCreateExpertExplanations(), Permission::getAnalyze(),Permission::getCreateDiscussions(), Permission::getCreateArticles(), Permission::getRead()]);
