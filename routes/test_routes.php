@@ -1,5 +1,9 @@
 <?php
 
+use App\Http\Resources\CommentResources\CommentCollection;
+use App\Http\Resources\CommentResources\CommentResource;
+use App\Http\Resources\DiscussionResources\DiscussionCollection;
+use App\Http\Resources\DiscussionResources\DiscussionResource;
 use App\Role;
 use App\User;
 use App\Discussions\Discussion;
@@ -10,6 +14,8 @@ use App\Amendments\SubAmendment;
 use App\Amendments\RatableRatingAspect;
 use App\Comments\Comment;
 use App\Reports\Report;
+
+use App\Http\Resources;
 
 Route::get('/', function ()
 {
@@ -30,23 +36,26 @@ Route::get('/users/{user_id}', function($user_id){
 });
 
 Route::get('/users/{user_id}/discussions', function($user_id){
-    return User::find($user_id)->discussions;
+    return new DiscussionCollection(User::find($user_id)->discussions);
 });
 
-//TODO: change subressources of users to primary-resources? the user can be gotten from the request for example
-Route::get('/users/{user_id}/discussions/{discussion_id}', function(int $discussion_id){
-   return Discussion::with(['user', 'amendments', 'comments', 'tags'])->where('id', $discussion_id)->get();
+Route::get('/discussions', function(){
+    return new DiscussionCollection(Discussion::paginate(3));
 });
 
-Route::get('/users/{user_id}/discussions/{discussion_id}/amendments', function(int $discussion_id){
+Route::get('/discussions/{discussion_id}', function(int $discussion_id){
+    return new DiscussionResource(Discussion::find($discussion_id));
+});
+
+Route::get('/discussions/{discussion_id}/amendments', function(int $discussion_id){
     return Discussion::find($discussion_id)->amendments;
 });
 
-Route::get('/users/{user_id}/discussions/{discussion_id}/amendments/{amendment_id}', function(int $amendment_id){
+Route::get('/discussions/{discussion_id}/amendments/{amendment_id}', function(int $amendment_id){
     return Amendment::with(['user', 'discussion', 'sub_amendments', 'comments', 'tags', 'ratings', 'rating_aspects', 'reports'])->where('id', $amendment_id)->get();
 });
 
-Route::get('/users/{user_id}/discussions/{discussion_id}/amendments/{amendment_id}/subamendments', function(int $amendment_id){
+Route::get('/discussions/{discussion_id}/amendments/{amendment_id}/subamendments', function(int $amendment_id){
     return Amendment::find($amendment_id)->sub_amendments;
 });
 
@@ -58,16 +67,17 @@ Route::get('/subamendments/{subamendment_id}/comments', function(int $subamendme
     return SubAmendment::find($subamendment_id)->comments;
 });
 
-Route::get('/users/{user_id}/discussions/{discussion_id}/comments', function(int $discussion_id){
+Route::get('/discussions/{discussion_id}/comments', function(int $discussion_id){
     return Discussion::find($discussion_id)->comments;
 });
 
 Route::get('/comments', function(){
-    return Comment::with('parent')->get();
+    return new CommentCollection(Comment::with('parent'));
 });
 
 Route::get('/comments/{comment_id}', function(int $comment_id){
-    return Comment::with(['user', 'parent', 'comments', 'tags', 'reports', 'rating_users'])->where('id', $comment_id)->get();
+    return new CommentResource(Comment::find($comment_id)); //TODO: optimize performance by eager loading in routes already
+    //Comment::with(['user', 'parent', 'comments', 'tags', 'reports', 'rating_users'])->where('id', $comment_id)->get()
 });
 
 Route::get('/reports', function(){
