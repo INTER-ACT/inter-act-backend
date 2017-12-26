@@ -48,6 +48,7 @@ class Handler extends ExceptionHandler
      */
     public function render($request, Exception $exception)
     {
+        //TODO: Change errors that have not been caught to Internal Server Error?
         return parent::render($request, $exception);
     }
 }
