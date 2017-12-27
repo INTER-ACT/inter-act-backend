@@ -24,7 +24,7 @@ class DiscussionCollection extends ResourceCollection
                     'title' => $discussion->title,
                     'article' => 'WAS IST ARTICLE???'   //TODO: update article-field
                 ];
-                })
+            })
         ];
     }
 }

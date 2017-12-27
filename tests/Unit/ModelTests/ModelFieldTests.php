@@ -9,7 +9,9 @@
 namespace Tests\Unit;
 
 
-class ModelFieldTests
+use Tests\TestCase;
+
+class ModelFieldTests extends TestCase
 {
 
 }

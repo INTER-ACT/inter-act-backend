@@ -41,6 +41,14 @@ class CreateRatableRatingAspectsTable extends Migration
      */
     public function down()
     {
+        Schema::table('ratable_rating_aspects', function (Blueprint $table) {
+            $table->dropForeign('ratable_rating_aspects_rating_aspect_id_foreign');
+        });
+        Schema::table('rating_aspect_rating', function (Blueprint $table) {
+            $table->dropForeign('rating_aspect_rating_ratable_rating_aspect_id_foreign');
+            $table->dropForeign('rating_aspect_rating_user_id_foreign');
+        });
+
         Schema::dropIfExists('ratable_rating_aspects');
         Schema::dropIfExists('rating_aspect_rating');
     }

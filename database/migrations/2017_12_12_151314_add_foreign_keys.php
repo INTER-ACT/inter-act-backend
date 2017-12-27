@@ -44,25 +44,25 @@ class AddForeignKeys extends Migration
     public function down()
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropForeign('role_id');
+            $table->dropForeign('users_role_id_foreign');
         });
 
         Schema::table('discussions', function (Blueprint $table) {
-            $table->dropForeign('user_id');
+            $table->dropForeign('discussions_user_id_foreign');
         });
 
         Schema::table('amendments', function (Blueprint $table) {
-            $table->dropForeign('discussion_id');
-            $table->dropForeign('user_id');
+            $table->dropForeign('amendments_discussion_id_foreign');
+            $table->dropForeign('amendments_user_id_foreign');
         });
 
         Schema::table('sub_amendments', function (Blueprint $table) {
-            $table->dropForeign('amendment_id');
-            $table->dropForeign('user_id');
+            $table->dropForeign('sub_amendments_amendment_id_foreign');
+            $table->dropForeign('sub_amendments_user_id_foreign');
         });
 
         Schema::table('comments', function (Blueprint $table) {
-            $table->dropForeign('user_id');
+            $table->dropForeign('comments_user_id_foreign');
         });
     }
 }

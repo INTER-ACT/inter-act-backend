@@ -48,7 +48,7 @@ class Comment extends Model implements IModel, IReportable, ICommentable
     }
 
     //returns the sum of all rating_scores related to this comment
-    public function rating_sum()
+    public function rating_sum()    //TODO: Update Documentation (here, count and sum are returned)
     {
         $rating_sum = DB::selectOne('select sum(cr.rating_score) as rating_sum, count(cr.user_id) as rating_count from users 
                                 left join comment_ratings cr on users.id = cr.user_id

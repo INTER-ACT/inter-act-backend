@@ -21,7 +21,7 @@ class User extends Authenticatable implements IModel
      * @var array
      */
     protected $fillable = [
-        'name', 'email', 'password',
+        'role_id', 'username', 'email', 'password', 'first_name', 'last_name', 'is_male', 'postal_code', 'city', 'job', 'graduation', 'year_of_birth'
     ];
 
     /**

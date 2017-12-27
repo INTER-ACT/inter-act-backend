@@ -4,6 +4,8 @@ use App\Http\Resources\CommentResources\CommentCollection;
 use App\Http\Resources\CommentResources\CommentResource;
 use App\Http\Resources\DiscussionResources\DiscussionCollection;
 use App\Http\Resources\DiscussionResources\DiscussionResource;
+use App\Http\Resources\PostResources\TagCollection;
+use App\Http\Resources\PostResources\TagResource;
 use App\Role;
 use App\User;
 use App\Discussions\Discussion;
@@ -72,12 +74,20 @@ Route::get('/discussions/{discussion_id}/comments', function(int $discussion_id)
 });
 
 Route::get('/comments', function(){
-    return new CommentCollection(Comment::with('parent'));
+    return new CommentCollection(Comment::all());
 });
 
 Route::get('/comments/{comment_id}', function(int $comment_id){
     return new CommentResource(Comment::find($comment_id)); //TODO: optimize performance by eager loading in routes already
     //Comment::with(['user', 'parent', 'comments', 'tags', 'reports', 'rating_users'])->where('id', $comment_id)->get()
+});
+
+Route::get('/tags', function(){
+    return new TagCollection(Tag::all());
+});
+
+Route::get('/tags/{tag_id}', function(int $tag_id){
+    return new TagResource(Tag::find($tag_id));
 });
 
 Route::get('/reports', function(){

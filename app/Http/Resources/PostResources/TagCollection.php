@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Resources\CommentResources;
+namespace App\Http\Resources\PostResources;
 
 use Illuminate\Http\Resources\Json\ResourceCollection;
 
-class CommentCollection extends ResourceCollection
+class TagCollection extends ResourceCollection
 {
     /**
      * Transform the resource collection into an array.
@@ -16,11 +16,11 @@ class CommentCollection extends ResourceCollection
     {
         return [
             'href' => $request->path(),
-            //'total' => $this->collection->count(),
-            'comments' => $this->collection->transform(function ($comment) use($request){
+            'tags' => $this->collection->transform(function ($tag){
                 return [
-                    'href' => '/comments/' . $comment->id,
-                    'id' => $comment->id
+                    'id' => $tag->id,
+                    'name' => $tag->name,
+                    'description' => $tag->description
                 ];
             })
         ];

@@ -14,6 +14,11 @@ class TagResource extends Resource
      */
     public function toArray($request)
     {
-        return parent::toArray($request);
+        return [
+            'href' => $request->path(),
+            'id' => $this->id,
+            'name' => $this->name,
+            'description' => $this->description
+        ];
     }
 }

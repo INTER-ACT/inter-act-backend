@@ -15,6 +15,13 @@ trait CreatesApplication
     {
         $app = require __DIR__.'/../bootstrap/app.php';
 
+        //<self-created-code>
+        if(file_exists(dirname(__DIR__) . '/.env.test'))
+        {
+            (new \Dotenv\Dotenv(dirname(__DIR__), '.env.test'))->load();
+        }
+        //</self-created-code
+
         $app->make(Kernel::class)->bootstrap();
 
         return $app;

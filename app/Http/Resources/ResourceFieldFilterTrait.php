@@ -11,18 +11,18 @@ namespace App\Http\Resources;
 
 trait ResourceFieldFilterTrait
 {
-    protected $excludedFields = [];
+    protected $fieldList = [];
 
     /**
      * @param array $fields
      * @return $this
      */
-    public function hide(array $fields)
+    public function addToFieldList(array $fields)
     {
         foreach ($fields as $field)
         {
-            if(!in_array($field, $this->excludedFields))
-                $this->excludedFields[] = $field;
+            if(!in_array($field, $this->fieldList))
+                $this->fieldList[] = $field;
         }
         return $this;
     }
@@ -33,6 +33,17 @@ trait ResourceFieldFilterTrait
      */
     public function hideFields($array)
     {
-        return collect($array)->forget($this->excludedFields)->toArray();
+        return collect($array)->forget($this->fieldList)->toArray();
+    }
+
+    /**
+     * @param $array
+     * @return array
+     */
+    public function restrictToFields($array)
+    {
+        if(isset($this->fieldList) and !empty($this->fieldList))
+            return collect($array)->only($this->fieldList)->toArray();
+        return $array;
     }
 }

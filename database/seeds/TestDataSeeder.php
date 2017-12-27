@@ -130,21 +130,21 @@ class TestDataSeeder extends Seeder
         //$output->writeln('ratings seeded');
 
         $comments = [
-            $this->CreateComment($users[0], $discussions[1]),
-            $this->CreateComment($users[0], $discussions[1])
+            $this->CreateComment($users[0], $discussions[1], [$fremdeInhalte, $socialMedia]),
+            $this->CreateComment($users[0], $discussions[1], [$fremdeInhalte])
         ];
-        array_push($comments, $this->CreateComment($users[1], $comments[0]));
-        array_push($comments, $this->CreateComment($users[2], $comments[2]));
-        array_push($comments, $this->CreateComment($users[3], $discussions[1]));
-        array_push($comments, $this->CreateComment($users[3], $amendments[0]));
-        array_push($comments, $this->CreateComment($users[3], $comments[5]));
-        array_push($comments, $this->CreateComment($users[5], $comments[6]));
-        array_push($comments, $this->CreateComment($users[6], $amendments[1]));
-        array_push($comments, $this->CreateComment($users[7], $subamendments[0]));
-        array_push($comments, $this->CreateComment($users[8], $comments[9]));
-        array_push($comments, $this->CreateComment($users[9], $comments[10]));
-        array_push($comments, $this->CreateComment($users[10], $subamendments[1]));
-        array_push($comments, $this->CreateComment($users[10], $comments[12]));
+        array_push($comments, $this->CreateComment($users[1], $comments[0], [$socialMedia]));
+        array_push($comments, $this->CreateComment($users[2], $comments[2], [$socialMedia]));
+        array_push($comments, $this->CreateComment($users[3], $discussions[1], [$kultErbe]));
+        array_push($comments, $this->CreateComment($users[3], $amendments[0], [$bildungWissenschaft]));
+        array_push($comments, $this->CreateComment($users[3], $comments[5], [$freiheitenNutzer]));
+        array_push($comments, $this->CreateComment($users[5], $comments[6], [$respektAnerkennung]));
+        array_push($comments, $this->CreateComment($users[6], $amendments[1], [$rechteInhaberschaft]));
+        array_push($comments, $this->CreateComment($users[7], $subamendments[0], [$bildungWissenschaft]));
+        array_push($comments, $this->CreateComment($users[8], $comments[9], [$socialMedia]));
+        array_push($comments, $this->CreateComment($users[9], $comments[10], [$fremdeInhalte]));
+        array_push($comments, $this->CreateComment($users[10], $subamendments[1], [$fremdeInhalte]));
+        array_push($comments, $this->CreateComment($users[10], $comments[12], [$socialMedia]));
 
         //$output->writeln('comments seeded');
 
@@ -193,36 +193,38 @@ class TestDataSeeder extends Seeder
         return RatingAspect::create(['name' => $name]);
     }
 
-    private function CreateAmendment(User $user, Discussion $discussion, array $tags)
+    private function CreateAmendment(User $user, Discussion $discussion, array $tags = null)
     {
         $amendment = factory(Amendment::class)->create([
             'user_id' => $user->id,
             'discussion_id' => $discussion->id
         ]);
-        if($tags and isset($tags))
+        if(isset($tags))
             $amendment->tags()->attach(array_map(function($item){return $item->id;}, $tags));
         return $amendment;
     }
 
-    private function CreateSubAmendment(User $user, Amendment $amendment, array $tags, string $status)  //TODO: make sure that status cannot be wrong (enum or so)
+    private function CreateSubAmendment(User $user, Amendment $amendment, array $tags = null, string $status)  //TODO: make sure that status cannot be wrong (enum or so)
     {
         $subAmendment = factory(SubAmendment::class)->create([
             'user_id' => $user->id,
             'amendment_id' => $amendment->id,
             'status' => $status
         ]);
-        if($tags and isset($tags))
+        if(isset($tags))
             $subAmendment->tags()->attach(array_map(function($item){return $item->id;}, $tags));
         return $subAmendment;
     }
 
-    private function CreateComment(User $user, \App\Comments\ICommentable $parent)
+    private function CreateComment(User $user, \App\Comments\ICommentable $parent, array $tags = null)
     {
         $comment = factory(Comment::class)->create([
             'user_id' => $user->id,
             'commentable_id' => $parent->getIdProperty(),
             'commentable_type' => get_class($parent)
         ]);
+        if(isset($tags))
+            $comment->tags()->attach(array_map(function($item){return $item->id;}, $tags));
         return $comment;
     }
 

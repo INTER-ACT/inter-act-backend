@@ -17,7 +17,7 @@ class DiscussionResource extends Resource
     public function toArray($request)
     {
         return [
-            'href' => '/discussions/' . $this->id,
+            'href' => $request->path(),
             'id' => $this->id,
             'title' => $this->title,
             'created_at' => $this->created_at->toIso8601String(),   // 1975-12-25T14:15:16-0500
@@ -29,8 +29,8 @@ class DiscussionResource extends Resource
                 'href' => '/users/' . $this->user_id,
                 'id' => $this->user_id
                 ],
-            'amendments' => new AmendmentCollection($this->amendments),
-            'comments' => new CommentCollection($this->comments)
+            'amendments' => ['href' => $request->path() . '/amendments'],
+            'comments' => ['href' => $request->path() . '/comments']
         ];
     }
 }

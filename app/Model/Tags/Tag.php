@@ -21,6 +21,12 @@ class Tag extends Model implements IModel
     const WIRTSCHAFTLICHE_INTERESSEN_NAME = "Wirtschaftliche Interessen";
     const USER_GENERATED_CONTENT_NAME = "User Generated Content";
 
+    protected $fillable = [
+        'name', 'description'
+    ];
+
+    protected $hidden = ['pivot'];
+
     public static function getNutzungFremderInhalte()
     {
         return Tag::firstOrCreate(['name' => Tag::NUTZUNG_FREMDER_INHALTE_NAME, 'description' => 'Alles rund um die Nutzung fremder Inhalte']);
