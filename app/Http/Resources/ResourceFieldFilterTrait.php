@@ -31,7 +31,7 @@ trait ResourceFieldFilterTrait
      * @param $array
      * @return array
      */
-    public function filterFields($array)
+    public function hideFields($array)
     {
         return collect($array)->forget($this->excludedFields)->toArray();
     }
