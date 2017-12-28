@@ -5,6 +5,7 @@ namespace App\Amendments;
 use App\Comments\Comment;
 use App\Comments\ICommentable;
 use App\Discussions\Discussion;
+use App\IRestResourceModel;
 use App\Reports\IReportable;
 use App\Reports\Report;
 use App\Tags\ITaggable;
@@ -13,15 +14,23 @@ use App\Traits\TTaggablePost;
 use App\User;
 use Illuminate\Database\Eloquent\Model;
 
-class Amendment extends Model implements ITaggable, IReportable, IRatable, ICommentable
+class Amendment extends Model implements ITaggable, IReportable, IRatable, ICommentable, IRestResourceModel
 {
     use TTaggablePost;
 
+    //region IRestResourceModel
     public function getIdProperty()
     {
         return $this->id;
     }
 
+    public function getResourcePath()
+    {
+        return '/discussions/' . $this->discussion_id . '/amendments/' . $this->id;
+    }
+    //endregion
+
+    //region relations
     public function user()
     {
         return $this->belongsTo(User::class);
@@ -61,4 +70,5 @@ class Amendment extends Model implements ITaggable, IReportable, IRatable, IComm
     {
         return $this->morphMany(Report::class, 'reportable');
     }
+    //endregion
 }

@@ -5,21 +5,30 @@ namespace App\Discussions;
 use App\Amendments\Amendment;
 use App\Comments\Comment;
 use App\Comments\ICommentable;
+use App\IRestResourceModel;
 use App\Tags\ITaggable;
 use App\Tags\Tag;
 use App\Traits\TTaggablePost;
 use App\User;
 use Illuminate\Database\Eloquent\Model;
 
-class Discussion extends Model implements ITaggable, ICommentable
+class Discussion extends Model implements ITaggable, ICommentable, IRestResourceModel
 {
     use TTaggablePost;
 
+    //region IRestResourceModel
     public function getIdProperty()
     {
         return $this->id;
     }
 
+    public function getResourcePath()
+    {
+        return '/discussions/' . $this->id;
+    }
+    //endregion
+
+    //region relations
     public function user()
     {
         return $this->belongsTo(User::class);
@@ -39,6 +48,7 @@ class Discussion extends Model implements ITaggable, ICommentable
     {
         return $this->morphToMany(Tag::class, 'taggable');
     }
+    //endregion
 
     public function scopeActive($query)
     {

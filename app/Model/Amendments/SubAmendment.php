@@ -4,6 +4,7 @@ namespace App\Amendments;
 
 use App\Comments\Comment;
 use App\Comments\ICommentable;
+use App\IRestResourceModel;
 use App\Reports\IReportable;
 use App\Reports\Report;
 use App\Tags\ITaggable;
@@ -12,7 +13,7 @@ use App\Traits\TTaggablePost;
 use App\User;
 use Illuminate\Database\Eloquent\Model;
 
-class SubAmendment extends Model implements ITaggable, IReportable, IRatable, ICommentable
+class SubAmendment extends Model implements ITaggable, IReportable, IRatable, ICommentable, IRestResourceModel
 {
     use TTaggablePost;
 
@@ -20,11 +21,19 @@ class SubAmendment extends Model implements ITaggable, IReportable, IRatable, IC
     const ACCEPTED_STATUS = 'accepted';
     const REJECTED_STATUS = 'rejected';
 
+    //region IRestResourceModel
     public function getIdProperty()
     {
         return $this->id;
     }
 
+    public function getResourcePath()
+    {
+        return $this->amendment()->getResourcePath() . '/subamendments/' . $this->id;
+    }
+    //endregion
+
+    //region relations
     public function user()
     {
         return $this->belongsTo(User::class);
@@ -59,6 +68,7 @@ class SubAmendment extends Model implements ITaggable, IReportable, IRatable, IC
     {
         return $this->morphMany(Report::class, 'reportable');
     }
+    //endregion
 
     public function scopeOfStatus($query, $status)
     {

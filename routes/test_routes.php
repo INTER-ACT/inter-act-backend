@@ -42,7 +42,7 @@ Route::get('/users/{user_id}/discussions', function($user_id){
 });
 
 Route::get('/discussions', function(){
-    return new DiscussionCollection(Discussion::paginate(3));
+    return new DiscussionCollection(Discussion::all());
 });
 
 Route::get('/discussions/{discussion_id}', function(int $discussion_id){

@@ -11,7 +11,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Mockery\Exception;
 
-class User extends Authenticatable implements IModel
+class User extends Authenticatable implements IRestResourceModel
 {
     use Notifiable;
 
@@ -33,6 +33,19 @@ class User extends Authenticatable implements IModel
         'password', 'remember_token',
     ];
 
+    //region IRestResourceModel
+    function getIdProperty()    //TODO: Class instead of IModel interface
+    {
+        return $this->id;
+    }
+
+    public function getResourcePath()
+    {
+        return '/users/' . $this->id;
+    }
+    //endregion
+
+    //region relations
     public function role()
     {
         return $this->belongsTo(Role::class);
@@ -75,6 +88,7 @@ class User extends Authenticatable implements IModel
     {
         return $this->hasMany(Report::class);
     }
+    //endregion
 
     //TODO: change in documentation (was planned as scope)
     public static function ofRole(Role $role)
@@ -93,10 +107,5 @@ class User extends Authenticatable implements IModel
         $users->filter(function($user){
            return $user->role()->permissions()->contains('name', '$permission');
         });*/
-    }
-
-    function getIdProperty()    //TODO: Class instead of IModel interface
-    {
-        return $this->id;
     }
 }

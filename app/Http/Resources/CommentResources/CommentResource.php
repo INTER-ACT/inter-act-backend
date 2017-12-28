@@ -3,11 +3,13 @@
 namespace App\Http\Resources\CommentResources;
 
 use App\Http\Resources\ResourceFieldFilterTrait;
+use App\Http\Resources\RestResourceTrait;
 use App\Http\Resources\TagCollection;
 use Illuminate\Http\Resources\Json\Resource;
 
 class CommentResource extends Resource
 {
+    use RestResourceTrait;
     use ResourceFieldFilterTrait;
 
     /**
@@ -18,13 +20,16 @@ class CommentResource extends Resource
      */
     public function toArray($request)
     {
+        $thisURI = url($this->getResourcePathIfNotNull($this->getResourcePath()));
         return $this->restrictToFields([
-            'href' => $request->path(),
+
+            'href' => $thisURI,
             'id' => $this->id,
             'content' => $this->content,
             'created_at' => $this->created_at->toIso8601String(),   // 1975-12-25T14:15:16-0500
+            'updated_at' => $this->updated_at->toIso8601String(),
             'author' => [
-                'href' => '/users/' . $this->user_id,
+                'href' => url('/users/' . $this->user_id),
                 'id' => $this->user_id
             ],
             'tags' => $this->tags->transform(function ($tag){
@@ -34,12 +39,13 @@ class CommentResource extends Resource
                     'description' => $tag->description
                 ];
             }),
-            'comments' => ['href' => $request->path() . '/comments'],
+            'comments' => ['href' => $thisURI . '/comments'],
+            'rating' => $this->rating_sum,
             'parent' => [
-                'href' => null, //TODO: store resource path in resource (Model?)
+                'href' => url($this->parent->getResourcePath()),
+                //'href' => $request->getUri() . $this->parent->getResourcePath(),
                 'id' => $this->parent->id
-            ],
-            'rating' => $this->rating_sum
+                ]
         ]);
     }
 }

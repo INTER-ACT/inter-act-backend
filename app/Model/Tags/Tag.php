@@ -6,10 +6,12 @@ use App\Amendments\Amendment;
 use App\Amendments\SubAmendment;
 use App\Discussions\Discussion;
 use App\IModel;
+use App\IRestResourceModel;
 use Illuminate\Database\Eloquent\Model;
 
-class Tag extends Model implements IModel
+class Tag extends Model implements IRestResourceModel
 {
+    //region constants
     const NUTZUNG_FREMDER_INHALTE_NAME = "Lizenz";
     const SOZIALE_MEDIEN_NAME = "Soziale Medien";
     const KULTURELLES_ERBE_NAME = "Kuturelles Erbe";
@@ -20,6 +22,7 @@ class Tag extends Model implements IModel
     const DOWNLOAD_UND_STREAMING_NAME = "Download und Streaming";
     const WIRTSCHAFTLICHE_INTERESSEN_NAME = "Wirtschaftliche Interessen";
     const USER_GENERATED_CONTENT_NAME = "User Generated Content";
+    //endregion
 
     protected $fillable = [
         'name', 'description'
@@ -27,6 +30,7 @@ class Tag extends Model implements IModel
 
     protected $hidden = ['pivot'];
 
+    //region constant_entries
     public static function getNutzungFremderInhalte()
     {
         return Tag::firstOrCreate(['name' => Tag::NUTZUNG_FREMDER_INHALTE_NAME, 'description' => 'Alles rund um die Nutzung fremder Inhalte']);
@@ -76,7 +80,21 @@ class Tag extends Model implements IModel
     {
         return Tag::firstOrCreate(['name' => Tag::USER_GENERATED_CONTENT_NAME, 'description' => 'Alles rund um User Generated Content']);
     }
+    //endregion
 
+    //region Interfaces
+    function getIdProperty()
+    {
+        return $this->id;
+    }
+
+    public function getResourcePath()
+    {
+        return '/comments/' . $this->id;
+    }
+    //endregion
+
+    //region relations
     public function taggables()
     {
         return $this->with(['discussions', 'amendments', 'sub_amendments']);    //Not sure if this works
@@ -96,9 +114,5 @@ class Tag extends Model implements IModel
     {
         return $this->morphedByMany(SubAmendment::class, 'taggable');
     }
-
-    function getIdProperty()
-    {
-        return $this->id;
-    }
+    //endregion
 }

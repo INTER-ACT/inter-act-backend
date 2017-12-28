@@ -2,10 +2,13 @@
 
 namespace App\Http\Resources\CommentResources;
 
+use App\Http\Resources\RestResourceTrait;
 use Illuminate\Http\Resources\Json\ResourceCollection;
 
 class CommentCollection extends ResourceCollection
 {
+    use RestResourceTrait;
+
     /**
      * Transform the resource collection into an array.
      *
@@ -14,12 +17,13 @@ class CommentCollection extends ResourceCollection
      */
     public function toArray($request)
     {
+        $thisURI = url($this->getResourcePathIfNotNull($request->path()));
         return [
-            'href' => $request->path(),
+            'href' => $thisURI,
             //'total' => $this->collection->count(),
-            'comments' => $this->collection->transform(function ($comment) use($request){
+            'comments' => $this->collection->transform(function ($comment) use($thisURI){
                 return [
-                    'href' => '/comments/' . $comment->id,
+                    'href' => $thisURI . '/' . $comment->id,
                     'id' => $comment->id
                 ];
             })

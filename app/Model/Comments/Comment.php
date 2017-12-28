@@ -3,6 +3,7 @@
 namespace App\Comments;
 
 use App\IModel;
+use App\IRestResourceModel;
 use App\Reports\IReportable;
 use App\Reports\Report;
 use App\Tags\Tag;
@@ -11,12 +12,25 @@ use App\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 
-class Comment extends Model implements IModel, IReportable, ICommentable
+class Comment extends Model implements IReportable, ICommentable, IRestResourceModel
 {
     use TPost;
 
     protected $appends = ['rating_sum'];
 
+    //region IRestResourceModel
+    public function getIdProperty()
+    {
+        return $this->id;
+    }
+
+    public function getResourcePath()
+    {
+        return '/comments/' . $this->id;
+    }
+    //endregion
+
+    //region relations
     public function user()
     {
         return $this->belongsTo(User::class);
@@ -50,11 +64,11 @@ class Comment extends Model implements IModel, IReportable, ICommentable
     //returns the sum of all rating_scores related to this comment
     public function rating_sum()    //TODO: Update Documentation (here, count and sum are returned)
     {
-        $rating_sum = DB::selectOne('select sum(cr.rating_score) as rating_sum, count(cr.user_id) as rating_count from users 
+        $rating_sum = DB::selectOne('select sum(cr.rating_score) as rating_sum from users 
                                 left join comment_ratings cr on users.id = cr.user_id
                                 WHERE cr.comment_id = :comment_id
                                 GROUP BY cr.comment_id;', ['comment_id' => $this->id]);
-        return ($rating_sum === null) ? 0 : $rating_sum;
+        return ($rating_sum === null) ? 0 : (int)$rating_sum->rating_sum;
 
         /*return $this->belongsToMany(User::class, 'comment_ratings', 'user_id', 'comment_id')
             ->selectRaw('sum(comment_ratings.rating_score) as rating_sum, count(comment_ratings.user_id) as rating_count')
@@ -65,9 +79,5 @@ class Comment extends Model implements IModel, IReportable, ICommentable
     {
         return $this->rating_sum();//TODO: check null/etc. if needed (null-check done in function rating_sum() already
     }
-
-    public function getIdProperty()
-    {
-        return $this->id;
-    }
+    //endregion
 }

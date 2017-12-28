@@ -14,6 +14,7 @@ class Role extends Model implements IModel
     const GUEST_NAME = 'guest';
 
     //TODO: Seed Roles, Permissions, Tags, ... already at application boot?
+    //region static entries
     public static function getAdmin()
     {
         return Role::CreateRoleIfNotExists(Role::ADMIN_NAME, [Permission::getAdministrate(), Permission::getCreateExpertExplanations(), Permission::getAnalyze(),Permission::getCreateDiscussions(), Permission::getCreateArticles(), Permission::getRead()]);
@@ -38,7 +39,16 @@ class Role extends Model implements IModel
     {
         return Role::CreateRoleIfNotExists(Role::GUEST_NAME, [Permission::getRead()]);
     }
+    //endregion
 
+    //region IModel
+    function getIdProperty()
+    {
+        return $this->id;
+    }
+    //endregion
+
+    //region relations
     public function permissions()
     {
         return $this->belongsToMany(Permission::class, 'permission_roles');
@@ -48,6 +58,7 @@ class Role extends Model implements IModel
     {
         return $this->hasMany(User::class);
     }
+    //endregion
 
     private static function CreateRoleIfNotExists(string $name, array $permissions)
     {
@@ -60,10 +71,5 @@ class Role extends Model implements IModel
             }
         }
         return $role;
-    }
-
-    function getIdProperty()
-    {
-        return $this->id;
     }
 }

@@ -3,10 +3,24 @@
 namespace App\Reports;
 
 use App\IModel;
+use App\IRestResourceModel;
 use Illuminate\Database\Eloquent\Model;
 
-class Report extends Model implements IModel
+class Report extends Model implements IRestResourceModel
 {
+    //region IRestResourceModel
+    public function getIdProperty()
+    {
+        return $this->id;
+    }
+
+    public function getResourcePath()
+    {
+        return '/reports/' . $this->id;
+    }
+    //endregion
+
+    //region relations
     public function reportable()
     {
         return $this->morphTo('reportable');
@@ -16,9 +30,5 @@ class Report extends Model implements IModel
     {
         return $this->belongsTo(User::class);
     }
-
-    public function getIdProperty()
-    {
-        return $this->id;
-    }
+    //endregion
 }
