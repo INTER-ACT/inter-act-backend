@@ -4,6 +4,8 @@ use App\Http\Resources\CommentResources\CommentCollection;
 use App\Http\Resources\CommentResources\CommentResource;
 use App\Http\Resources\DiscussionResources\DiscussionCollection;
 use App\Http\Resources\DiscussionResources\DiscussionResource;
+use App\Http\Resources\PostResources\ReportCollection;
+use App\Http\Resources\PostResources\ReportResource;
 use App\Http\Resources\PostResources\TagCollection;
 use App\Http\Resources\PostResources\TagResource;
 use App\Role;
@@ -91,6 +93,10 @@ Route::get('/tags/{tag_id}', function(int $tag_id){
 });
 
 Route::get('/reports', function(){
-    return Report::all();
+    return new ReportCollection(Report::all());
+});
+
+Route::get('/reports/{report_id}', function(int $report_id){
+    return new ReportResource(Report::find($report_id));
 });
 

@@ -22,6 +22,11 @@ class Discussion extends Model implements ITaggable, ICommentable, IRestResource
         return $this->id;
     }
 
+    public function getType()
+    {
+        return get_class($this);
+    }
+
     public function getResourcePath()
     {
         return '/discussions/' . $this->id;

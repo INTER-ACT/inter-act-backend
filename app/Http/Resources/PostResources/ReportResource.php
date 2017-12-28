@@ -14,6 +14,20 @@ class ReportResource extends Resource
      */
     public function toArray($request)
     {
-        return parent::toArray($request);
+        $thisURI = url($request->path());
+        return [
+            'href' => $thisURI,
+            'id' => $this->id,
+            'user' => [
+                'href' => url($this->user->getResourcePath()),
+                'id' => $this->user->id
+            ],
+            'reported_item' => [
+                'href' => url($this->reportable->getResourcePath()),
+                'id' => $this->reportable->id,
+                'type' => $this->reportable->getType()
+            ],
+            'description' => $this->explanation
+        ];
     }
 }

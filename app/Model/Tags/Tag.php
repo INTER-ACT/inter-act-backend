@@ -82,15 +82,20 @@ class Tag extends Model implements IRestResourceModel
     }
     //endregion
 
-    //region Interfaces
+    //region IRestResourceModel
     function getIdProperty()
     {
         return $this->id;
     }
 
+    public function getType()
+    {
+        return get_class($this);
+    }
+
     public function getResourcePath()
     {
-        return '/comments/' . $this->id;
+        return '/tags/' . $this->id;
     }
     //endregion
 

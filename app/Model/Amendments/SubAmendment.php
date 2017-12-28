@@ -27,6 +27,11 @@ class SubAmendment extends Model implements ITaggable, IReportable, IRatable, IC
         return $this->id;
     }
 
+    public function getType()
+    {
+        return get_class($this);
+    }
+
     public function getResourcePath()
     {
         return $this->amendment()->getResourcePath() . '/subamendments/' . $this->id;

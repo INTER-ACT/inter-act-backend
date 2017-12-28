@@ -12,4 +12,6 @@ namespace App;
 interface IModel
 {
     function getIdProperty();   //TODO: maybe change name if accessor is not desired
+
+    function getType();
 }

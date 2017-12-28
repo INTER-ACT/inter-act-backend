@@ -21,7 +21,13 @@ class Amendment extends Model implements ITaggable, IReportable, IRatable, IComm
     //region IRestResourceModel
     public function getIdProperty()
     {
+        $this->getType();
         return $this->id;
+    }
+
+    public function getType()
+    {
+        return get_class($this);
     }
 
     public function getResourcePath()

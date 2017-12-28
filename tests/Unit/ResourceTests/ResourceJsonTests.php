@@ -9,8 +9,11 @@
 namespace Tests\Unit;
 
 
+use App\Amendments\Amendment;
+use App\Amendments\SubAmendment;
 use App\Comments\Comment;
 use App\Discussions\Discussion;
+use App\Reports\Report;
 use App\Role;
 use App\Tags\Tag;
 use App\User;
@@ -25,6 +28,7 @@ class ResourceJsonTests extends TestCase
 
     protected $baseURI = 'http://localhost';
 
+    //region Discussions
     /** @test */
     public function testDiscussionResource()
     {
@@ -80,7 +84,9 @@ class ResourceJsonTests extends TestCase
             ]
         ]);
     }
+    //endregion
 
+    //region Comments
     /** @test */
     public function testCommentResource()
     {
@@ -179,4 +185,136 @@ class ResourceJsonTests extends TestCase
             ]
         ]);
     }
+    //endregion
+
+    //region reports
+    /** @test */
+    public function testReportResource()
+    {
+        $user = factory(User::class)->create();
+        $this->be($user);
+        $discussion = factory(Discussion::class)->create([
+            'user_id' => $user->id
+        ]);
+        $amendment = factory(Amendment::class)->create([
+            'user_id' => $user->id,
+            'discussion_id' => $discussion->id
+        ]);
+        $report = factory(Report::class)->create([
+            'user_id' => $user->id,
+            'reportable_id' => $amendment->getIdProperty(),
+            'reportable_type' => get_class($amendment),
+            'explanation' => 'Test Description'
+        ]);
+
+        $resourcePath = $this->baseURI . $report->getResourcePath();
+        $response = $this->get($resourcePath);
+        $response->assertJson([
+            'href' => $resourcePath,
+            'id' => $report->id,
+
+            'user' => [
+                'href' => $this->baseURI . $report->user->getResourcePath(),
+                'id' => $report->user->id
+            ],
+            'reported_item' => [
+                'href' => $this->baseURI . $report->reportable->getResourcePath(),
+                'id' => $report->reportable->id,
+                'type' => get_class($report->reportable)
+            ],
+
+            'description' => $report->explanation
+        ]);
+    }
+
+    /** @test */
+    public function testReportCollection()
+    {
+        $user = factory(User::class)->create();
+        $this->be($user);
+        $discussion = factory(Discussion::class)->create([
+            'user_id' => $user->id
+        ]);
+        $amendment = factory(Amendment::class)->create([
+            'user_id' => $user->id,
+            'discussion_id' => $discussion->id
+        ]);
+        $subamendment = factory(SubAmendment::class)->create([
+            'user_id' => $user->id,
+            'amendment_id' => $amendment->id
+        ]);
+        $report1 = factory(Report::class)->create([
+            'user_id' => $user->id,
+            'reportable_id' => $amendment->getIdProperty(),
+            'reportable_type' => get_class($amendment),
+            'explanation' => 'Test Description 1'
+        ]);
+        $report2 = factory(Report::class)->create([
+            'user_id' => $user->id,
+            'reportable_id' => $subamendment->getIdProperty(),
+            'reportable_type' => $subamendment->getType(),
+            'explanation' => 'Test Description 2'
+        ]);
+
+        $resourcePath = $this->baseURI . '/reports';
+        $response = $this->get($resourcePath);
+        $response->assertJson([
+            'href' => $resourcePath,
+            'reports' => [
+                [
+                    'href' => $this->baseURI . $report1->getResourcePath(),
+                    'id' => $report1->id
+                ],
+                [
+                    'href' => $this->baseURI . $report2->getResourcePath(),
+                    'id' => $report2->id
+                ]
+            ]
+        ]);
+    }
+    //endregion
+
+    //region Tags
+    /** @test */
+    public function testTagResource()
+    {
+        $tag = Tag::getNutzungFremderInhalte();
+
+        $resourcePath = $this->baseURI . $tag->getResourcePath();
+        $response = $this->get($resourcePath);
+        $response->assertJson([
+            'href' => $resourcePath,
+            'id' => $tag->id,
+            'name' => $tag->name,
+            'description' => $tag->description
+        ]);
+    }
+
+    /** @test */
+    public function testTagCollection()
+    {
+        $tag1 = Tag::getNutzungFremderInhalte();
+        $tag2 = Tag::getSozialeMedien();
+
+        $resourcePath = $this->baseURI . '/tags';
+        $response = $this->get($resourcePath);
+        $response->assertJson([
+            'href' => $resourcePath,
+            'tags' => [
+                [
+                    //'href' => $this->baseURI . $tag1->getResourcePath(),
+                    'id' => $tag1->id,
+                    'name' => $tag1->name,
+                    'description' => $tag1->description
+                ],
+                [
+                    //'href' => $this->baseURI . $tag2->getResourcePath(),
+                    'id' => $tag2->id,
+                    'name' => $tag2->name,
+                    'description' => $tag2->description
+                ]
+            ]
+        ]);
+    }
+    //endregion
 }

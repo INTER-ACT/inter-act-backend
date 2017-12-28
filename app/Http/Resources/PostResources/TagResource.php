@@ -14,8 +14,9 @@ class TagResource extends Resource
      */
     public function toArray($request)
     {
+        $thisURI = url($this->getResourcePath());
         return [
-            'href' => $request->path(),
+            'href' => $thisURI,
             'id' => $this->id,
             'name' => $this->name,
             'description' => $this->description

@@ -26,6 +26,7 @@ class TestDataSeeder extends Seeder
         //$output = new \Symfony\Component\Console\Output\ConsoleOutput(2);   //TODO: fix output or remove if not necessary anymore
         //$output->writeln('run-start');
 
+        //region Roles
         $admin = Role::getAdmin();
         $expert = Role::getExpert();
         $analyst = Role::getAnalyst();
@@ -33,7 +34,9 @@ class TestDataSeeder extends Seeder
         $guest = Role::getGuest();
 
         //$output->writeln('roles seeded');
+        //endregion
 
+        //region Tags
         $fremdeInhalte = Tag::getNutzungFremderInhalte();
         $socialMedia = Tag::getSozialeMedien();
         $kultErbe = Tag::getKulturellesErbe();
@@ -46,7 +49,9 @@ class TestDataSeeder extends Seeder
         $userGeneratedContent = Tag::getUserGeneratedContent();
 
         //$output->writeln('tags seeded');
+        //endregion
 
+        //region Users
         $users = [
             $this->CreateUser($admin),
             $this->CreateUser($admin),
@@ -62,7 +67,9 @@ class TestDataSeeder extends Seeder
         ];
 
         //$output->writeln('users seeded');
+        //endregion
 
+        //region Discussions
         $discussions = [
             $this->CreateDiscussion($users[0], null, [$fremdeInhalte, $socialMedia]),
             $this->CreateDiscussion($users[0], null, null),
@@ -73,7 +80,9 @@ class TestDataSeeder extends Seeder
             ];
 
         //$output->writeln('discussions seeded');
+        //endregion
 
+        //region Rating-Aspects
         $aspects = [$this->CreateRatingAspect('fair'),
             $this->CreateRatingAspect('unfair'),
             $this->CreateRatingAspect('zielführend'),
@@ -86,7 +95,9 @@ class TestDataSeeder extends Seeder
             $this->CreateRatingAspect('unwichtig')];
 
         //$output->writeln('ratingAspects seeded');
+        //endregion
 
+        //region Amendments
         $amendments = [
             $this->CreateAmendment($users[0], $discussions[0], [$fremdeInhalte, $socialMedia]),
             $this->CreateAmendment($users[2], $discussions[0], [$fremdeInhalte]),
@@ -97,7 +108,9 @@ class TestDataSeeder extends Seeder
         ];
 
         //$output->writeln('amendments seeded');
+        //endregion
 
+        //region SubAmendments
         $subamendments = [
             $this->CreateSubAmendment($users[1], $amendments[0], [$fremdeInhalte, $socialMedia], SubAmendment::ACCEPTED_STATUS),
             $this->CreateSubAmendment($users[2], $amendments[0], [$fremdeInhalte], SubAmendment::ACCEPTED_STATUS),
@@ -110,7 +123,9 @@ class TestDataSeeder extends Seeder
         ];
 
         //$output->writeln('subamendments seeded');
+        //endregion
 
+        //region MA-Ratings
         foreach ($amendments as $amendment)
             $amendment->rating_aspects()->attach(array_map(function($item){return $item->id;}, $aspects));
         foreach ($subamendments as $subamendment)
@@ -128,7 +143,9 @@ class TestDataSeeder extends Seeder
         $this->CreateRating($users[8], $amendments[0], $aspects[0]);
 
         //$output->writeln('ratings seeded');
+        //endregion
 
+        //region Comments
         $comments = [
             $this->CreateComment($users[0], $discussions[1], [$fremdeInhalte, $socialMedia]),
             $this->CreateComment($users[0], $discussions[1], [$fremdeInhalte])
@@ -158,7 +175,9 @@ class TestDataSeeder extends Seeder
         $this->CreateCommentRating($users[8], $comments[1], -1);
 
         //$output->writeln('comment_ratings seeded');
+        //endregion
 
+        //region Reports
         $reports = [
             $this->CreateReport($users[6], $amendments[0]),
             $this->CreateReport($users[6], $amendments[1]),
@@ -168,6 +187,7 @@ class TestDataSeeder extends Seeder
         ];
 
         //$output->writeln('reports seeded');
+        //endregion
     }
 
     private function CreateUser(Role $role)

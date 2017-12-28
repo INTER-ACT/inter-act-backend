@@ -9,6 +9,19 @@ use Illuminate\Support\Facades\DB;
 
 class RatableRatingAspect extends Model implements IModel
 {
+    //region IModel
+    public function getIdProperty()
+    {
+        return $this->id;
+    }
+
+    public function getType()
+    {
+        return get_class($this);
+    }
+    //endregion
+
+    //region relations
     public function ratable()
     {
         return $this->morphTo('ratable');
@@ -23,6 +36,7 @@ class RatableRatingAspect extends Model implements IModel
     {
         return $this->belongsToMany(User::class, 'rating_aspect_rating');
     }
+    //endregion
 
     public function scopeOfRatable($query, int $ratable_id, string $ratable_type)
     {
@@ -33,10 +47,5 @@ class RatableRatingAspect extends Model implements IModel
         /*return RatableRatingAspect::with(['ratable' => function($query) use($ratable_id, $ratable_type){
             return $query->where([['ratable_id', $ratable_id], ['ratable_type', $ratable_type]]);
         }]);*/
-    }
-
-    public function getIdProperty()
-    {
-        return $this->id;
     }
 }

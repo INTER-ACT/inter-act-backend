@@ -6,13 +6,16 @@ use Illuminate\Database\Eloquent\Model;
 
 class Permission extends Model implements IModel
 {
+    //region constants
     const READ_NAME = 'read';
     const CREATE_ARTICLES_NAME = 'create_articles';  //TODO: imo it should be called posts instead of articles, but would have to be changed in documentation
     const CREATE_DISCUSSIONS_NAME = 'create_discussions';
     const ANALYZE_NAME = 'analyze';
     const CREATE_EXPERT_EXPLANATIONS_NAME = 'create_expert_explanations';
     const ADMINISTRATE_NAME = 'administrate';
+    //endregion
 
+    //region static_entries
     public static function getRead()
     {
         return Permission::firstOrCreate(['name' => Permission::READ_NAME]);
@@ -42,14 +45,24 @@ class Permission extends Model implements IModel
     {
         return Permission::firstOrCreate(['name' => Permission::ADMINISTRATE_NAME]);
     }
+    //endregion
 
-    public function roles()
-    {
-        return $this->belongsToMany(Role::class, 'permission_roles');
-    }
-
+    //region IModel
     function getIdProperty()
     {
         return $this->id;
     }
+
+    public function getType()
+    {
+        return get_class($this);
+    }
+    //endregion
+
+    //region relations
+    public function roles()
+    {
+        return $this->belongsToMany(Role::class, 'permission_roles');
+    }
+    //endregion
 }

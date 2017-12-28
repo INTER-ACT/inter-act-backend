@@ -2,10 +2,13 @@
 
 namespace App\Http\Resources\PostResources;
 
+use App\Http\Resources\RestResourceTrait;
 use Illuminate\Http\Resources\Json\ResourceCollection;
 
-class TagCollection extends ResourceCollection
+class ReportCollection extends ResourceCollection
 {
+    use RestResourceTrait;
+
     /**
      * Transform the resource collection into an array.
      *
@@ -14,14 +17,13 @@ class TagCollection extends ResourceCollection
      */
     public function toArray($request)
     {
-        $thisURI = url($request->path());
+        $thisURI = url($this->getResourcePathIfNotNull($request->path()));
         return [
             'href' => $thisURI,
-            'tags' => $this->collection->transform(function ($tag){
+            'reports' => $this->collection->transform(function ($report) use($thisURI){
                 return [
-                    'id' => $tag->id,
-                    'name' => $tag->name,
-                    'description' => $tag->description
+                    'href' => $thisURI . '/' . $report->id,
+                    'id' => $report->id
                 ];
             })
         ];

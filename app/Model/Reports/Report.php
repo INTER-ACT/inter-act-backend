@@ -2,8 +2,8 @@
 
 namespace App\Reports;
 
-use App\IModel;
 use App\IRestResourceModel;
+use App\User;
 use Illuminate\Database\Eloquent\Model;
 
 class Report extends Model implements IRestResourceModel
@@ -12,6 +12,11 @@ class Report extends Model implements IRestResourceModel
     public function getIdProperty()
     {
         return $this->id;
+    }
+
+    public function getType()
+    {
+        return get_class($this);
     }
 
     public function getResourcePath()

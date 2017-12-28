@@ -7,6 +7,19 @@ use Illuminate\Database\Eloquent\Model;
 
 class RatingAspect extends Model implements IModel
 {
+    //region IModel
+    function getIdProperty()
+    {
+        return $this->id;
+    }
+
+    public function getType()
+    {
+        return get_class($this);
+    }
+    //endregion
+
+    //region relations
     public function ratings()
     {
         return $this->hasMany(RatableRatingAspect::class);
@@ -21,9 +34,5 @@ class RatingAspect extends Model implements IModel
     {
         return $this->morphedByMany(SubAmendment::class, 'ratable');
     }
-
-    function getIdProperty()
-    {
-        return $this->id;
-    }
+    //endregion
 }

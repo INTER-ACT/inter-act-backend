@@ -46,6 +46,11 @@ class Role extends Model implements IModel
     {
         return $this->id;
     }
+
+    public function getType()
+    {
+        return get_class($this);
+    }
     //endregion
 
     //region relations
