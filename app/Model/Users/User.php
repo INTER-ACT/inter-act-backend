@@ -39,6 +39,10 @@ class User extends Authenticatable implements IRestResourceModel
         return $this->id;
     }
 
+    public function getSex(){
+        return $this->is_male ? 'm' : 'f';
+    }
+
     public function getType()
     {
         return get_class($this);

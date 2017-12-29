@@ -12,6 +12,8 @@ use App\Http\Resources\PostResources\ReportCollection;
 use App\Http\Resources\PostResources\ReportResource;
 use App\Http\Resources\PostResources\TagCollection;
 use App\Http\Resources\PostResources\TagResource;
+use App\Http\Resources\UserResources\UserCollection;
+use App\Http\Resources\UserResources\UserResource;
 use App\Http\Resources\UserResources\UserStatisticsResource;
 use App\Role;
 use App\User;
@@ -37,11 +39,11 @@ Route::get('/ping', function ()
 });
 
 Route::get('/users', function(){
-   return User::all();
+   return new UserCollection(User::all());
 });
 
 Route::get('/users/{user_id}', function($user_id){
-    return User::with(['role', 'discussions', 'amendments', 'sub_amendments', 'comments', 'rated_comments', 'reports'])->where('id', $user_id)->get();
+    return new UserResource(User::find($user_id));
 });
 
 Route::get('/users/{user_id}/statistics', function($user_id){
