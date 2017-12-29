@@ -14,6 +14,7 @@ class DiscussionStatisticsResource extends Resource
      */
     public function toArray($request)
     {
+        //TODO: implement DiscussionStatisticsResource if needed
         return parent::toArray($request);
     }
 }

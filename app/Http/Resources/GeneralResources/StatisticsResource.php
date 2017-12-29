@@ -2,10 +2,13 @@
 
 namespace App\Http\Resources\GeneralResources;
 
+use App\Http\Resources\RestResourceTrait;
 use Illuminate\Http\Resources\Json\Resource;
 
 class StatisticsResource extends Resource
 {
+    use RestResourceTrait;
+
     /**
      * Transform the resource into an array.
      *
@@ -14,6 +17,10 @@ class StatisticsResource extends Resource
      */
     public function toArray($request)
     {
-        return parent::toArray($request);
+        $thisURI = url($this->getResourcePathIfNotNull($request->path()));
+        return [
+            'href' => $thisURI,
+            
+        ];
     }
 }

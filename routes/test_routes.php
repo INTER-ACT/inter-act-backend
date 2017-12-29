@@ -1,13 +1,18 @@
 <?php
 
+use App\Exceptions\CustomExceptions\ApiException;
+use App\Exceptions\CustomExceptions\ApiExceptionMeta;
 use App\Http\Resources\CommentResources\CommentCollection;
 use App\Http\Resources\CommentResources\CommentResource;
 use App\Http\Resources\DiscussionResources\DiscussionCollection;
 use App\Http\Resources\DiscussionResources\DiscussionResource;
+use App\Http\Resources\GeneralResources\SearchResource;
+use App\Http\Resources\GeneralResources\SearchResourceData;
 use App\Http\Resources\PostResources\ReportCollection;
 use App\Http\Resources\PostResources\ReportResource;
 use App\Http\Resources\PostResources\TagCollection;
 use App\Http\Resources\PostResources\TagResource;
+use App\Http\Resources\UserResources\UserStatisticsResource;
 use App\Role;
 use App\User;
 use App\Discussions\Discussion;
@@ -36,7 +41,11 @@ Route::get('/users', function(){
 });
 
 Route::get('/users/{user_id}', function($user_id){
-   return User::with(['role', 'discussions', 'amendments', 'sub_amendments', 'comments', 'rated_comments', 'reports'])->where('id', $user_id)->get();
+    return User::with(['role', 'discussions', 'amendments', 'sub_amendments', 'comments', 'rated_comments', 'reports'])->where('id', $user_id)->get();
+});
+
+Route::get('/users/{user_id}/statistics', function($user_id){
+    return new UserStatisticsResource(User::find($user_id));
 });
 
 Route::get('/users/{user_id}/discussions', function($user_id){
@@ -80,8 +89,7 @@ Route::get('/comments', function(){
 });
 
 Route::get('/comments/{comment_id}', function(int $comment_id){
-    return new CommentResource(Comment::find($comment_id)); //TODO: optimize performance by eager loading in routes already
-    //Comment::with(['user', 'parent', 'comments', 'tags', 'reports', 'rating_users'])->where('id', $comment_id)->get()
+    return new CommentResource(Comment::find($comment_id));
 });
 
 Route::get('/tags', function(){
@@ -98,5 +106,25 @@ Route::get('/reports', function(){
 
 Route::get('/reports/{report_id}', function(int $report_id){
     return new ReportResource(Report::find($report_id));
+});
+
+Route::get('/search', function(\Illuminate\Http\Request $request){
+    $search_term = $request->search_term;
+    if($search_term == null)
+        throw new ApiException(ApiExceptionMeta::getRequestInvalidValue(), 'Parameter search_term not provided.');
+    $type = $request->type;
+    $post_type = $request->post_type;
+    $pag_start = $request->start;
+    $pag_count = $request->count;
+    $discussions = Discussion::where('title', 'LIKE', '%' . $search_term . '%')
+        ->orWhere('law_text', 'LIKE', '%' . $search_term . '%')
+        ->orWhere('law_explanation', 'LIKE', '%' . $search_term . '%')->get();
+    $amendments = Amendment::where('updated_text', 'LIKE', '%' . $search_term . '%')
+        ->orWhere('explanation', 'LIKE', '%' . $search_term . '%')->get();
+    $sub_amendments = SubAmendment::where('updated_text', 'LIKE', '%' . $search_term . '%')
+        ->orWhere('explanation', 'LIKE', '%' . $search_term . '%')->get();
+    $comments = Comment::where('content', 'LIKE', '%' . $search_term . '%')->get();
+    $data = new SearchResourceData($discussions, $amendments, $sub_amendments, $comments);
+    return new SearchResource($data);
 });
 

@@ -17,12 +17,11 @@ class ResponseMacroServiceProvider extends ServiceProvider
     {
         Response::macro('apiError', function(int $httpCode, string $code, string $message, string $details = null){
             return response()
-                ->setStatusCode($httpCode)
                 ->json([
                     'code' => $code,
                     'message' => $message,
                     'details' => $details
-                ]);
+                ], $httpCode);
         });
     }
 

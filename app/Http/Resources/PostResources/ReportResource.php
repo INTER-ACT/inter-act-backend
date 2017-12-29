@@ -2,10 +2,13 @@
 
 namespace App\Http\Resources\PostResources;
 
+use App\Http\Resources\RestResourceTrait;
 use Illuminate\Http\Resources\Json\Resource;
 
 class ReportResource extends Resource
 {
+    use RestResourceTrait;
+
     /**
      * Transform the resource into an array.
      *
@@ -14,7 +17,7 @@ class ReportResource extends Resource
      */
     public function toArray($request)
     {
-        $thisURI = url($request->path());
+        $thisURI = url($this->getResourcePathIfNotNull($this->getResourcePath()));
         return [
             'href' => $thisURI,
             'id' => $this->id,

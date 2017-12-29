@@ -17,13 +17,13 @@ class CommentCollection extends ResourceCollection
      */
     public function toArray($request)
     {
-        $thisURI = url($this->getResourcePathIfNotNull($request->path()));
+        $thisURI = url($this->getResourcePathIfNotNull($request->getRequestUri()));
         return [
             'href' => $thisURI,
             //'total' => $this->collection->count(),
-            'comments' => $this->collection->transform(function ($comment) use($thisURI){
+            'comments' => $this->collection->transform(function ($comment){
                 return [
-                    'href' => $thisURI . '/' . $comment->id,
+                    'href' => url($comment->getResourcePath()),
                     'id' => $comment->id
                 ];
             })

@@ -20,9 +20,8 @@ class CommentResource extends Resource
      */
     public function toArray($request)
     {
-        $thisURI = url($this->getResourcePathIfNotNull($this->getResourcePath()));
+        $thisURI = url($this->getResourcePathIfNotNull($this->getResourcePath()));  //TODO: update href for list-resources since this way is incorrect when used in other resources (like search)
         return $this->restrictToFields([
-
             'href' => $thisURI,
             'id' => $this->id,
             'content' => $this->content,

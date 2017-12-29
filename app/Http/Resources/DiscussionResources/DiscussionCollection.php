@@ -17,13 +17,13 @@ class DiscussionCollection extends ResourceCollection
      */
     public function toArray($request)
     {
-        $thisURI = url($this->getResourcePathIfNotNull($request->path()));
+        $thisURI = url($this->getResourcePathIfNotNull($request->getRequestUri())); //TODO: change for search or leave it?
         return[
             'href' => $thisURI,
             'total' => $this->collection->count(),
-            'discussions' => $this->collection->transform(function ($discussion) use($thisURI){
+            'discussions' => $this->collection->transform(function ($discussion){
                 return [
-                    'href' => $thisURI . '/' . $discussion->id,
+                    'href' => url($discussion->getResourcePath()),
                     'id' => $discussion->id,
                     'title' => $discussion->title,
                     'article' => 'WAS IST ARTICLE???'   //TODO: update article-field
