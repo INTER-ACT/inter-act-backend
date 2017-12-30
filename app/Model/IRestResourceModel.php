@@ -11,5 +11,8 @@ namespace App;
 
 interface IRestResourceModel extends IModel
 {
+    /**
+     * @return string
+     */
     function getResourcePath();
 }

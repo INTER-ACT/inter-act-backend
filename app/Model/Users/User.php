@@ -21,8 +21,8 @@ class User extends Authenticatable implements IRestResourceModel
      * @var array
      */
     protected $fillable = [
-        'role_id', 'username', 'email', 'password', 'first_name', 'last_name', 'is_male', 'postal_code', 'city', 'job', 'graduation', 'year_of_birth'
-    ];
+        'username', 'email', 'password', 'first_name', 'last_name', 'is_male', 'postal_code', 'city', 'job', 'graduation', 'year_of_birth'
+    ];//TODO: should email and password be mass-assignable?
 
     /**
      * The attributes that should be hidden for arrays.

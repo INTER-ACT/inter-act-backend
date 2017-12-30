@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class RatingAspect extends Model implements IModel
 {
+    protected $fillable = ['name'];
+
     //region IModel
     function getIdProperty()
     {

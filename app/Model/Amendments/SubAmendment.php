@@ -21,6 +21,8 @@ class SubAmendment extends Model implements ITaggable, IReportable, IRatable, IC
     const ACCEPTED_STATUS = 'accepted';
     const REJECTED_STATUS = 'rejected';
 
+    protected $fillable = ['updated_text', 'explanation'];
+
     //region IRestResourceModel
     public function getIdProperty()
     {

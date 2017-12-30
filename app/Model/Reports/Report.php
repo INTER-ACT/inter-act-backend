@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Report extends Model implements IRestResourceModel
 {
+    protected $fillable = ['explanation'];
+
     //region IRestResourceModel
     public function getIdProperty()
     {

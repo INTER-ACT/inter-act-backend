@@ -13,6 +13,8 @@ class Role extends Model implements IModel
     const STANDARD_USER_NAME = 'standard_user';
     const GUEST_NAME = 'guest';
 
+    protected $fillable = [];
+
     //TODO: Seed Roles, Permissions, Tags, ... already at application boot?
     //region static entries
     public static function getAdmin()

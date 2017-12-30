@@ -25,9 +25,7 @@ class DiscussionCollection extends ResourceCollection
                 return [
                     'href' => url($discussion->getResourcePath()),
                     'id' => $discussion->id,
-                    'title' => $discussion->title,
-                    'article' => 'WAS IST ARTICLE???'   //TODO: update article-field
-                ];
+                    'title' => $discussion->title                ];
             })
         ];
     }

@@ -16,6 +16,8 @@ class Discussion extends Model implements ITaggable, ICommentable, IRestResource
 {
     use TTaggablePost;
 
+    protected $fillable = ['title', 'law_text', 'law_explanation'];
+
     //region IRestResourceModel
     public function getIdProperty()
     {

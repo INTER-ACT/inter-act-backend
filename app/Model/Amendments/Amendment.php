@@ -18,6 +18,8 @@ class Amendment extends Model implements ITaggable, IReportable, IRatable, IComm
 {
     use TTaggablePost;
 
+    protected $fillable = ['updated_text', 'explanation'];
+
     //region IRestResourceModel
     public function getIdProperty()
     {
@@ -50,6 +52,21 @@ class Amendment extends Model implements ITaggable, IReportable, IRatable, IComm
     public function sub_amendments()
     {
         return $this->hasMany(SubAmendment::class); //TODO: make sortable by status
+    }
+
+    public function changes()
+    {
+        return $this->sub_amendments()->where('status', '=', SubAmendment::ACCEPTED_STATUS);
+    }
+
+    public function rejections()
+    {
+        return $this->sub_amendments()->where('status', '=', SubAmendment::REJECTED_STATUS);
+    }
+
+    public function pending_sub_amendments()
+    {
+        return $this->sub_amendments()->where('status', '=', SubAmendment::PENDING_STATUS);
     }
 
     public function comments()

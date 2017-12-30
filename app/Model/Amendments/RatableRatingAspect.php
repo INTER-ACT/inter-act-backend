@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\DB;
 
 class RatableRatingAspect extends Model implements IModel
 {
+    protected $fillable = [];
+
     //region IModel
     public function getIdProperty()
     {

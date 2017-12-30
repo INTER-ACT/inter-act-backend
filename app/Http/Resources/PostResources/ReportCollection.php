@@ -17,12 +17,12 @@ class ReportCollection extends ResourceCollection
      */
     public function toArray($request)
     {
-        $thisURI = url($this->getResourcePathIfNotNull($request->path()));
+        $thisURI = url($this->getResourcePathIfNotNull($request->getRequestUri()));
         return [
             'href' => $thisURI,
             'reports' => $this->collection->transform(function ($report) use($thisURI){
                 return [
-                    'href' => $thisURI . '/' . $report->id,
+                    'href' => url($report->getResourcePath()),
                     'id' => $report->id
                 ];
             })

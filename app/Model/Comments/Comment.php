@@ -16,6 +16,7 @@ class Comment extends Model implements IReportable, ICommentable, IRestResourceM
 {
     use TPost;
 
+    protected $fillable = ['content'];
     protected $appends = ['rating_sum'];
 
     //region IRestResourceModel

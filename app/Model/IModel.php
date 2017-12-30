@@ -11,7 +11,13 @@ namespace App;
 
 interface IModel
 {
+    /**
+     * @return int
+     */
     function getIdProperty();   //TODO: maybe change name if accessor is not desired
 
+    /**
+     * @return string
+     */
     function getType();
 }
