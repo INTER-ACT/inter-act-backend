@@ -2,9 +2,9 @@
 
 namespace App\Http\Resources\CommentResources;
 
+use App\Http\Resources\PostResources\TagCollection;
 use App\Http\Resources\ResourceFieldFilterTrait;
 use App\Http\Resources\RestResourceTrait;
-use App\Http\Resources\TagCollection;
 use Illuminate\Http\Resources\Json\Resource;
 
 class CommentResource extends Resource
@@ -25,8 +25,8 @@ class CommentResource extends Resource
             'href' => $thisURI,
             'id' => $this->id,
             'content' => $this->content,
-            'created_at' => $this->created_at->toIso8601String(),   // 1975-12-25T14:15:16-0500
-            'updated_at' => $this->updated_at->toIso8601String(),
+            'created_at' => $this->created_at->toAtomString(),   // 1975-12-25T14:15:16-0500
+            'updated_at' => $this->updated_at->toAtomString(),
             'author' => [
                 'href' => url('/users/' . $this->user_id),
                 'id' => $this->user_id

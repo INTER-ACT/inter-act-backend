@@ -24,9 +24,9 @@ trait RestResourceTrait
     /**
      * @param mixed $resourcePath
      */
-    public function setResourcePath($resourcePath)
+    public function setCustomResourcePath($resourcePath)
     {
-        $this->resourcePath = $resourcePath;
+        $this->customResourcePath = $resourcePath;
     }
 
     protected function getResourcePathIfNotNull(string $value_if_null)

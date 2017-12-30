@@ -17,7 +17,7 @@ class StatisticsResource extends Resource
      */
     public function toArray($request)
     {
-        $thisURI = url($this->getResourcePathIfNotNull($request->path()));
+        $thisURI = url($this->getResourcePathIfNotNull($request->getRequestUri()));
         return [
             'href' => $thisURI,
             

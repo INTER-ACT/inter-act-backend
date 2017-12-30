@@ -16,6 +16,7 @@ use App\Discussions\Discussion;
 use App\Http\Resources\AmendmentResources\AmendmentCollection;
 use App\Http\Resources\CommentResources\CommentCollection;
 use App\Http\Resources\DiscussionResources\DiscussionCollection;
+use App\Http\Resources\PostResources\TagCollection;
 use App\Http\Resources\SubAmendmentResources\SubAmendmentCollection;
 use App\Http\Resources\UserResource;
 use App\Reports\Report;
@@ -51,8 +52,8 @@ class ResourceJsonTests extends TestCase
             'href' => $resourcePath,
             'id' => $discussion->id,
             'title' => $discussion->title,
-            'created_at' => $discussion->created_at->toIso8601String(),
-            'updated_at' => $discussion->updated_at->toIso8601String(),
+            'created_at' => $discussion->created_at->toAtomString(),
+            'updated_at' => $discussion->updated_at->toAtomString(),
             'law_text' => $discussion->law_text,
             'law_explanation' => $discussion->law_explanation,
             'author' => [
@@ -60,7 +61,14 @@ class ResourceJsonTests extends TestCase
                 'id' => $discussion->user->id
             ],
             'amendments' => ['href' => $resourcePath . '/amendments'],
-            'comments' => ['href' => $resourcePath . '/comments']
+            'comments' => ['href' => $resourcePath . '/comments'],
+            'tags' => $discussion->tags->transform(function ($tag){
+                return [
+                    'id' => $tag->id,
+                    'name' => $tag->name,
+                    'description' => $tag->description
+                ];
+            })->toArray()
         ]);
     }
 
@@ -125,7 +133,7 @@ class ResourceJsonTests extends TestCase
             'href' => $resourcePath,
             'id' => $comment->id,
             'content' => $comment->content,
-            'created_at' => $comment->created_at->toIso8601String(),
+            'created_at' => $comment->created_at->toAtomString(),
 
             'author' => [
                 'href' => $this->baseURI . $comment->user->getResourcePath(),
@@ -350,6 +358,27 @@ class ResourceJsonTests extends TestCase
                         'id' => $comment->id
                     ];})->toArray()
             ]
+        ]);
+    }
+
+    /** @test */
+    public function testStatisticsResource()
+    {
+        $user = factory(User::class)->create();
+        $this->be($user);
+        $discussion_count = 2;
+        $amendment_count = 2;
+        $subamendment_count = 2;
+        $comment_count = 2;
+        $discussions = factory(Discussion::class, $discussion_count)->create(['user_id' => $user->id, 'title' => 'asdf']);
+        $amendments = factory(Amendment::class, $amendment_count)->create(['user_id' => $user->id, 'discussion_id' => $discussions[0]->id, 'updated_text' => 'asdf']);
+        $subamendments = factory(SubAmendment::class, $subamendment_count)->create(['user_id' => $user->id, 'amendment_id' => $amendments[0]->id, 'updated_text' => 'asdf']);
+        $comments = factory(Comment::class, $comment_count)->create(['user_id' => $user->id, 'commentable_id' => $subamendments[0]->id, 'commentable_type' => $subamendments[0]->getType(), 'content' => 'asdf']);
+
+        $resourcePath = $this->baseURI . '/statistics';
+        $response = $this->get($resourcePath);
+        $response->assertJson([
+            'href' => $resourcePath
         ]);
     }
     //endregion
