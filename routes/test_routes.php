@@ -27,6 +27,7 @@ use App\Comments\Comment;
 use App\Reports\Report;
 
 use App\Http\Resources;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 Route::get('/', function ()
 {
@@ -128,5 +129,62 @@ Route::get('/search', function(\Illuminate\Http\Request $request){
     $comments = Comment::where('content', 'LIKE', '%' . $search_term . '%')->get();
     $data = new SearchResourceData($discussions, $amendments, $sub_amendments, $comments);
     return new SearchResource($data);
+});
+
+Route::get('/statistics', function(){
+    $users = User::all();
+    $csv_data = $users->reduce(
+        function ($data, $user) {
+            $data[] = [
+                $user->id,
+                $user->username,
+                $user->email,
+                $user->first_name,
+                $user->last_name,
+                $user->getSex(),
+                $user->postal_code,
+                $user->city,
+                $user->job,
+                $user->graduation,
+                $user->getAge()
+            ];
+            return $data;
+        },
+        [
+            [
+                trans('id'),
+                trans('username'),
+                trans('email'),
+                trans('first_name'),
+                trans('last_name'),
+                trans('gender'),
+                trans('postal code'),
+                trans('city'),
+                trans('job'),
+                trans('graduation'),
+                trans('age')
+            ]
+        ]
+    );
+
+    return new StreamedResponse(
+        function() use($csv_data)
+        {
+            // A resource pointer to the output stream for writing the CSV to
+            $handle = fopen('php://output', 'w');
+            foreach ($csv_data as $row)
+            {
+                // Loop through the data and write each entry as a new row in the csv
+                fputcsv($handle, $row);
+            }
+
+            fclose($handle);
+        },
+        200,
+        [
+            'Content-type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename=statistics.csv'
+        ]
+    );
 });
 

@@ -9,7 +9,7 @@ class Role extends Model implements IModel
 {
     const ADMIN_NAME = 'admin';
     const EXPERT_NAME = 'expert';
-    const ANALYST_NAME = 'analyst';
+    const SCIENTIST_NAME = 'scientist';
     const STANDARD_USER_NAME = 'standard_user';
     const GUEST_NAME = 'guest';
 
@@ -27,9 +27,9 @@ class Role extends Model implements IModel
         return Role::CreateRoleIfNotExists(Role::EXPERT_NAME, [Permission::getCreateExpertExplanations(), Permission::getCreateArticles(), Permission::getRead()]);
     }
 
-    public static function getAnalyst()
+    public static function getScientist()
     {
-        return Role::CreateRoleIfNotExists(Role::ANALYST_NAME, [Permission::getAnalyze(), Permission::getCreateArticles(), Permission::getRead()]);
+        return Role::CreateRoleIfNotExists(Role::SCIENTIST_NAME, [Permission::getAnalyze(), Permission::getCreateArticles(), Permission::getRead()]);
     }
 
     public static function getStandardUser()
