@@ -21,10 +21,6 @@
             <directory suffix="Tests.php">./tests/Unit/ResourceTests</directory>
         </testsuite>
 
-        <testsuite name="Model">
-            <directory suffix="Tests.php">./tests/Unit/ModelTests</directory>
-        </testsuite>
-
 
     </testsuites>
     <filter>

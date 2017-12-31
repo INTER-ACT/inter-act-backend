@@ -2,6 +2,8 @@
 
 use App\Exceptions\CustomExceptions\ApiException;
 use App\Exceptions\CustomExceptions\ApiExceptionMeta;
+use App\Http\Resources\AmendmentResources\AmendmentCollection;
+use App\Http\Resources\AmendmentResources\AmendmentResource;
 use App\Http\Resources\CommentResources\CommentCollection;
 use App\Http\Resources\CommentResources\CommentResource;
 use App\Http\Resources\DiscussionResources\DiscussionCollection;
@@ -64,11 +66,11 @@ Route::get('/discussions/{discussion_id}', function(int $discussion_id){
 });
 
 Route::get('/discussions/{discussion_id}/amendments', function(int $discussion_id){
-    return Discussion::find($discussion_id)->amendments;
+    return new AmendmentCollection(Amendment::all()->where('discussion_id', '=', $discussion_id));
 });
 
 Route::get('/discussions/{discussion_id}/amendments/{amendment_id}', function(int $amendment_id){
-    return Amendment::with(['user', 'discussion', 'sub_amendments', 'comments', 'tags', 'ratings', 'rating_aspects', 'reports'])->where('id', $amendment_id)->get();
+    return new AmendmentResource(Amendment::find($amendment_id));
 });
 
 Route::get('/discussions/{discussion_id}/amendments/{amendment_id}/subamendments', function(int $amendment_id){

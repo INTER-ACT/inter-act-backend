@@ -51,7 +51,7 @@ class TestDataSeeder extends Seeder
         //$output->writeln('tags seeded');
         //endregion
 
-        //region Users
+        //region UserResource
         $users = [
             $this->CreateUser($admin),
             $this->CreateUser($admin),

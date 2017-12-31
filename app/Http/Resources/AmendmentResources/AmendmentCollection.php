@@ -2,10 +2,13 @@
 
 namespace App\Http\Resources\AmendmentResources;
 
+use App\Http\Resources\RestResourceTrait;
+use function foo\func;
 use Illuminate\Http\Resources\Json\ResourceCollection;
 
 class AmendmentCollection extends ResourceCollection
 {
+    use RestResourceTrait;
     /**
      * Transform the resource collection into an array.
      *
@@ -14,6 +17,16 @@ class AmendmentCollection extends ResourceCollection
      */
     public function toArray($request)
     {
-        return parent::toArray($request);
+        $thisUri = url($this->getResourcePathIfNotNull($request->getRequestUri()));
+
+        return [
+            'href' => $thisUri,
+            'amendments' => $this->collection->transform(function($amendment){
+                return [
+                    'href' => $amendment->getResourcePath(),
+                    'id' => $amendment->id
+                ];
+            })
+        ];
     }
 }
