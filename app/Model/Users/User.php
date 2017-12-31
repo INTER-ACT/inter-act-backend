@@ -7,6 +7,7 @@ use App\Amendments\SubAmendment;
 use App\Comments\Comment;
 use App\Discussions\Discussion;
 use App\Reports\Report;
+use Carbon\Carbon;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Mockery\Exception;
@@ -116,5 +117,15 @@ class User extends Authenticatable implements IRestResourceModel
         $users->filter(function($user){
            return $user->role()->permissions()->contains('name', '$permission');
         });*/
+    }
+
+    public function getFullName()
+    {
+        return $this->first_name . ' ' . $this->last_name;
+    }
+
+    public function getAge()
+    {
+        return Carbon::now()->year - $this->year_of_birth;
     }
 }

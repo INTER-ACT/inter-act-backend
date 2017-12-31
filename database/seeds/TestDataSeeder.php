@@ -29,7 +29,7 @@ class TestDataSeeder extends Seeder
         //region Roles
         $admin = Role::getAdmin();
         $expert = Role::getExpert();
-        $analyst = Role::getAnalyst();
+        $analyst = Role::getScientist();
         $standard_user = Role::getStandardUser();
         $guest = Role::getGuest();
 
