@@ -17,9 +17,9 @@ class SubAmendment extends Model implements ITaggable, IReportable, IRatable, IC
 {
     use TTaggablePost;
 
-    const PENDING_STATUS = 'pending';
-    const ACCEPTED_STATUS = 'accepted';
-    const REJECTED_STATUS = 'rejected';
+    public const PENDING_STATUS = 'pending';
+    public const ACCEPTED_STATUS = 'accepted';
+    public const REJECTED_STATUS = 'rejected';
 
     protected $fillable = ['updated_text', 'explanation'];
 
@@ -36,7 +36,7 @@ class SubAmendment extends Model implements ITaggable, IReportable, IRatable, IC
 
     public function getResourcePath()
     {
-        return $this->amendment()->getResourcePath() . '/subamendments/' . $this->id;
+        return $this->amendment->getResourcePath() . '/subamendments/' . $this->id;
     }
     //endregion
 

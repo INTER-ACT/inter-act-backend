@@ -14,6 +14,8 @@ use App\Http\Resources\PostResources\ReportCollection;
 use App\Http\Resources\PostResources\ReportResource;
 use App\Http\Resources\PostResources\TagCollection;
 use App\Http\Resources\PostResources\TagResource;
+use App\Http\Resources\SubAmendmentResources\SubAmendmentCollection;
+use App\Http\Resources\SubAmendmentResources\SubAmendmentResource;
 use App\Http\Resources\UserResources\UserCollection;
 use App\Http\Resources\UserResources\UserResource;
 use App\Http\Resources\UserResources\UserStatisticsResource;
@@ -74,11 +76,11 @@ Route::get('/discussions/{discussion_id}/amendments/{amendment_id}', function(in
 });
 
 Route::get('/discussions/{discussion_id}/amendments/{amendment_id}/subamendments', function(int $amendment_id){
-    return Amendment::find($amendment_id)->sub_amendments;
+    return new SubAmendmentCollection(Amendment::find($amendment_id)->sub_amendments);
 });
 
-Route::get('/subamendments/{subamendment_id}', function(int $subamendment_id){
-    return SubAmendment::with(['user', 'amendment', 'comments', 'tags', 'ratings', 'rating_aspects', 'reports'])->where('id', $subamendment_id)->get();
+Route::get('/discussions/{discussion_id}/amendments/{amendment_id}/subamendments/{subamendment_id}', function(int $subamendment_id){
+    return new SubamendmentResource(Subamendment::find($subamendment_id));
 });
 
 Route::get('/subamendments/{subamendment_id}/comments', function(int $subamendment_id){

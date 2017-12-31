@@ -75,7 +75,7 @@ class AmendmentTests extends TestCase
     {
         $amendment = factory(Amendment::class)->states('user', 'discussion')->create();
 
-        $subamendments = factory(SubAmendment::class, 10)->states('user')->create([
+        $subamendments = factory(SubAmendm21ent::class, 10)->states('user')->create([
             'amendment_id' => $amendment->id
         ]);
         $comments = factory(Comment::class, 3)->states('user')->create([
