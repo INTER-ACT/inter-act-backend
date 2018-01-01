@@ -38,6 +38,10 @@ class Amendment extends Model implements ITaggable, IReportable, IRatable, IComm
     }
     //endregion
 
+    public function getChangesPath(){
+        return $this->getResourcePath() . "/changes";
+    }
+
     //region relations
     public function user()
     {

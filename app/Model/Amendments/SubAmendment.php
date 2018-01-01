@@ -4,6 +4,7 @@ namespace App\Amendments;
 
 use App\Comments\Comment;
 use App\Comments\ICommentable;
+use App\Exceptions\CustomExceptions\NotAcceptedException;
 use App\IRestResourceModel;
 use App\Reports\IReportable;
 use App\Reports\Report;
@@ -38,7 +39,16 @@ class SubAmendment extends Model implements ITaggable, IReportable, IRatable, IC
     {
         return $this->amendment->getResourcePath() . '/subamendments/' . $this->id;
     }
+
     //endregion
+
+    public function getChangesPath(){
+        if($this->status != self::ACCEPTED_STATUS)
+            throw new NotAcceptedException();
+
+        return $this->amendment->getResourcePath() . "/changes/" . $this->amendment_version;
+    }
+
 
     //region relations
     public function user()

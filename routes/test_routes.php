@@ -4,6 +4,8 @@ use App\Exceptions\CustomExceptions\ApiException;
 use App\Exceptions\CustomExceptions\ApiExceptionMeta;
 use App\Http\Resources\AmendmentResources\AmendmentCollection;
 use App\Http\Resources\AmendmentResources\AmendmentResource;
+use App\Http\Resources\AmendmentResources\ChangeCollection;
+use App\Http\Resources\AmendmentResources\ChangeResource;
 use App\Http\Resources\CommentResources\CommentCollection;
 use App\Http\Resources\CommentResources\CommentResource;
 use App\Http\Resources\DiscussionResources\DiscussionCollection;
@@ -81,6 +83,18 @@ Route::get('/discussions/{discussion_id}/amendments/{amendment_id}/subamendments
 
 Route::get('/discussions/{discussion_id}/amendments/{amendment_id}/subamendments/{subamendment_id}', function(int $subamendment_id){
     return new SubamendmentResource(Subamendment::find($subamendment_id));
+});
+
+Route::get('/discussions/{discussion_id}/amendments/{amendment_id}/changes', function(int $amendment_id){
+    return new ChangeCollection(Amendment::find($amendment_id));
+});
+
+Route::get('/discussions/{discussion_id}/amendments/{amendment_id}/changes/{subamendment_id}', function(int $subamendment_id){
+    $subamendment = SubAmendment::find($subamendment_id);
+    if($subamendment->status != SubAmendment::ACCEPTED_STATUS)
+        throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException();
+
+    return new ChangeResource($subamendment);
 });
 
 Route::get('/subamendments/{subamendment_id}/comments', function(int $subamendment_id){

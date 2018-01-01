@@ -32,3 +32,11 @@ $factory->state(\App\Amendments\SubAmendment::class, 'amendment', function (Fake
         'amendment_id' => $amendment->id,
     ];
 });
+
+$factory->state(\App\Amendments\SubAmendment::class, 'accepted', function(Faker $faker){
+    return [
+        'status' => \App\Amendments\SubAmendment::ACCEPTED_STATUS,
+        'handled_at' => $faker->dateTimeBetween('now', '+2 years'),
+        'handle_explanation' => $faker->realText(1024)
+    ];
+});
