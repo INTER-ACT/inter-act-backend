@@ -8,7 +8,9 @@
 
 namespace App\Reports;
 
-interface IReportable
+use App\IModel;
+
+interface IReportable extends IModel
 {
     function reports();
 }

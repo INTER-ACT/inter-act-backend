@@ -8,8 +8,6 @@ use App\Comments\Comment;
 use App\Discussions\Discussion;
 use App\User;
 use Tests\TestCase;
-use Illuminate\Foundation\Testing\WithFaker;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Unit\ResourceTests\ResourceTestTrait;
 
 class SearchTests extends TestCase
