@@ -16,6 +16,9 @@ use App\Http\Resources\PostResources\ReportCollection;
 use App\Http\Resources\PostResources\ReportResource;
 use App\Http\Resources\PostResources\TagCollection;
 use App\Http\Resources\PostResources\TagResource;
+use App\Http\Resources\StatisticsResources\ActionStatisticsResource;
+use App\Http\Resources\StatisticsResources\ActionStatisticsResourceData;
+use App\Http\Resources\StatisticsResources\ArrayOfActionStatisticsResourceData;
 use App\Http\Resources\StatisticsResources\StatisticsResource;
 use App\Http\Resources\StatisticsResources\StatisticsResourceData;
 use App\Http\Resources\SubAmendmentResources\SubAmendmentCollection;
@@ -23,6 +26,7 @@ use App\Http\Resources\SubAmendmentResources\SubAmendmentResource;
 use App\Http\Resources\UserResources\UserCollection;
 use App\Http\Resources\UserResources\UserResource;
 use App\Http\Resources\UserResources\UserStatisticsResource;
+use App\RatingAspectRating;
 use App\User;
 use App\Discussions\Discussion;
 use App\Tags\Tag;
@@ -155,6 +159,7 @@ Route::get('/search', function(\Illuminate\Http\Request $request){
     $sub_amendments = SubAmendment::where('updated_text', 'LIKE', '%' . $search_term . '%')
         ->orWhere('explanation', 'LIKE', '%' . $search_term . '%')->get();
     $comments = Comment::where('content', 'LIKE', '%' . $search_term . '%')->get();
+    //return get_class($discussions);
     $data = new SearchResourceData($discussions, $amendments, $sub_amendments, $comments);
     return new SearchResource($data);
 });
@@ -194,6 +199,41 @@ Route::get('/statistics', function(){
         [
             'Content-type' => 'text/csv',
             'Content-Disposition' => 'attachment; filename=statistics.csv'
+        ]
+    );
+});
+
+Route::get('/statistics/activity', function(){
+    $discussions = ActionStatisticsResource::transformCollectionToActionStatisticsResourceDataArray("Diskussion", Discussion::select('id', 'created_at as date', 'user_id', 'title as extra')->with(['user'])->get());
+    $amendments = ActionStatisticsResource::transformCollectionToActionStatisticsResourceDataArray("Änderungsvorschlag", Amendment::select('id', 'discussion_id', 'created_at as date', 'user_id')->with(['user'])->get());
+    $sub_amendments = ActionStatisticsResource::transformCollectionToActionStatisticsResourceDataArray("Sub-Änderungsvorschlag", SubAmendment::select('id', 'amendment_id', 'created_at as date', 'user_id')->with(['user'])->get());
+    $comments = ActionStatisticsResource::transformCollectionToActionStatisticsResourceDataArray("Kommentar", Comment::select('id', 'created_at as date', 'user_id')->with(['user'])->get());
+    $reports = ActionStatisticsResource::transformCollectionToActionStatisticsResourceDataArray("Meldung", Report::select('id', 'created_at as date', 'user_id')->with(['user'])->get());
+    $ratings = ActionStatisticsResource::transformCollectionToActionStatisticsResourceDataArray("Multi-Aspect-Rating", RatingAspectRating::select('ratable_rating_aspect_id', 'created_at as date', 'user_id')->with(['user', 'ratable_rating_aspect:id,rating_aspect_id', 'ratable_rating_aspect.rating_aspect:id,name'])->get());
+    //$ratings = DB::select('SELECT user_id, ratable_rating_aspect_id as aspect_id from rating_aspect_rating');
+
+    //$final_collection = $discussions->merge($amendments)->merge($sub_amendments)->merge($comments)->merge($reports);
+    $final_array = array_merge($discussions, $amendments, $sub_amendments, $comments, $reports, $ratings);
+
+    $resource = new ActionStatisticsResource($final_array);
+    $data = $resource->toArray();
+    return new StreamedResponse(
+        function() use($data)
+        {
+            // A resource pointer to the output stream for writing the CSV to
+            $handle = fopen('php://output', 'w');
+            foreach ($data as $row)
+            {
+                // Loop through the data and write each entry as a new row in the csv
+                fputcsv($handle, $row);
+            }
+
+            fclose($handle);
+        },
+        200,
+        [
+            'Content-type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename=ActivityStatistics.csv'
         ]
     );
 });

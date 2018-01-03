@@ -9,25 +9,27 @@
 namespace App\Http\Resources\GeneralResources;
 
 
+use Illuminate\Database\Eloquent\Collection;
+
 class SearchResourceData
 {
-    /** @var  array */
+    /** @var  Collection */
     protected $discussions;
-    /** @var  array */
+    /** @var  Collection */
     protected $amendments;
-    /** @var  array */
+    /** @var  Collection */
     protected $sub_amendments;
-    /** @var  array */
+    /** @var  Collection */
     protected $comments;
 
     /**
      * SearchResourceData constructor.
-     * @param array $discussions
-     * @param array $amendments
-     * @param array $sub_amendments
-     * @param array $comments
+     * @param Collection $discussions
+     * @param Collection $amendments
+     * @param Collection $sub_amendments
+     * @param Collection $comments
      */
-    public function __construct(array $discussions, array $amendments, array $sub_amendments, array $comments)
+    public function __construct(Collection $discussions, Collection $amendments, Collection $sub_amendments, Collection $comments)
     {
         $this->discussions = $discussions;
         $this->amendments = $amendments;
@@ -35,67 +37,67 @@ class SearchResourceData
         $this->comments = $comments;
     }
 
-    //region getters and setters
+    //region Getters and Setters
     /**
-     * @return array
+     * @return Collection
      */
-    public function getDiscussions(): array
+    public function getDiscussions(): Collection
     {
         return $this->discussions;
     }
 
     /**
-     * @param array $discussions
+     * @param Collection $discussions
      */
-    public function setDiscussions(array $discussions)
+    public function setDiscussions(Collection $discussions)
     {
         $this->discussions = $discussions;
     }
 
     /**
-     * @return array
+     * @return Collection
      */
-    public function getAmendments(): array
+    public function getAmendments(): Collection
     {
         return $this->amendments;
     }
 
     /**
-     * @param array $amendments
+     * @param Collection $amendments
      */
-    public function setAmendments(array $amendments)
+    public function setAmendments(Collection $amendments)
     {
         $this->amendments = $amendments;
     }
 
     /**
-     * @return array
+     * @return Collection
      */
-    public function getSubAmendments(): array
+    public function getSubAmendments(): Collection
     {
         return $this->sub_amendments;
     }
 
     /**
-     * @param array $sub_amendments
+     * @param Collection $sub_amendments
      */
-    public function setSubAmendments(array $sub_amendments)
+    public function setSubAmendments(Collection $sub_amendments)
     {
         $this->sub_amendments = $sub_amendments;
     }
 
     /**
-     * @return array
+     * @return Collection
      */
-    public function getComments(): array
+    public function getComments(): Collection
     {
         return $this->comments;
     }
 
     /**
-     * @param array $comments
+     * @param Collection $comments
      */
-    public function setComments(array $comments)
+    public function setComments(Collection $comments)
     {
         $this->comments = $comments;
     }

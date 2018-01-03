@@ -37,7 +37,9 @@ class SubAmendment extends Model implements ITaggable, IReportable, IRatable, IC
 
     public function getResourcePath()
     {
-        return $this->amendment->getResourcePath() . '/subamendments/' . $this->id;
+        //return (string)$this->amendment_id;
+        $amendment = ($this->amendment === null) ? Amendment::find($this->amendment_id)->first(['id', 'discussion_id']) : $this->amendment;
+        return $amendment->getResourcePath() . '/subamendments/' . $this->id;
     }
 
     //endregion

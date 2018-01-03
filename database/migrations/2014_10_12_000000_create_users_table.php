@@ -29,8 +29,6 @@ class CreateUsersTable extends Migration
             $table->integer('year_of_birth')->unsigned();
             $table->rememberToken();    //TODO: is this needed with OAuth2?
             $table->timestamps();
-
-
         });
     }
 

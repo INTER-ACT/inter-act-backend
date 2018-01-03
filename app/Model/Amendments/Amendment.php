@@ -13,6 +13,7 @@ use App\Tags\Tag;
 use App\Traits\TTaggablePost;
 use App\User;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class Amendment extends Model implements ITaggable, IReportable, IRatable, ICommentable, IRestResourceModel
 {
@@ -34,7 +35,8 @@ class Amendment extends Model implements ITaggable, IReportable, IRatable, IComm
 
     public function getResourcePath()
     {
-        return '/discussions/' . $this->discussion_id . '/amendments/' . $this->id;
+        $discussion_id = ($this->discussion_id === null) ? DB::selectOne('SELECT discussion_id from amendments WHERE id = ?', $this->id)->discussion_id : $this->discussion_id;
+        return '/discussions/' . $discussion_id . '/amendments/' . $this->id;
     }
     //endregion
 

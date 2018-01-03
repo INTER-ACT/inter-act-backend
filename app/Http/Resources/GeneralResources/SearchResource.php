@@ -23,7 +23,7 @@ class SearchResource extends Resource
     {
         $thisURI = url($this->getResourcePathIfNotNull($request->getRequestUri()));
         return [
-            'href' => $thisURI,
+            'href' => $thisURI, //TODO: Only the element-array should be contained (href unnecessary)
             'discussions' => new DiscussionCollection($this->getDiscussions()),
             'amendments' => new AmendmentCollection($this->getAmendments()),
             'subamendments' => new SubAmendmentCollection($this->getSubAmendments()),

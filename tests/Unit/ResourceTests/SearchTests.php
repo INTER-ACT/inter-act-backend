@@ -42,8 +42,16 @@ class SearchTests extends TestCase
                         'title' => $discussion->title
                     ];})->toArray()
             ],
-            'amendments' => $amendments->toArray(),
-            'subamendments' => $subamendments->toArray(),
+            'amendments' => $amendments->transform(function ($amendment){
+                return [
+                    'href' => url($amendment->getResourcePath()),
+                    'id' => $amendment->id
+                ];})->toArray(),
+            'subamendments' => $subamendments->transform(function ($subamendment){
+                return [
+                    'href' => url($subamendment->getResourcePath()),
+                    'id' => $subamendment->id
+                ];})->toArray(),
             'comments' => [
                 'href' => $resourcePath,
                 //'total' => 2,
