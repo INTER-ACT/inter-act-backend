@@ -11,10 +11,12 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class RatingTests extends TestCase
 {
+    use ResourceTestTrait;
+
     /** @test */
     public function testCommentRatingResource()
     {
-        $comment = factory(Comment::class)->create();
+        $comment = factory(Comment::class)->states('user', 'amendment')->create();
         $user = factory(User::class)->create();
 
     }
