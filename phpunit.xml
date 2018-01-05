@@ -21,6 +21,10 @@
             <directory suffix="Tests.php">./tests/Unit/ResourceTests</directory>
         </testsuite>
 
+        <testsuite name="Authentication">
+            <directory suffix="Tests.php">./tests/Unit/AuthenticationTests</directory>
+        </testsuite>
+
 
     </testsuites>
     <filter>
