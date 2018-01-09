@@ -6,10 +6,10 @@ use App\Amendments\Amendment;
 use App\Amendments\SubAmendment;
 use App\Discussions\Discussion;
 use App\IModel;
-use App\IRestResourceModel;
+use App\IRestResource;
 use Illuminate\Database\Eloquent\Model;
 
-class Tag extends Model implements IRestResourceModel
+class Tag extends Model implements IRestResource
 {
     //region constants
     const NUTZUNG_FREMDER_INHALTE_NAME = "Lizenz";
@@ -82,7 +82,7 @@ class Tag extends Model implements IRestResourceModel
     }
     //endregion
 
-    //region IRestResourceModel
+    //region IRestResource
     function getIdProperty()
     {
         return $this->id;

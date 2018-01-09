@@ -3,7 +3,7 @@
 namespace App\Comments;
 
 use App\IModel;
-use App\IRestResourceModel;
+use App\IRestResource;
 use App\Reports\IReportable;
 use App\Reports\Report;
 use App\Tags\Tag;
@@ -12,14 +12,14 @@ use App\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 
-class Comment extends Model implements IReportable, ICommentable, IRestResourceModel
+class Comment extends Model implements IReportable, ICommentable, IRestResource
 {
     use TPost;
 
     protected $fillable = ['content'];
     protected $appends = ['rating_sum'];
 
-    //region IRestResourceModel
+    //region IRestResource
     public function getIdProperty()
     {
         return $this->id;
@@ -64,7 +64,7 @@ class Comment extends Model implements IReportable, ICommentable, IRestResourceM
 
     public function rating_users()  //TODO: change foreignPivotKey and relatedPivotKey for other Models as well if needed
     {
-        return $this->belongsToMany(User::class, 'comment_ratings', 'comment_id', 'user_id');
+        return $this->belongsToMany(User::class, 'comment_ratings', 'comment_id', 'user_id')->withTimestamps();
     }
 
     //returns the sum of all rating_scores related to this comment

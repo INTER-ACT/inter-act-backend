@@ -5,7 +5,8 @@ namespace App\Amendments;
 use App\Comments\Comment;
 use App\Comments\ICommentable;
 use App\Discussions\Discussion;
-use App\IRestResourceModel;
+use App\IModel;
+use App\IRestResource;
 use App\Reports\IReportable;
 use App\Reports\Report;
 use App\Tags\ITaggable;
@@ -15,13 +16,13 @@ use App\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 
-class Amendment extends Model implements ITaggable, IReportable, IRatable, ICommentable, IRestResourceModel
+class Amendment extends Model implements ITaggable, IReportable, IRatable, ICommentable, IRestResource
 {
     use TTaggablePost;
 
     protected $fillable = ['updated_text', 'explanation'];
 
-    //region IRestResourceModel
+    //region IRestResource
     public function getIdProperty()
     {
         $this->getType();
@@ -87,7 +88,7 @@ class Amendment extends Model implements ITaggable, IReportable, IRatable, IComm
 
     public function ratings()
     {
-        return $this->morphMany(RatableRatingAspect::class, 'ratable');
+        return $this->belongsToMany(RatableRatingAspect::class, 'rating_aspect_rating')->withTimestamps();
     }
 
     public function rating_aspects()

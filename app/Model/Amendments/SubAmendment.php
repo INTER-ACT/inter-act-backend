@@ -5,7 +5,8 @@ namespace App\Amendments;
 use App\Comments\Comment;
 use App\Comments\ICommentable;
 use App\Exceptions\CustomExceptions\NotAcceptedException;
-use App\IRestResourceModel;
+use App\IModel;
+use App\IRestResource;
 use App\Reports\IReportable;
 use App\Reports\Report;
 use App\Tags\ITaggable;
@@ -14,7 +15,7 @@ use App\Traits\TTaggablePost;
 use App\User;
 use Illuminate\Database\Eloquent\Model;
 
-class SubAmendment extends Model implements ITaggable, IReportable, IRatable, ICommentable, IRestResourceModel
+class SubAmendment extends Model implements ITaggable, IReportable, IRatable, ICommentable, IRestResource
 {
     use TTaggablePost;
 
@@ -24,7 +25,7 @@ class SubAmendment extends Model implements ITaggable, IReportable, IRatable, IC
 
     protected $fillable = ['updated_text', 'explanation'];
 
-    //region IRestResourceModel
+    //region IRestResource
     public function getIdProperty()
     {
         return $this->id;
@@ -75,7 +76,7 @@ class SubAmendment extends Model implements ITaggable, IReportable, IRatable, IC
 
     public function ratings()
     {
-        return $this->morphMany(RatableRatingAspect::class, 'ratable');
+        return $this->belongsToMany(RatableRatingAspect::class, 'rating_aspect_rating')->withTimestamps();
     }
 
     public function rating_aspects()

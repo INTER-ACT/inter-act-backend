@@ -38,7 +38,7 @@ class RatableRatingAspect extends Model implements IModel
 
     public function user_ratings()
     {
-        return $this->belongsToMany(User::class, 'rating_aspect_rating');
+        return $this->belongsToMany(User::class, 'rating_aspect_rating')->withTimestamps();
     }
     //endregion
 

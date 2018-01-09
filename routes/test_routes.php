@@ -1,5 +1,8 @@
 <?php
 
+use App\CommentRating;
+use App\Domain\EntityRepresentations\CommentRatingRepresentation;
+use App\Domain\EntityRepresentations\MultiAspectRatingRepresentation;
 use App\Exceptions\CustomExceptions\ApiException;
 use App\Exceptions\CustomExceptions\ApiExceptionMeta;
 use App\Http\Resources\AmendmentResources\AmendmentCollection;
@@ -17,10 +20,13 @@ use App\Http\Resources\PostResources\ReportResource;
 use App\Http\Resources\PostResources\TagCollection;
 use App\Http\Resources\PostResources\TagResource;
 use App\Http\Resources\StatisticsResources\ActionStatisticsResource;
-use App\Http\Resources\StatisticsResources\ActionStatisticsResourceData;
+use App\Http\Resources\StatisticsResources\GeneralActivityStatisticsResource;
+use App\Http\Resources\StatisticsResources\GeneralActivityStatisticsResourceData;
 use App\Http\Resources\StatisticsResources\ArrayOfActionStatisticsResourceData;
 use App\Http\Resources\StatisticsResources\StatisticsResource;
 use App\Http\Resources\StatisticsResources\StatisticsResourceData;
+use App\Http\Resources\StatisticsResources\UserActivityStatisticsResource;
+use App\Http\Resources\StatisticsResources\UserActivityStatisticsResourceData;
 use App\Http\Resources\SubAmendmentResources\SubAmendmentCollection;
 use App\Http\Resources\SubAmendmentResources\SubAmendmentResource;
 use App\Http\Resources\UserResources\UserCollection;
@@ -204,18 +210,25 @@ Route::get('/statistics', function(){
 });
 
 Route::get('/statistics/activity', function(){
-    $discussions = ActionStatisticsResource::transformCollectionToActionStatisticsResourceDataArray("Diskussion", Discussion::select('id', 'created_at as date', 'user_id', 'title as extra')->with(['user'])->get());
-    $amendments = ActionStatisticsResource::transformCollectionToActionStatisticsResourceDataArray("Änderungsvorschlag", Amendment::select('id', 'discussion_id', 'created_at as date', 'user_id')->with(['user'])->get());
-    $sub_amendments = ActionStatisticsResource::transformCollectionToActionStatisticsResourceDataArray("Sub-Änderungsvorschlag", SubAmendment::select('id', 'amendment_id', 'created_at as date', 'user_id')->with(['user'])->get());
-    $comments = ActionStatisticsResource::transformCollectionToActionStatisticsResourceDataArray("Kommentar", Comment::select('id', 'created_at as date', 'user_id')->with(['user'])->get());
-    $reports = ActionStatisticsResource::transformCollectionToActionStatisticsResourceDataArray("Meldung", Report::select('id', 'created_at as date', 'user_id')->with(['user'])->get());
-    $ratings = ActionStatisticsResource::transformCollectionToActionStatisticsResourceDataArray("Multi-Aspect-Rating", RatingAspectRating::select('ratable_rating_aspect_id', 'created_at as date', 'user_id')->with(['user', 'ratable_rating_aspect:id,rating_aspect_id', 'ratable_rating_aspect.rating_aspect:id,name'])->get());
-    //$ratings = DB::select('SELECT user_id, ratable_rating_aspect_id as aspect_id from rating_aspect_rating');
-
-    //$final_collection = $discussions->merge($amendments)->merge($sub_amendments)->merge($comments)->merge($reports);
-    $final_array = array_merge($discussions, $amendments, $sub_amendments, $comments, $reports, $ratings);
-
-    $resource = new ActionStatisticsResource($final_array);
+    $discussions = GeneralActivityStatisticsResource::transformCollectionToResourceDataArray(Discussion::select('id', 'created_at as date', 'user_id', 'title as extra')->with(['user'])->get());
+    $amendments = GeneralActivityStatisticsResource::transformCollectionToResourceDataArray(Amendment::select('id', 'discussion_id', 'created_at as date', 'user_id')->with(['user'])->get());
+    $sub_amendments = GeneralActivityStatisticsResource::transformCollectionToResourceDataArray(SubAmendment::select('id', 'amendment_id', 'created_at as date', 'user_id')->with(['user'])->get());
+    $comments = GeneralActivityStatisticsResource::transformCollectionToResourceDataArray(Comment::select('id', 'created_at as date', 'user_id')->with(['user'])->get());
+    $reports = GeneralActivityStatisticsResource::transformCollectionToResourceDataArray(Report::select('id', 'created_at as date', 'user_id')->with(['user'])->get());
+    //return RatingAspectRating::select('ratable_rating_aspect_id', 'created_at as date', 'user_id')->with(['user', 'ratable_rating_aspect:id,rating_aspect_id,ratable_id,ratable_type', 'ratable_rating_aspect.ratable', 'ratable_rating_aspect.rating_aspect:id,name'])->get();
+    $ratings_raw = RatingAspectRating::select('ratable_rating_aspect_id', 'created_at as date', 'user_id')->with(['user', 'ratable_rating_aspect:id,rating_aspect_id,ratable_id,ratable_type', 'ratable_rating_aspect.ratable', 'ratable_rating_aspect.rating_aspect:id,name'])->get()
+        ->transform(function($item, $key) {
+            return (new MultiAspectRatingRepresentation($item->date, $item->ratable_rating_aspect->ratable, $item->user, $item->ratable_rating_aspect->rating_aspect->name));
+        });
+    $ratings = GeneralActivityStatisticsResource::transformCollectionToResourceDataArray($ratings_raw);
+    $comment_ratings_raw = CommentRating::with(['user', 'comment'])->get()
+        ->transform(function($item, $key) {
+            return new CommentRatingRepresentation($item->created_at, $item->comment, $item->user, $item->rating_score);
+        });
+    $comment_ratings = GeneralActivityStatisticsResource::transformCollectionToResourceDataArray($comment_ratings_raw);
+    $final_array = array_merge($discussions, $amendments, $sub_amendments, $comments, $reports, $ratings, $comment_ratings);
+    //return $final_array;
+    $resource = new GeneralActivityStatisticsResource($final_array);
     $data = $resource->toArray();
     return new StreamedResponse(
         function() use($data)
@@ -233,13 +246,53 @@ Route::get('/statistics/activity', function(){
         200,
         [
             'Content-type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename=ActivityStatistics.csv'
+            'Content-Disposition' => 'attachment; filename=GeneralActivityStatistics.csv'
         ]
     );
 });
 
 Route::get('/users/{user_id}/statistics', function($user_id){
-    return new UserStatisticsResource(User::find($user_id));
+    $amendment_count = DB::select('SELECT users.id as user_id, discussions.id as discussion_id, COUNT(*) from amendments
+JOIN discussions on amendments.discussion_id = discussions.id
+JOIN users on amendments.user_id = users.id
+GROUP BY users.id, discussions.id');
+    $users = User::select('id')->get()->transform(function($item){
+        return $item->getResourcePath();
+    });
+    $discussions = Discussion::select('id', 'title')->get()->transform(function($item){
+        return [$item->getResourcePath(), $item->title];
+    });
+    $total_array = [];
+    foreach ($users as $user)
+    {
+        foreach ($discussions as $discussion)
+        {
+            $total_array = array_merge($total_array, [[$user, $discussion[0], $discussion[1], 9]]);
+        }
+    }
+    /*$users->transform(function($item){
+        return new UserActivityStatisticsResourceData($item->user->getResourcePath(), $item->discussion->getResourcePath, $item->discussion->title, 10);
+    });*/
+    $data = (new UserActivityStatisticsResource($total_array))->toArray();
+    return new StreamedResponse(
+        function() use($data)
+        {
+            // A resource pointer to the output stream for writing the CSV to
+            $handle = fopen('php://output', 'w');
+            foreach ($data as $row)
+            {
+                // Loop through the data and write each entry as a new row in the csv
+                fputcsv($handle, $row);
+            }
+
+            fclose($handle);
+        },
+        200,
+        [
+            'Content-type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename=UserActivityStatistics.csv'
+        ]
+    );
 });
 
 Route::get('/users/statistics', function(){

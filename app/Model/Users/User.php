@@ -12,7 +12,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Mockery\Exception;
 
-class User extends Authenticatable implements IRestResourceModel
+class User extends Authenticatable implements IRestResource
 {
     use Notifiable;
 
@@ -34,7 +34,7 @@ class User extends Authenticatable implements IRestResourceModel
         'password', 'remember_token',
     ];
 
-    //region IRestResourceModel
+    //region IRestResource
     function getIdProperty()    //TODO: Class instead of IModel interface
     {
         return $this->id;

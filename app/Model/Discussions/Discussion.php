@@ -5,20 +5,21 @@ namespace App\Discussions;
 use App\Amendments\Amendment;
 use App\Comments\Comment;
 use App\Comments\ICommentable;
-use App\IRestResourceModel;
+use App\IModel;
+use App\IRestResource;
 use App\Tags\ITaggable;
 use App\Tags\Tag;
 use App\Traits\TTaggablePost;
 use App\User;
 use Illuminate\Database\Eloquent\Model;
 
-class Discussion extends Model implements ITaggable, ICommentable, IRestResourceModel
+class Discussion extends Model implements ITaggable, ICommentable, IRestResource
 {
     use TTaggablePost;
 
     protected $fillable = ['title', 'law_text', 'law_explanation'];
 
-    //region IRestResourceModel
+    //region IRestResource
     public function getIdProperty()
     {
         return $this->id;

@@ -8,9 +8,7 @@
 
 namespace App\Tags;
 
-use App\IModel;
-
-interface ITaggable extends IModel
+interface ITaggable
 {
     function tags();
 }

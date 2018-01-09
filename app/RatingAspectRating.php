@@ -5,7 +5,7 @@ namespace App;
 use App\Amendments\RatableRatingAspect;
 use Illuminate\Database\Eloquent\Model;
 
-class RatingAspectRating extends Model implements IRestResourceModel
+class RatingAspectRating extends Model implements IRestResource
 {
     protected $table = "rating_aspect_rating";
 
@@ -16,7 +16,7 @@ class RatingAspectRating extends Model implements IRestResourceModel
      */
     function getIdProperty()
     {
-        //TODO: remove or implement
+        return 0; //TODO: remove or implement
     }
 
     /**

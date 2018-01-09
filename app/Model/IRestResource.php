@@ -9,7 +9,7 @@
 namespace App;
 
 
-interface IRestResourceModel extends IModel
+interface IRestResource extends IModel
 {
     /**
      * @return string
