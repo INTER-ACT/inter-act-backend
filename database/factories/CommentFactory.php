@@ -1,5 +1,6 @@
 <?php
 
+use App\Amendments\Amendment;
 use App\User;
 use Faker\Generator as Faker;
 
@@ -23,5 +24,17 @@ $factory->state(\App\Comments\Comment::class, 'user', function (Faker $faker) {
     $user = factory(User::class)->create();
     return [
         'user_id' => $user->id,
+    ];
+});
+
+/**
+ * Factory for a Comment on a new amendment
+ *
+ */
+$factory->state(\App\Comments\Comment::class, 'amendment', function (Faker $faker) {
+    $amendment =  factory(Amendment::class)->states('user', 'discussion')->create();
+    return [
+        'commentable_id' => $amendment->id,
+        'commentable_type' => Amendment::class
     ];
 });

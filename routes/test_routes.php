@@ -23,6 +23,7 @@ use App\Http\Resources\StatisticsResources\ActionStatisticsResource;
 use App\Http\Resources\StatisticsResources\GeneralActivityStatisticsResource;
 use App\Http\Resources\StatisticsResources\GeneralActivityStatisticsResourceData;
 use App\Http\Resources\StatisticsResources\ArrayOfActionStatisticsResourceData;
+use App\Http\Resources\RatingResources\CommentRatingResource;
 use App\Http\Resources\StatisticsResources\StatisticsResource;
 use App\Http\Resources\StatisticsResources\StatisticsResourceData;
 use App\Http\Resources\StatisticsResources\UserActivityStatisticsResource;
@@ -127,6 +128,10 @@ Route::get('/comments', function(){
 
 Route::get('/comments/{comment_id}', function(int $comment_id){
     return new CommentResource(Comment::find($comment_id));
+});
+
+Route::get('/comments/{comment_id}/ratings', function(int $comment_id){
+    return new CommentRatingResource(Comment::find($comment_id));
 });
 //endregion
 
