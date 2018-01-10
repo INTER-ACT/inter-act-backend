@@ -8,10 +8,7 @@
 
 namespace App\Amendments;
 
-
-use App\IModel;
-
-interface IRatable extends IModel
+interface IRatable
 {
     function ratings();
 }

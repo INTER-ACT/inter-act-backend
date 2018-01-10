@@ -8,10 +8,7 @@
 
 namespace App\Comments;
 
-
-use App\IModel;
-
-interface ICommentable extends IModel
+interface ICommentable
 {
     function comments();
 }

@@ -143,6 +143,50 @@ class StatisticsTests extends TestCase
     //endregion
 
     /** @test */
+    public function testGeneralActivityStatisticsResource() //TODO: remove or finish if necessary
+    {
+        $user = factory(User::class)->create();
+        $this->be($user);
+        $discussion = ModelFactory::CreateDiscussion($user);
+        $amendment = ModelFactory::CreateAmendment($user, $discussion);
+        $sub_amendment = ModelFactory::CreateSubAmendment($user, $amendment);
+        $aspects = ModelFactory::CreateRatingAspects([
+            'fair', 'unfair', 'zielführend', 'nicht zielführend', 'perfekt', 'kompliziert', 'benachteiligend', 'blödsinning', 'interessant', 'unwichtig'
+        ]);
+
+        $amendment->rating_aspects()->attach(array_map(function ($item) {
+            return $item->id;
+        }, $aspects));
+        $sub_amendment->rating_aspects()->attach(array_map(function ($item) {
+            return $item->id;
+        }, $aspects));
+        ModelFactory::CreateRating($user, $amendment, $aspects[0]);
+        ModelFactory::CreateRating($user, $sub_amendment, $aspects[0]);
+        $comment = ModelFactory::CreateComment($user, $sub_amendment);
+        ModelFactory::CreateCommentRating($user, $comment, 1);
+        $comment_report = ModelFactory::CreateReport($user, $comment);
+
+        $resourcePath = $this->baseURI . '/test/statistics/activity';
+        $response = $this->get($resourcePath);
+        $response->assertJson([
+            [
+                'Typ',
+                'Datum',
+                'Geschlecht',
+                'PLZ',
+                'Job',
+                'Höchster Bildungsabschluss',
+                'Alter',
+                'Beitrag',
+                'Extra-Information'
+            ],
+            [
+
+            ]
+        ]);
+    }
+
+    /** @test */
     public function testDiscussionStatisticsResource()
     {
         self::assertEquals(true, true);

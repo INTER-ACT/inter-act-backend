@@ -13,7 +13,7 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Passport\HasApiTokens;
 use Mockery\Exception;
 
-class User extends Authenticatable implements IRestResourceModel
+class User extends Authenticatable implements IRestResource
 {
     use Notifiable;
     use HasApiTokens;
@@ -36,7 +36,7 @@ class User extends Authenticatable implements IRestResourceModel
         'password', 'remember_token',
     ];
 
-    //region IRestResourceModel
+    //region IRestResource
     function getIdProperty()    //TODO: Class instead of IModel interface
     {
         return $this->id;

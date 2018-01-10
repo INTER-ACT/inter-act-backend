@@ -2,8 +2,9 @@
 
 namespace App\Comments;
 
+use App\CommentRating;
 use App\IModel;
-use App\IRestResourceModel;
+use App\IRestResource;
 use App\Reports\IReportable;
 use App\Reports\Report;
 use App\Tags\Tag;
@@ -12,14 +13,14 @@ use App\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 
-class Comment extends Model implements IReportable, ICommentable, IRestResourceModel
+class Comment extends Model implements IReportable, ICommentable, IRestResource
 {
     use TPost;
 
     protected $fillable = ['content'];
     protected $appends = ['rating_sum'];
 
-    //region IRestResourceModel
+    //region IRestResource
     public function getIdProperty()
     {
         return $this->id;
@@ -62,13 +63,18 @@ class Comment extends Model implements IReportable, ICommentable, IRestResourceM
         return $this->morphMany(Report::class, 'reportable');
     }
 
+    public function ratings()
+    {
+        return $this->hasMany(CommentRating::class, 'comment_id');
+    }
+
     public function rating_users()  //TODO: change foreignPivotKey and relatedPivotKey for other Models as well if needed
     {
-        return $this->belongsToMany(User::class, 'comment_ratings', 'comment_id', 'user_id');
+        return $this->belongsToMany(User::class, 'comment_ratings', 'comment_id', 'user_id')->withTimestamps()->withPivot(['rating_score']);
     }
 
     //returns the sum of all rating_scores related to this comment
-    public function rating_sum()    //TODO: Update Documentation (here, count and sum are returned)
+    public function rating_sum()
     {
         $rating_sum = DB::selectOne('select sum(cr.rating_score) as rating_sum from users 
                                 left join comment_ratings cr on users.id = cr.user_id
@@ -83,7 +89,7 @@ class Comment extends Model implements IReportable, ICommentable, IRestResourceM
 
     public function getRatingSumAttribute()
     {
-        return $this->rating_sum();//TODO: check null/etc. if needed (null-check done in function rating_sum() already
+        return $this->rating_sum();
     }
     //endregion
 }
