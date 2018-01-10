@@ -13,7 +13,7 @@ class AuthenticationTests extends TestCase
 {
     use DatabaseMigrations;
 
-    public function testServerCreation()
+    public function testPing()
     {
         Passport::actingAs(
             factory(User::class)->create(), ['*']
@@ -23,4 +23,6 @@ class AuthenticationTests extends TestCase
 
         $response->assertStatus(200);
     }
+
+    // TODO write manuel tests as well
 }

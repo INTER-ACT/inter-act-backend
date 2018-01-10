@@ -15,7 +15,7 @@ class RatingAspect extends Model implements IModel
         return $this->id;
     }
 
-    public function getType()
+    public  function getType()
     {
         return get_class($this);
     }

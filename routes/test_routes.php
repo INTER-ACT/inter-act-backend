@@ -47,7 +47,7 @@ Route::get('/', function ()
 Route::get('/ping', function ()
 {
     return "Test-API ping response";
-});
+})->middleware('auth:api');
 //endregion
 
 //region users
@@ -320,3 +320,4 @@ Route::get('/test/statistics', function(){
     return (new StatisticsResource($data))->toArray();
 });
 //endregion
+
