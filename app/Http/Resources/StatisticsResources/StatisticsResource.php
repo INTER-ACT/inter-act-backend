@@ -7,9 +7,6 @@ use Illuminate\Http\Resources\Json\Resource;
 
 class StatisticsResource extends CustomArrayResource
 {
-    /** @var  StatisticsResourceData */
-    protected $data;
-
     /**
      * StatisticsResource constructor.
      * @param StatisticsResourceData $data
@@ -30,17 +27,17 @@ class StatisticsResource extends CustomArrayResource
             'Anzahl Reports'
         ];
         $data_array = [
-            $this->data->getUserCount(),
-            $this->data->getAvgUserAge(),
-            $this->data->getMaleUserCount(),
-            $this->data->getFemaleUserCount(),
-            $this->data->getDiscussionCount(),
-            $this->data->getAmendmentCount(),
-            $this->data->getSubAmendmentCount(),
-            $this->data->getMaRatingCount(),
-            $this->data->getCommentCount(),
-            $this->data->getCommentRatingCount(),
-            $this->data->getReportCount()
+            $data->getUserCount(),
+            $data->getAvgUserAge(),
+            $data->getMaleUserCount(),
+            $data->getFemaleUserCount(),
+            $data->getDiscussionCount(),
+            $data->getAmendmentCount(),
+            $data->getSubAmendmentCount(),
+            $data->getMaRatingCount(),
+            $data->getCommentCount(),
+            $data->getCommentRatingCount(),
+            $data->getReportCount()
         ];
         parent::__construct($header, [$data_array]);
     }

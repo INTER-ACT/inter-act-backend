@@ -11,28 +11,17 @@ namespace App\Http\Resources\StatisticsResources;
 
 use App\Discussions\Discussion;
 use App\Tags\Tag;
+use Illuminate\Database\Eloquent\Collection;
 
 class ActionStatisticsResource extends CustomArrayResource
 {
     /**
      * StatisticsResource constructor.
+     * @param array $header
      * @param array $data
      */
-    public function __construct(array $data)
+    public function __construct(array $header, array $data)
     {
-        $header = [
-            'Diskussion/Tag',
-            'Titel/Tag-Name'
-        ];
         parent::__construct($header, $data);
-    }
-
-    public static function transformCollectionToActionStatisticsResourceDataArray(string $type, \Illuminate\Database\Eloquent\Collection $collection)
-    {
-        return $collection->transform(function($item, $key) use($type){
-            $item_type = get_class($item);
-            $title_name = ($item_type == Discussion::class) ? $item->title : ($item_type == Tag::class) ? $item->name : '-';
-            return [$item->getResourcePath(), $title_name, $item->activity];
-        })->toArray();
     }
 }

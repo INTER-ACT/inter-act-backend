@@ -20,10 +20,15 @@ use App\Http\Resources\PostResources\ReportResource;
 use App\Http\Resources\PostResources\TagCollection;
 use App\Http\Resources\PostResources\TagResource;
 use App\Http\Resources\StatisticsResources\ActionStatisticsResource;
+use App\Http\Resources\StatisticsResources\ActionStatisticsResourceData;
+use App\Http\Resources\StatisticsResources\CommentRatingStatisticsResource;
+use App\Http\Resources\StatisticsResources\CommentRatingStatisticsResourceData;
 use App\Http\Resources\StatisticsResources\GeneralActivityStatisticsResource;
 use App\Http\Resources\StatisticsResources\GeneralActivityStatisticsResourceData;
 use App\Http\Resources\StatisticsResources\ArrayOfActionStatisticsResourceData;
 use App\Http\Resources\RatingResources\CommentRatingResource;
+use App\Http\Resources\StatisticsResources\RatingStatisticsResource;
+use App\Http\Resources\StatisticsResources\RatingStatisticsResourceData;
 use App\Http\Resources\StatisticsResources\StatisticsResource;
 use App\Http\Resources\StatisticsResources\StatisticsResourceData;
 use App\Http\Resources\StatisticsResources\UserActivityStatisticsResource;
@@ -177,44 +182,7 @@ Route::get('/search', function(\Illuminate\Http\Request $request){
 //endregion
 
 //region statistics
-Route::get('/statistics', function(){
-    $user_count = DB::selectOne('SELECT COUNT(*) as val from users')->val;
-    $avg_age = DB::selectOne('SELECT AVG(age) as val from (SELECT (YEAR(CURRENT_DATE()) - year_of_birth) as age from users) as age_table')->val;
-    $male_count = DB::selectOne('SELECT COUNT(id) as val from users WHERE is_male = 1')->val;
-    $female_count = DB::selectOne('SELECT COUNT(id) as val from users WHERE is_male = 0')->val;
-    $discussion_count = DB::selectOne('SELECT COUNT(*) as val from discussions')->val;
-    $amendment_count = DB::selectOne('SELECT COUNT(*) as val from amendments')->val;
-    $sub_amendment_count = DB::selectOne('SELECT COUNT(*) as val from sub_amendments')->val;
-    $ma_rating_count = DB::selectOne('SELECT COUNT(*) as val from rating_aspect_rating')->val;
-    $comment_count = DB::selectOne('SELECT COUNT(*) as val from comments')->val;
-    $comment_rating_count = DB::selectOne('SELECT COUNT(*) as val from comment_ratings')->val;
-    $report_count = DB::selectOne('SELECT COUNT(*) as val from reports')->val;
-    $resource_data = new StatisticsResourceData($user_count, $avg_age, $male_count, $female_count, $discussion_count, $amendment_count, $sub_amendment_count, $ma_rating_count, $comment_count, $comment_rating_count, $report_count);
-    $resource = new StatisticsResource($resource_data);
-    $data = $resource->toArray();
-
-    return new StreamedResponse(
-        function() use($data)
-        {
-            // A resource pointer to the output stream for writing the CSV to
-            $handle = fopen('php://output', 'w');
-            foreach ($data as $row)
-            {
-                // Loop through the data and write each entry as a new row in the csv
-                fputcsv($handle, $row);
-            }
-
-            fclose($handle);
-        },
-        200,
-        [
-            'Content-type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename=statistics.csv'
-        ]
-    );
-});
-
-Route::get('/statistics/activity', function(){
+Route::get('/statistics/general_activity', function(){
     $discussions = GeneralActivityStatisticsResource::transformCollectionToResourceDataArray(Discussion::select('id', 'created_at as date', 'user_id', 'title as extra')->with(['user'])->get());
     $amendments = GeneralActivityStatisticsResource::transformCollectionToResourceDataArray(Amendment::select('id', 'discussion_id', 'created_at as date', 'user_id')->with(['user'])->get());
     $sub_amendments = GeneralActivityStatisticsResource::transformCollectionToResourceDataArray(SubAmendment::select('id', 'amendment_id', 'created_at as date', 'user_id')->with(['user'])->get());
@@ -256,7 +224,143 @@ Route::get('/statistics/activity', function(){
     );
 });
 
-Route::get('/users/{user_id}/statistics', function($user_id){
+Route::get('/statistics/ratings', function(){
+    $ratings = RatingAspectRating::select('ratable_rating_aspect_id', 'created_at as date', 'user_id')->with(['user', 'ratable_rating_aspect:id,rating_aspect_id,ratable_id,ratable_type', 'ratable_rating_aspect.ratable', 'ratable_rating_aspect.rating_aspect:id,name'])->get()
+        ->transform(function($item, $key) {
+            return (new RatingStatisticsResourceData($item->date, $item->user, $item->ratable_rating_aspect->ratable->getResourcePath(), $item->ratable_rating_aspect->rating_aspect->name))->toArray();
+        })->toArray();
+
+    $resource = new RatingStatisticsResource($ratings);
+    $data = $resource->toArray();
+    return new StreamedResponse(
+        function() use($data)
+        {
+            // A resource pointer to the output stream for writing the CSV to
+            $handle = fopen('php://output', 'w');
+            foreach ($data as $row)
+            {
+                // Loop through the data and write each entry as a new row in the csv
+                fputcsv($handle, $row);
+            }
+
+            fclose($handle);
+        },
+        200,
+        [
+            'Content-type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename=RatingStatistics.csv'
+        ]
+    );
+});
+
+Route::get('/statistics/comment_ratings', function(){
+    $comments = Comment::select('id', 'sentiment', 'created_at')->with(['rating_users:id,year_of_birth'])->orderBy('created_at')->get();
+    $comments = $comments->transform(function($item){
+        $rating_users = $item->rating_users;
+        $pos_ratings = $rating_users->filter(function($user, $key){
+            return $user->pivot->rating_score == 1;
+        })->pluck('year_of_birth')->toArray();
+        rsort($pos_ratings);
+        $neg_ratings = $rating_users->filter(function($user, $key){
+            return $user->pivot->rating_score == -1;
+        })->pluck('year_of_birth')->toArray();
+        rsort($neg_ratings);
+
+        $current_year = (int)(date("Y"));
+        $pos_rating_count = sizeof($pos_ratings);
+        $neg_rating_count = sizeof($neg_ratings);
+        if($pos_rating_count == 0)
+        {
+            $age_q1_pos = 0;
+            $age_q2_pos = 0;
+            $age_q3_pos = 0;
+        }
+        else {
+            /*$pos_years = array_map(function ($item) {
+                return ($item === null) ? 0 : $item->user->year_of_birth;
+            }, $pos_ratings);*/
+            $pos_age_count = sizeof($pos_ratings);   //may be the same as $pos_rating_count but not entirely sure
+            $age_q1_pos = $current_year - $pos_ratings[(int)($pos_age_count * 0.25)]; //actually a bit more complex (with decimal places)
+            $age_q2_pos = $current_year - $pos_ratings[(int)($pos_age_count * 0.5)];
+            $age_q3_pos = $current_year - $pos_ratings[(int)($pos_age_count * 0.75)];
+        }
+        if($neg_rating_count == 0)
+        {
+            $age_q1_neg = 0;
+            $age_q2_neg = 0;
+            $age_q3_neg = 0;
+        }
+        else {
+            /*$neg_years = array_map(function ($item) {
+                return ($item === null) ? 0 : $item->user->year_of_birth;
+            }, $neg_ratings);*/
+            $neg_age_count = sizeof($neg_ratings);   //may be the same as $neg_rating_count but not entirely sure
+            $age_q1_neg = $current_year - $neg_ratings[(int)($neg_age_count * 0.25)]; //actually a bit more complex (with decimal places)
+            $age_q2_neg = $current_year - $neg_ratings[(int)($neg_age_count * 0.5)];
+            $age_q3_neg = $current_year - $neg_ratings[(int)($neg_age_count * 0.75)];
+        }
+        return (new CommentRatingStatisticsResourceData($item->getResourcePath(), $pos_rating_count, $neg_rating_count, $age_q1_pos, $age_q2_pos, $age_q3_pos, $age_q1_neg, $age_q2_neg, $age_q3_neg, $item->sentiment))->toArray();
+    })->toArray();
+    $resource = new CommentRatingStatisticsResource($comments);
+    $data = $resource->toArray();
+    return new StreamedResponse(
+        function() use($data)
+        {
+            $handle = fopen('php://output', 'w');
+            foreach ($data as $row)
+            {
+                fputcsv($handle, $row);
+            }
+
+            fclose($handle);
+        },
+        200,
+        [
+            'Content-type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename=CommentRatingStatistics.csv'
+        ]
+    );
+});
+
+Route::get('/statistics/action', function(){
+    $discussions = Discussion::select('id', 'title')->get()->transform(function($item){
+        return (new ActionStatisticsResourceData($item->getResourcePath(), $item->title, [4, 1, 2, 6]))->toArray();
+    })->toArray();
+    $tags = Tag::select('id', 'name')->get()->transform(function($item){
+        return (new ActionStatisticsResourceData($item->getResourcePath(), $item->name, [5, 3, 1, 0]))->toArray();
+    })->toArray();
+    $header = [
+        'Diskussion/Tag',
+        'Titel/Name',
+        'Quartal 1 2017',
+        'Quartal 2 2017',
+        'Quartal 3 2017',
+        'Quartal 4 2017'
+    ];
+    $action_resource_data = array_merge($discussions, $tags);
+
+    $resource = new ActionStatisticsResource($header, $action_resource_data);
+    $data = $resource->toArray();
+    return new StreamedResponse(
+        function() use($data)
+        {
+            $handle = fopen('php://output', 'w');
+            foreach ($data as $row)
+            {
+                fputcsv($handle, $row);
+            }
+
+            fclose($handle);
+        },
+        200,
+        [
+            'Content-type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename=ActionStatistics.csv'
+        ]
+    );
+});
+
+Route::get('/statistics/users', function(){
     $amendment_count = DB::select('SELECT users.id as user_id, discussions.id as discussion_id, COUNT(*) from amendments
 JOIN discussions on amendments.discussion_id = discussions.id
 JOIN users on amendments.user_id = users.id
@@ -300,7 +404,7 @@ GROUP BY users.id, discussions.id');
     );
 });
 
-Route::get('/users/statistics', function(){
+Route::get('/statistics/all_users_table', function(){
     $users = User::all();
     $csv_data = $users->reduce(
         function ($data, $user) {
@@ -357,7 +461,44 @@ Route::get('/users/statistics', function(){
     );
 });
 
-Route::get('/test/statistics', function(){
+Route::get('/statistics/application_statistics', function(){
+    $user_count = DB::selectOne('SELECT COUNT(*) as val from users')->val;
+    $avg_age = DB::selectOne('SELECT AVG(age) as val from (SELECT (YEAR(CURRENT_DATE()) - year_of_birth) as age from users) as age_table')->val;
+    $male_count = DB::selectOne('SELECT COUNT(id) as val from users WHERE is_male = 1')->val;
+    $female_count = DB::selectOne('SELECT COUNT(id) as val from users WHERE is_male = 0')->val;
+    $discussion_count = DB::selectOne('SELECT COUNT(*) as val from discussions')->val;
+    $amendment_count = DB::selectOne('SELECT COUNT(*) as val from amendments')->val;
+    $sub_amendment_count = DB::selectOne('SELECT COUNT(*) as val from sub_amendments')->val;
+    $ma_rating_count = DB::selectOne('SELECT COUNT(*) as val from rating_aspect_rating')->val;
+    $comment_count = DB::selectOne('SELECT COUNT(*) as val from comments')->val;
+    $comment_rating_count = DB::selectOne('SELECT COUNT(*) as val from comment_ratings')->val;
+    $report_count = DB::selectOne('SELECT COUNT(*) as val from reports')->val;
+    $resource_data = new StatisticsResourceData($user_count, $avg_age, $male_count, $female_count, $discussion_count, $amendment_count, $sub_amendment_count, $ma_rating_count, $comment_count, $comment_rating_count, $report_count);
+    $resource = new StatisticsResource($resource_data);
+    $data = $resource->toArray();
+
+    return new StreamedResponse(
+        function() use($data)
+        {
+            // A resource pointer to the output stream for writing the CSV to
+            $handle = fopen('php://output', 'w');
+            foreach ($data as $row)
+            {
+                // Loop through the data and write each entry as a new row in the csv
+                fputcsv($handle, $row);
+            }
+
+            fclose($handle);
+        },
+        200,
+        [
+            'Content-type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename=statistics.csv'
+        ]
+    );
+});
+
+Route::get('/statistics/application_statistics_json', function(){
     $user_count = DB::selectOne('SELECT COUNT(*) as val from users')->val;
     $avg_age = DB::selectOne('SELECT AVG(age) as val from (SELECT (YEAR(CURRENT_DATE()) - year_of_birth) as age from users) as age_table')->val;
     $male_count = DB::selectOne('SELECT COUNT(id) as val from users WHERE is_male = 1')->val;

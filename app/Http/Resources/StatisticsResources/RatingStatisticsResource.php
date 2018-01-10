@@ -27,7 +27,6 @@ class RatingStatisticsResource extends CustomArrayResource
             'Höchster Bildungsabschluss',
             'Alter',
             'Bewerteter Beitrag',
-            'Beitrags-ID',
             'Rating-Aspect'
         ];
         parent::__construct($header, $data);

@@ -9,6 +9,8 @@
 namespace App\Http\Resources\StatisticsResources;
 
 
+use App\User;
+
 class RatingStatisticsResourceData
 {
     /** @var string */
@@ -31,22 +33,18 @@ class RatingStatisticsResourceData
     /**
      * RatingStatisticsResourceData constructor.
      * @param string $date
-     * @param string $gender
-     * @param int $postal_code
-     * @param string $job
-     * @param string $highest_graduation
-     * @param int $age
+     * @param User $user
      * @param string $ratable_path
      * @param string $rating_aspect_name
      */
-    public function __construct($date, $gender, $postal_code, $job, $highest_graduation, $age, $ratable_path, $rating_aspect_name)
+    public function __construct($date, User $user, $ratable_path, $rating_aspect_name)
     {
         $this->date = $date;
-        $this->gender = $gender;
-        $this->postal_code = $postal_code;
-        $this->job = $job;
-        $this->highest_graduation = $highest_graduation;
-        $this->age = $age;
+        $this->gender = $user->getSex();
+        $this->postal_code = $user->postal_code;
+        $this->job = $user->job;
+        $this->highest_graduation = $user->graduation;
+        $this->age = $user->getAge();
         $this->ratable_path = $ratable_path;
         $this->rating_aspect_name = $rating_aspect_name;
     }
@@ -180,4 +178,18 @@ class RatingStatisticsResourceData
         $this->rating_aspect_name = $rating_aspect_name;
     }
     //endregion
+
+    public function toArray()
+    {
+        return[
+            $this->date,
+            $this->gender,
+            $this->postal_code,
+            $this->job,
+            $this->highest_graduation,
+            $this->age,
+            $this->ratable_path,
+            $this->rating_aspect_name
+        ];
+    }
 }

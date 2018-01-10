@@ -21,10 +21,11 @@ class ActionStatisticsResourceData
     /** @var array */
     protected $actions;
 
-    public function __construct(string $entity_path, string $teaser, array $actions)
+    public function __construct(string $entity_path, string $teaser, array $actions = null)
     {
         $this->entity_path = $entity_path;
         $this->teaser = $teaser;
+        $this->actions = ($actions === null) ? [] : $actions;
     }
 
     //region Getters and Setters
@@ -76,4 +77,12 @@ class ActionStatisticsResourceData
         $this->actions = $actions;
     }
     //endregion
+
+    public function toArray()
+    {
+        return array_merge([
+            $this->entity_path,
+            $this->teaser
+        ], $this->actions);
+    }
 }
