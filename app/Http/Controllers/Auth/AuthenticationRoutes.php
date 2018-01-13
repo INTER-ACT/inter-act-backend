@@ -39,11 +39,8 @@ class AuthenticationRoutes
      */
     public function all()
     {
-        $this->forAuthorization();
         $this->forAccessTokens();
         $this->forTransientTokens();
-        $this->forClients();
-        $this->forPersonalAccessTokens();
     }
 
     /**
@@ -75,7 +72,7 @@ class AuthenticationRoutes
      */
     public function forAccessTokens()
     {
-        $this->router->post('/login', [
+        $this->router->post('/token', [
             'uses' => 'AccessTokenController@issueToken',
             'middleware' => 'throttle',
         ]);
@@ -85,7 +82,7 @@ class AuthenticationRoutes
                 'uses' => 'AuthorizedAccessTokenController@forUser',
             ]);
 
-            $router->delete('/logout/{token_id}', [
+            $router->delete('/token/{token_id}', [
                 'uses' => 'AuthorizedAccessTokenController@destroy',
             ]);
         });
