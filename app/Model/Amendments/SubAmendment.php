@@ -5,6 +5,7 @@ namespace App\Amendments;
 use App\Comments\Comment;
 use App\Comments\ICommentable;
 use App\Exceptions\CustomExceptions\NotAcceptedException;
+use App\IHasActivity;
 use App\IModel;
 use App\IRestResource;
 use App\Reports\IReportable;
@@ -13,9 +14,11 @@ use App\Tags\ITaggable;
 use App\Tags\Tag;
 use App\Traits\TTaggablePost;
 use App\User;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Query\Builder;
 
-class SubAmendment extends Model implements ITaggable, IReportable, IRatable, ICommentable, IRestResource
+class SubAmendment extends Model implements ITaggable, IReportable, IRatable, ICommentable, IRestResource, IHasActivity
 {
     use TTaggablePost;
 
@@ -42,9 +45,9 @@ class SubAmendment extends Model implements ITaggable, IReportable, IRatable, IC
         $amendment = ($this->amendment === null) ? Amendment::find($this->amendment_id)->first(['id', 'discussion_id']) : $this->amendment;
         return $amendment->getResourcePath() . '/subamendments/' . $this->id;
     }
-
     //endregion
 
+    //region Getters and Setters
     public function getChangesPath(){
         if($this->status != self::ACCEPTED_STATUS)
             throw new NotAcceptedException();
@@ -52,6 +55,34 @@ class SubAmendment extends Model implements ITaggable, IReportable, IRatable, IC
         return $this->amendment->getResourcePath() . "/changes/" . $this->amendment_version;
     }
 
+    function getActivity(Carbon $start_date = null, Carbon $end_date = null): int
+    {
+        if(!isset($start_date)) {
+            $start_date = now(2)->subMonths(3);
+        }
+        if(!isset($end_date)) {
+            $end_date = now(2);
+        }
+        $relationsToLoad = ['comments' => function($query){
+            return $query->select('id', 'commentable_id', 'commentable_type');
+        }, 'ratable_rating_aspects' => function($query){
+                return $query->select('id', 'ratable_id', 'ratable_type');
+        }];
+        foreach ($relationsToLoad as $key => $item)
+        {
+            if($this->relationLoaded($key))
+                unset($relationsToLoad[$key]);
+        }
+        $this->load($relationsToLoad);
+        $comment_sum = $this->comments->sum(function($comment) use($start_date, $end_date){
+            return $comment->getActivity($start_date, $end_date);
+        });
+        $rating_sum = $this->ratable_rating_aspects()->get()->sum(function($aspect) use($start_date, $end_date){
+            return $aspect->getActivity($start_date, $end_date);
+        });
+        return (int)($comment_sum + $rating_sum) + 1;
+    }
+    //endregion
 
     //region relations
     public function user()
@@ -74,15 +105,23 @@ class SubAmendment extends Model implements ITaggable, IReportable, IRatable, IC
         return $this->morphToMany(Tag::class, 'taggable');
     }
 
-    public function ratings()
+    public function ratable_rating_aspects()
     {
-        return $this->belongsToMany(RatableRatingAspect::class, 'rating_aspect_rating')->withTimestamps();
+        return $this->morphMany(RatableRatingAspect::class, 'ratable');
     }
 
     public function rating_aspects()
     {
         return $this->morphToMany(RatingAspect::class, 'ratable', 'ratable_rating_aspects');
     }
+
+    /*public function ratings()
+    {
+        $this->loadMissing('ratable_rating_aspects:id');
+        return $this->ratable_rating_aspects()->get()->transform(function($item){
+            return $item->rating_sum;
+        });
+    }*/
 
     public function reports()
     {

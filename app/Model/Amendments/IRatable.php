@@ -10,5 +10,5 @@ namespace App\Amendments;
 
 interface IRatable
 {
-    function ratings();
+    function ratable_rating_aspects();
 }

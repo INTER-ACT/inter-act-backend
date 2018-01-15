@@ -1,6 +1,7 @@
 <?php
 
 use App\Model\ModelFactory;
+use Carbon\Carbon;
 use Faker\Generator as Faker;
 use App\Role;
 use Illuminate\Database\Seeder;
@@ -65,9 +66,9 @@ class TestDataSeeder extends Seeder
 
         //region Discussions
         $discussions = [
-            ModelFactory::CreateDiscussion($users[0], null, [$fremdeInhalte, $socialMedia]),
-            ModelFactory::CreateDiscussion($users[0], null, null),
-            ModelFactory::CreateDiscussion($users[1], null, [$bildungWissenschaft, $freiheitenNutzer, $respektAnerkennung]),
+            ModelFactory::CreateDiscussion($users[0], null, [$fremdeInhalte, $socialMedia], Carbon::createFromDate(2017, 1, 1, 2)),
+            ModelFactory::CreateDiscussion($users[0], null, null, Carbon::createFromDate(2017, 3, 3, 2)),
+            ModelFactory::CreateDiscussion($users[1], null, [$bildungWissenschaft, $freiheitenNutzer, $respektAnerkennung], Carbon::createFromDate(2017, 1, 2, 2)),
             ModelFactory::CreateDiscussion($users[1], null, [$rechteInhaberschaft, $downloadStreaming]),
             ModelFactory::CreateDiscussion($users[0], $faker->dateTimeBetween(), [$userGeneratedContent]),
             ModelFactory::CreateDiscussion($users[1], $faker->dateTimeBetween(), [$socialMedia, $bildungWissenschaft, $respektAnerkennung, $downloadStreaming])

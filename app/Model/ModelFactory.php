@@ -20,6 +20,7 @@ use App\Reports\IReportable;
 use App\Reports\Report;
 use App\Role;
 use App\User;
+use Carbon\Carbon;
 use DateTime;
 
 class ModelFactory
@@ -56,13 +57,17 @@ class ModelFactory
      * @param User $user
      * @param DateTime|null $archived_at
      * @param array|null $tags
+     * @param null $created_at
+     *
      * @return Discussion
      */
-    public static function CreateDiscussion(User $user, DateTime $archived_at = null, array $tags = null)
+    public static function CreateDiscussion(User $user, DateTime $archived_at = null, array $tags = null, Carbon $created_at = null)
     {
+        $created_at = ($created_at === null) ? now() : $created_at;
         $discussion = factory(Discussion::class)->create([
             'user_id' => $user->id,
-            'archived_at' => $archived_at
+            'archived_at' => $archived_at,
+            'created_at' => $created_at
         ]);
         if($tags and isset($tags))
             $discussion->tags()->attach(array_map(function($item){return $item->id;}, $tags));
@@ -71,6 +76,7 @@ class ModelFactory
 
     /**
      * @param array $aspect_names
+     *
      * @return array
      */
     public static function CreateRatingAspects(array $aspect_names)

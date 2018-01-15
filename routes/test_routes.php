@@ -1,8 +1,10 @@
 <?php
 
 use App\CommentRating;
+use App\Domain\DiscussionRepository;
 use App\Domain\EntityRepresentations\CommentRatingRepresentation;
 use App\Domain\EntityRepresentations\MultiAspectRatingRepresentation;
+use App\Domain\PageRequest;
 use App\Exceptions\CustomExceptions\ApiException;
 use App\Exceptions\CustomExceptions\ApiExceptionMeta;
 use App\Http\Resources\AmendmentResources\AmendmentCollection;
@@ -47,6 +49,8 @@ use App\Amendments\SubAmendment;
 use App\Comments\Comment;
 use App\Reports\Report;
 
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Input;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 //region general
@@ -76,8 +80,14 @@ Route::get('/users/{user_id}/discussions', function($user_id){
 //endregion
 
 //region discussions
-Route::get('/discussions', function(){
-    return new DiscussionCollection(Discussion::all());
+Route::get('/discussions', function(DiscussionRepository $repository){
+    //return Discussion::find(2)->getActivity(Carbon::createFromDate(2017, 1, 1, 1), Carbon::now());
+    $perPage = Input::get('count', 10);
+    $pageNumber = Input::get('start', 1);
+    $tag_id = Input::get('tag_id', null);
+    $sorted_by = Input::get('sorted_by', '');
+    $sort_dir = Input::get('sort_direction', '');
+    return $repository->getAll(new PageRequest($perPage, $pageNumber), $sorted_by, $sort_dir, $tag_id);
 });
 
 Route::get('/discussions/{discussion_id}', function(int $discussion_id){
