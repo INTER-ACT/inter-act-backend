@@ -80,6 +80,7 @@ class RouteServiceProvider extends ServiceProvider
     protected function mapTestRoutes()
     {
         Route::namespace($this->namespace)
+            ->prefix('test')
             ->group(base_path('routes/test_routes.php'));
     }
 }

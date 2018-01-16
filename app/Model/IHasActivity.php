@@ -14,6 +14,11 @@ use Carbon\Carbon;
 interface IHasActivity
 {
     /**
+     * @return int
+     */
+    function getActivityAttribute() : int;
+
+    /**
      * @param Carbon|null $start_date
      * @param Carbon|null $end_date
      * @return int

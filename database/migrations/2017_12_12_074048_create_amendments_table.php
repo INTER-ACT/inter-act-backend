@@ -19,7 +19,7 @@ class CreateAmendmentsTable extends Migration
             $table->integer('user_id')->unsigned();
             $table->text('updated_text');
             $table->text('explanation');
-            //TODO: save amendment-version?
+            $table->integer('amendment_version')->default(1)->unsigned();
             $table->timestamps();
         });
     }

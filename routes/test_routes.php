@@ -90,16 +90,22 @@ Route::get('/discussions', function(DiscussionRepository $repository){
     return $repository->getAll(new PageRequest($perPage, $pageNumber), $sorted_by, $sort_dir, $tag_id);
 });
 
-Route::get('/discussions/{discussion_id}', function(int $discussion_id){
-    return new DiscussionResource(Discussion::find($discussion_id));
+Route::get('/discussions/{discussion_id}', function(int $discussion_id, DiscussionRepository $repository){
+    return $repository->getById($discussion_id);
 });
 
-Route::get('/discussions/{discussion_id}/amendments', function(int $discussion_id){
-    return new AmendmentCollection(Amendment::all()->where('discussion_id', '=', $discussion_id));
+Route::get('/discussions/{discussion_id}/amendments', function(int $discussion_id, DiscussionRepository $repository){
+    $perPage = Input::get('count', 10);
+    $pageNumber = Input::get('start', 1);
+    $sorted_by = Input::get('sorted_by', '');
+    $sort_dir = Input::get('sort_direction', '');
+    return $repository->getAmendments($discussion_id, $sorted_by, $sort_dir, new PageRequest($perPage, $pageNumber));
 });
 
-Route::get('/discussions/{discussion_id}/comments', function(int $discussion_id){
-    return Discussion::find($discussion_id)->comments;
+Route::get('/discussions/{discussion_id}/comments', function(int $discussion_id, DiscussionRepository $repository){
+    $perPage = Input::get('count', 10);
+    $pageNumber = Input::get('start', 1);
+    return $repository->getComments($discussion_id, new PageRequest($perPage, $pageNumber));
 });
 
 //endregion

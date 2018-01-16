@@ -21,7 +21,7 @@ class CreateSubAmendmentsTable extends Migration
             $table->text('updated_text');
             $table->text('explanation');
             $table->enum('status', [SubAmendment::PENDING_STATUS, SubAmendment::ACCEPTED_STATUS, SubAmendment::REJECTED_STATUS]);    //TODO: document possible values
-            $table->integer('amendment_version')->default(1)->unsigned();   //TODO: make inaccessible?
+            $table->integer('amendment_version')->default(1)->unsigned();   //TODO: update according to parent
             $table->timestamp('handled_at')->nullable();
             $table->text('handle_explanation')->nullable();
             $table->timestamps();

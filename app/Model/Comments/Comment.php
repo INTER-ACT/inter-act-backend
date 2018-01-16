@@ -41,6 +41,19 @@ class Comment extends Model implements IReportable, ICommentable, IRestResource,
     //endregion
 
     //region Getters and Setters
+    /**
+     * @return int
+     */
+    public function getActivityAttribute() : int
+    {
+        return $this->getActivity(Carbon::parse($this->created_at), now());
+    }
+
+    /**
+     * @param Carbon|null $start_date
+     * @param Carbon|null $end_date
+     * @return int
+     */
     public function getActivity(Carbon $start_date = null, Carbon $end_date = null): int
     {
         if(!isset($start_date)) {

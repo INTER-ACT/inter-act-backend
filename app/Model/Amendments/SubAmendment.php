@@ -55,6 +55,19 @@ class SubAmendment extends Model implements ITaggable, IReportable, IRatable, IC
         return $this->amendment->getResourcePath() . "/changes/" . $this->amendment_version;
     }
 
+    /**
+     * @return int
+     */
+    public function getActivityAttribute() : int
+    {
+        return $this->getActivity(Carbon::parse($this->created_at), now());
+    }
+
+    /**
+     * @param Carbon|null $start_date
+     * @param Carbon|null $end_date
+     * @return int
+     */
     function getActivity(Carbon $start_date = null, Carbon $end_date = null): int
     {
         if(!isset($start_date)) {

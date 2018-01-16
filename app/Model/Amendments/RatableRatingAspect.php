@@ -46,6 +46,14 @@ class RatableRatingAspect extends Model implements IModel, IHasActivity
     }
 
     /**
+     * @return int
+     */
+    public function getActivityAttribute() : int
+    {
+        return $this->getActivity(Carbon::parse($this->created_at), now());
+    }
+
+    /**
      * @param Carbon|null $start_date
      * @param Carbon|null $end_date
      * @return int

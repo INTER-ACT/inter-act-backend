@@ -25,6 +25,7 @@ class Amendment extends Model implements ITaggable, IReportable, IRatable, IComm
     use TTaggablePost;
 
     protected $fillable = ['updated_text', 'explanation'];
+    protected $appends = ['activity'];
 
     //region IRestResource
     public function getIdProperty()
@@ -50,6 +51,14 @@ class Amendment extends Model implements ITaggable, IReportable, IRatable, IComm
     public function getChangesPath()
     {
         return $this->getResourcePath() . "/changes";
+    }
+
+    /**
+     * @return int
+     */
+    public function getActivityAttribute() : int
+    {
+        return $this->getActivity(Carbon::parse($this->created_at), now());
     }
 
     /**

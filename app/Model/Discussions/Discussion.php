@@ -54,7 +54,7 @@ class Discussion extends Model implements ITaggable, ICommentable, IRestResource
     /**
      * @return int
      */
-    public function getActivityAttribute()
+    public function getActivityAttribute() : int
     {
         return $this->getActivity(Carbon::parse($this->created_at), now());
     }

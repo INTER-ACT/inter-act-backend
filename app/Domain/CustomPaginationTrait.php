@@ -17,10 +17,10 @@ use Illuminate\Support\Facades\Input;
 trait CustomPaginationTrait
 {
     /**
-     * @param Paginator $paginator
-     * @return Paginator
+     * @param IPaginator $paginator
+     * @return IPaginator
      */
-    protected function updatePagination(IPaginator $paginator)
+    protected function updatePagination(IPaginator $paginator) : IPaginator
     {
         return $paginator->appends(Input::except($paginator->getPageName()));
     }
@@ -36,11 +36,11 @@ trait CustomPaginationTrait
      *
      * @return LengthAwarePaginator
      */
-    public function paginate($items, $perPage = 15, $page = null, string $pageName = 'start')
+    public function paginate($items, $perPage = 15, $page = null, string $pageName = 'start') : LengthAwarePaginator
     {
         $page = $page ?: (Paginator::resolveCurrentPage() ?: 1);
         $items = $items instanceof Collection ? $items : Collection::make($items);
-        return new LengthAwarePaginator($items->forPage($page, $perPage), $items->count(), $perPage, $page, [
+        return new LengthAwarePaginator($items->forPage($page, $perPage)->values()->all(), $items->count(), $perPage, $page, [
             'path' => Paginator::resolveCurrentPath(),
             'pageName' => $pageName
         ]);
