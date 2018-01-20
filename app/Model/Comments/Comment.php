@@ -15,13 +15,14 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+use Mockery\Exception;
 
 class Comment extends Model implements IReportable, ICommentable, IRestResource, IHasActivity
 {
     use TPost;
 
     protected $fillable = ['content'];
-    protected $appends = ['rating_sum'];
+    protected $appends = ['rating_sum', 'user_rating'];
 
     //region IRestResource
     public function getIdProperty()
@@ -70,6 +71,18 @@ class Comment extends Model implements IReportable, ICommentable, IRestResource,
         });
         return (int)($comment_sum) + $this->rating_sum() + 1;
     }
+
+    public function getUserRatingAttribute() : ?int
+    {
+        $user_id = \Auth::id();
+        return (isset($user_id)) ? $this->getUserRating($user_id) : null;
+    }
+
+    public function getUserRating(int $user_id) : ?int
+    {
+        $selected_rating = DB::selectOne('SELECT cr.rating_score as rating FROM comments c JOIN comment_ratings cr on c.id = cr.comment_id JOIN users u on cr.user_id = u.id WHERE c.id = :this_id AND u.id = :user_id', ['this_id' => $this->id, 'user_id' => $user_id]);
+        return ($selected_rating == null) ? null : $selected_rating->rating;
+    }
     //endregion
 
     //region relations
@@ -78,7 +91,12 @@ class Comment extends Model implements IReportable, ICommentable, IRestResource,
         return $this->belongsTo(User::class);
     }
 
-    public function parent()
+    public function parent()    //moved to commentable because the array key was commentable even in parent()-function
+    {
+        return $this->commentable();
+    }
+
+    public function commentable()
     {
         return $this->morphTo('commentable');
     }

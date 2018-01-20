@@ -30,7 +30,7 @@ class DiscussionRepository implements IRestRepository   //TODO: Exceptions missi
     /**
      * @return string
      */
-    function getRestResourcePath()
+    public function getRestResourcePath()
     {
         return "/discussions";
     }
@@ -38,7 +38,7 @@ class DiscussionRepository implements IRestRepository   //TODO: Exceptions missi
     /**
      * @return string
      */
-    function getRestResourceName()
+    public function getRestResourceName()
     {
         return "discussions";
     }

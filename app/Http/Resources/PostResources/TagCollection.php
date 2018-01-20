@@ -22,6 +22,7 @@ class TagCollection extends ResourceCollection
             'href' => $thisURI,
             'tags' => $this->collection->transform(function ($tag){
                 return [
+                    'href' => $tag->getResourcePath(),
                     'id' => $tag->id,
                     'name' => $tag->name,
                     'description' => $tag->description
