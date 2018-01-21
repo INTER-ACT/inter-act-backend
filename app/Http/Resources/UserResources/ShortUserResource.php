@@ -5,11 +5,17 @@ namespace App\Http\Resources\UserResources;
 use App\Http\Resources\RestResourceTrait;
 use App\Role;
 use Illuminate\Http\Resources\Json\Resource;
+use Illuminate\Routing\ResourceRegistrar;
 
-class UserResource extends Resource
+
+/**
+ * Class ShortUserResource - converts only the public information of the User to json
+ *
+ * @package App\Http\Resources\UserResources
+ */
+class ShortUserResource extends Resource
 {
     use RestResourceTrait;
-
     /**
      * Transform the resource into an array.
      *
@@ -26,14 +32,6 @@ class UserResource extends Resource
             'id' => $this->id,
             'username' => $this->username,
             'role' => $role->name,
-
-            'email' => $this->email,
-            'first_name' => $this->first_name,
-            'last_name' => $this->last_name,
-            'postal_code' => $this->postal_code,
-            'residence' => $this->city,
-            'job' => $this->job,
-            'highest_education' => $this->graduation
         ];
     }
 
