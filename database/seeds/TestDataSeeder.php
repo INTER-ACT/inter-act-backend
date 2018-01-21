@@ -104,6 +104,12 @@ class TestDataSeeder extends Seeder
             ModelFactory::CreateAmendment($users[6], $discussions[3], []),
             ModelFactory::CreateAmendment($users[7], $discussions[4], [$kultErbe, $userGeneratedContent])
         ];
+        $amendments[0]->created_at = Carbon::createFromDate(2017, 10, 10, 2);
+        $amendments[0]->save();
+        $amendments[1]->created_at = Carbon::createFromDate(2016, 10, 10, 2);
+        $amendments[1]->save();
+        $amendments[2]->created_at = Carbon::createFromDate(2018, 1, 1, 2);
+        $amendments[2]->save();
 
         //$output->writeln('amendments seeded');
         //endregion
@@ -119,6 +125,12 @@ class TestDataSeeder extends Seeder
             ModelFactory::CreateSubAmendment($users[8], $amendments[4], [], SubAmendment::PENDING_STATUS),
             ModelFactory::CreateSubAmendment($users[8], $amendments[4], [$freiheitenNutzer], SubAmendment::PENDING_STATUS),
         ];
+        $subamendments[0]->created_at = Carbon::createFromDate(2017, 10, 10, 2);
+        $subamendments[0]->save();
+        $subamendments[1]->created_at = Carbon::createFromDate(2016, 10, 10, 2);
+        $subamendments[1]->save();
+        $subamendments[2]->created_at = Carbon::createFromDate(2018, 1, 1, 2);
+        $subamendments[2]->save();
 
         //$output->writeln('subamendments seeded');
         //endregion
@@ -160,6 +172,12 @@ class TestDataSeeder extends Seeder
         array_push($comments, ModelFactory::CreateComment($users[9], $comments[10], [$fremdeInhalte]));
         array_push($comments, ModelFactory::CreateComment($users[10], $subamendments[1], [$fremdeInhalte]));
         array_push($comments, ModelFactory::CreateComment($users[10], $comments[12], [$socialMedia]));
+        $comments[0]->created_at = Carbon::createFromDate(2017, 10, 10, 2);
+        $comments[0]->save();
+        $comments[1]->created_at = Carbon::createFromDate(2016, 10, 10, 2);
+        $comments[1]->save();
+        $comments[2]->created_at = Carbon::createFromDate(2018, 1, 1, 2);
+        $comments[2]->save();
 
         //$output->writeln('comments seeded');
 

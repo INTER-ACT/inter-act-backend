@@ -9,6 +9,8 @@
 namespace App\Http\Resources;
 
 
+use Mockery\Exception;
+
 trait ResourceFieldFilterTrait
 {
     protected $fieldList = [];
@@ -22,7 +24,7 @@ trait ResourceFieldFilterTrait
         foreach ($fields as $field)
         {
             if(!in_array($field, $this->fieldList))
-                $this->fieldList[] = $field;
+                array_push($this->fieldList, $field);
         }
         return $this;
     }
@@ -42,8 +44,13 @@ trait ResourceFieldFilterTrait
      */
     public function restrictToFields($array)
     {
-        if(isset($this->fieldList) and !empty($this->fieldList))
-            return collect($array)->only($this->fieldList)->toArray();
+        if(isset($this->fieldList) and !empty($this->fieldList)) {
+            $new_array = [];
+            foreach ($array as $key=>$item)
+                if(in_array($key, $this->fieldList))
+                    $new_array[$key] = $item;
+            return $new_array;
+        }
         return $array;
     }
 }

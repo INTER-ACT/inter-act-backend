@@ -51,13 +51,39 @@ Route::get('/law_texts', 'DiscussionController@listLawTexts');
 //endregion
 
 //region comments
+Route::get('/comments', 'CommentController@index');
 
+Route::get('/comments/{comment_id}', 'CommentController@show');
+
+Route::delete('/comments/{comment_id}', 'CommentController@destroy');
+
+Route::get('/comments/{comment_id}/comments', 'CommentController@listComments');
+
+Route::get('/comments/{comment_id}/ratings', 'CommentController@showRating');
+
+Route::get('/comments/{comment_id}/reports', 'CommentController@listReports');
 //endregion
 
 //region reports
 
 //endregion
 
-//region actions
+//region tags
+Route::get('/tags', 'TagController@index');
 
+Route::get('/tags/{tag_id}', 'TagController@show');
+//endregion
+
+//region actions
+Route::get('/search', 'ActionController@searchArticles');
+
+Route::get('/statistics', 'ActionController@getGeneralStatistics');
+
+Route::get('/statistics/user_activity', 'ActionController@getUserActivityStatistics');
+
+Route::get('/statistics/ratings', 'ActionController@getRatingStatistics');
+
+Route::get('/statistics/comment_ratings', 'ActionController@getCommentRatingStatistics');
+
+Route::get('/statistics/object_activity', 'ActionController@getObjectActivityStatistics');
 //endregion

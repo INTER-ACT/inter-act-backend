@@ -33,7 +33,7 @@ class DiscussionController extends Controller
      */
     public function index() : DiscussionCollection
     {
-        $perPage = Input::get('count', 100);
+        $perPage = Input::get('count', 20);
         $pageNumber = Input::get('start', 1);
         $tag_id = Input::get('tag_id', null);
         $sorted_by = Input::get('sorted_by', '');

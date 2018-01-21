@@ -10,6 +10,7 @@ namespace App\Domain\Manipulators;
 
 
 use App\Amendments\Amendment;
+use App\Comments\Comment;
 use App\Discussions\Discussion;
 use App\Domain\DiscussionRepository;
 use App\Exceptions\CustomExceptions\ApiException;
@@ -35,9 +36,7 @@ class DiscussionManipulator //TODO: request not validated here. remove this if d
      */
     public static function delete(int $id) : void
     {
-        $discussion = Discussion::find($id);
-        if(!isset($discussion) or !($discussion instanceof Discussion))
-            throw new ApiException(ApiExceptionMeta::getAInternalServerError(), 'Discussion with id ' . $id . ' does not exist.');
+        $discussion = DiscussionRepository::getDiscussionByIdOrThrowError($id);
         if(!$discussion->delete())
             throw new ApiException(ApiExceptionMeta::getAInternalServerError(), 'Discussion with id ' . $id . ' could not be deleted.');
     }
@@ -47,7 +46,7 @@ class DiscussionManipulator //TODO: request not validated here. remove this if d
      * @param array $data
      * @return int
      */
-    public static function createAmendment(int $id, array $data) : int  //TODO: remove user_id in docs
+    public static function createAmendment(int $id, array $data) : int  //TODO: remove user_id in docs or should it be taken from auth in controller already?
     {
         $user = \Auth::user();
         $discussion = DiscussionRepository::getDiscussionByIdOrThrowError($id);
@@ -67,7 +66,7 @@ class DiscussionManipulator //TODO: request not validated here. remove this if d
     {
         $user = \Auth::user();
         $discussion = DiscussionRepository::getDiscussionByIdOrThrowError($id);
-        $comment = new Amendment();
+        $comment = new Comment();
         $comment->fill([$data]);
         $comment->user_id = $user->id;
         $discussion->comments()->save($comment);
