@@ -18,7 +18,8 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 });
 
 //region users
-
+Route::get('/users', 'UserController@showAll');
+Route::get('/users/{user_id}', 'UserController@show');
 //endregion
 
 //region discussions
