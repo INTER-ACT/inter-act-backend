@@ -2,7 +2,9 @@
 
 namespace App\Exceptions;
 
+use App\Exceptions\CustomExceptions\NotAuthorizedException;
 use Exception;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 
 class Handler extends ExceptionHandler
@@ -45,10 +47,14 @@ class Handler extends ExceptionHandler
      * @param  \Illuminate\Http\Request  $request
      * @param  \Exception  $exception
      * @return \Illuminate\Http\Response
+     * @throws NotAuthorizedException
      */
     public function render($request, Exception $exception)
     {
         //TODO: Change errors that have not been caught to Internal Server Error?
+        if($exception instanceof AuthenticationException)
+            throw new NotAuthorizedException('The user is not authenticated');
+
         return parent::render($request, $exception);
     }
 }

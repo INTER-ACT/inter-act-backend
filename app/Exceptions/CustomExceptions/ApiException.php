@@ -1,16 +1,9 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: danube
- * Date: 19.12.17
- * Time: 16:21
- */
 
 namespace App\Exceptions\CustomExceptions;
 
 class ApiExceptionMeta
 {
-    //TODO: extract to several sub-classes?
     public static function getRequestResourceNotFound(){ return new ApiExceptionMeta(404, "Request_01", "Resource Not Found"); }
     public static function getRequestInvalidPagination(){ return new ApiExceptionMeta(400, "Request_02", "Bad Request"); }
     public static function getRequestPaginationOutOfRange(){ return new ApiExceptionMeta(400, "Request_03", "Pagination Out Of Range"); }
