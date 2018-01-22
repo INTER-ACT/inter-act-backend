@@ -3,14 +3,16 @@
 namespace App\Domain;
 
 
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Input;
 
-class PageGetRequest
+class PageGetRequest extends PageRequest
 {
-    public $perPage;
-    public $pageNumber;
+    use CustomPaginationTrait;
 
+    /** @var string */
     public $sortedBy;
+    /** @var string */
     public $sortDirection;
 
     /**
@@ -20,15 +22,18 @@ class PageGetRequest
      */
     public function __construct()
     {
-        $this->perPage = Input::get('count', 20);
-        $this->pageNumber = Input::get('start', 1);
+        parent::__construct(Input::get('count', null), Input::get('start', null));
 
         $this->sortedBy = Input::get('sorted_by', Null);
         $this->sortDirection = Input::get('sort_direction', 'desc');
     }
 
-    public function getPaginatedCollection($collection)
+    /**
+     * @param Collection $collection
+     * @return \Illuminate\Pagination\LengthAwarePaginator
+     */
+    public function getPaginatedCollection(Collection $collection)
     {
-        return $collection->paginate($collection, $this->perPage, $this->pageNumber);
+        return $this->paginate($collection, $this->perPage, $this->pageNumber);
     }
 }

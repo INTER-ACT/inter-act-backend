@@ -4,6 +4,7 @@ namespace App\Http\Resources\PostResources;
 
 use App\Http\Resources\RestResourceTrait;
 use Illuminate\Http\Resources\Json\ResourceCollection;
+use Illuminate\Support\Collection;
 
 class TagCollection extends ResourceCollection
 {
@@ -20,14 +21,35 @@ class TagCollection extends ResourceCollection
         $thisURI = url($this->getResourcePathIfNotNull($request->getRequestUri()));
         return [
             'href' => $thisURI,
-            'tags' => $this->collection->transform(function ($tag){
-                return [
-                    'href' => $tag->getResourcePath(),
-                    'id' => $tag->id,
-                    'name' => $tag->name,
-                    'description' => $tag->description
-                ];
-            })
+            'tags' => $this->getTagCollection()
         ];
+    }
+
+    public function toSubResourceArray()
+    {
+        return $this->getSubResourceTagCollection()->toArray();
+    }
+
+    private function getSubResourceTagCollection() : Collection
+    {
+        return $this->collection->transform(function ($tag){
+            return [
+                'id' => $tag->id,
+                'name' => $tag->name,
+                'description' => $tag->description
+            ];
+        });
+    }
+
+    private function getTagCollection() : Collection
+    {
+        return $this->collection->transform(function ($tag){
+            return [
+                'href' => $tag->getResourcePath(),
+                'id' => $tag->id,
+                'name' => $tag->name,
+                'description' => $tag->description
+            ];
+        });
     }
 }
