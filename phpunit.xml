@@ -2,7 +2,7 @@
 <phpunit backupGlobals="false"
          backupStaticAttributes="false"
          bootstrap="vendor/autoload.php"
-         colors="true"
+         colors="false"
          convertErrorsToExceptions="true"
          convertNoticesToExceptions="true"
          convertWarningsToExceptions="true"
@@ -10,20 +10,22 @@
          stopOnFailure="false">
     <testsuites>
         <testsuite name="Feature">
-            <directory suffix="Test.php">./tests/Feature</directory>
+            <directory suffix="Tests.php">./tests/Feature</directory>
         </testsuite>
 
         <testsuite name="Unit">
             <directory suffix="Test.php">./tests/Unit</directory>
+
+            <testsuite name="Resource">
+                <directory suffix="Tests.php">./tests/Unit/ResourceTests</directory>
+            </testsuite>
+
+            <testsuite name="Authentication">
+                <directory suffix="Tests.php">./tests/Unit/AuthenticationTests</directory>
+            </testsuite>
+
         </testsuite>
 
-        <testsuite name="Resource">
-            <directory suffix="Tests.php">./tests/Unit/ResourceTests</directory>
-        </testsuite>
-
-        <testsuite name="Authentication">
-            <directory suffix="Tests.php">./tests/Unit/AuthenticationTests</directory>
-        </testsuite>
 
 
     </testsuites>
