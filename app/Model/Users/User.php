@@ -130,4 +130,15 @@ class User extends Authenticatable implements IRestResource
     {
         return Carbon::now()->year - $this->year_of_birth;
     }
+
+    /**
+     * Returns true, if the role has the given permission
+     *
+     * @param Permission $permission
+     * @return bool
+     */
+    public function can(Permission $permission)
+    {
+        return $this->role->permissions()->where('name', '=', $permission->name)->exists();
+    }
 }

@@ -2,6 +2,7 @@
 
 namespace App;
 
+use Exception;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
 
@@ -78,5 +79,26 @@ class Role extends Model implements IModel
             }
         }
         return $role;
+    }
+
+    public static function getRoleByName($roleName)
+    {
+        if($roleName == self::ADMIN_NAME)
+            return self::getAdmin();
+
+        if($roleName == self::EXPERT_NAME)
+            return self::getExpert();
+
+        if($roleName == self::SCIENTIST_NAME)
+            return self::getScientist();
+
+        if($roleName == self::STANDARD_USER_NAME)
+            return self::getStandardUser();
+
+        if($roleName == self::GUEST_NAME)
+            return self::getGuest();
+
+        else
+            throw new Exception("The Role $roleName does not exist.");
     }
 }
