@@ -18,4 +18,5 @@ interface IRequest
      * @return Null
      */
     public function validate();
+
 }
