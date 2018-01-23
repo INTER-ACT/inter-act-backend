@@ -137,7 +137,7 @@ class User extends Authenticatable implements IRestResource
      * @param Permission $permission
      * @return bool
      */
-    public function can(Permission $permission)
+    public function checkPermission(Permission $permission)
     {
         return $this->role->permissions()->where('name', '=', $permission->name)->exists();
     }
