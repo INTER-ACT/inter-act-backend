@@ -17,9 +17,9 @@ class PageRequest
     public const DEFAULT_PAGE_NUMBER = 1;
 
     /** @var int */
-    protected $perPage;
+    public $perPage;
     /** @var int */
-    protected $pageNumber;
+    public $pageNumber;
 
     /**
      * PageRequest constructor.
