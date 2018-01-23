@@ -5,9 +5,11 @@ namespace App\Domain\User;
 
 use App\Amendments\SubAmendment;
 use App\Discussions\Discussion;
+use App\Domain\CustomPaginationTrait;
 use App\Domain\IRestRepository;
 use App\Domain\PageGetRequest;
 use App\Domain\PageRequest;
+use App\Exceptions\CustomExceptions\NotFoundException;
 use App\Http\Resources\AmendmentResources\AmendmentCollection;
 use App\Http\Resources\CommentResources\CommentCollection;
 use App\Http\Resources\DiscussionResources\DiscussionCollection;
@@ -24,6 +26,8 @@ use Mockery\Exception;
 
 class UserRepository implements IRestRepository
 {
+    use CustomPaginationTrait;
+
     /**
      * @return string
      */
@@ -50,35 +54,40 @@ class UserRepository implements IRestRepository
 
     /**
      * @param PageGetRequest $pageRequest
-     * @return LengthAwarePaginator
+     * @return UserCollection
      */
     public function getAll(PageGetRequest $pageRequest)
     {
-        $users = new UserCollection(User::all());
+        $users = new UserCollection($this->paginate(User::all(), $pageRequest->perPage, $pageRequest->pageNumber, 'users'));
 
-        return $pageRequest->getPaginatedCollection($users);
+        return $users;
     }
 
     /**
+     * Returns a Full representation of the User,
+     * Only the User himself is allowed to see this representation
+     *
      * @param int $id
-     * @return mixed either UserResource or ShortUserResource depending on whether the logged in user is requesting his own information
+     * @return UserResource
      */
     public function getById(int $id)
     {
-        $user = User::find($id);
+        $user = self::getByIdOrThrowError($id);
 
-        if($user === Null)
-            throw new Exception(); // TODO get actual exception
+        return new UserResource($user);
+    }
 
-        if(Auth::check()){
-            $loggedInUser = Auth::user();
+    /**
+     * Returns a short representation of the User, which everyone is allowed to see
+     *
+     * @param int $id
+     * @return ShortUserResource
+     */
+    public function getByIdShort(int $id)
+    {
+        $user = self::getByIdOrThrowError($id);
 
-            if($loggedInUser->id == $user->id)
-                return new UserResource($user);
-        }
-        else{
-            return new ShortUserResource($user);
-        }
+        return new ShortUserResource($user);
     }
 
     /**
@@ -137,6 +146,20 @@ class UserRepository implements IRestRepository
         $user = User::find($id);
 
         return new UserStatisticsResource($user);
+    }
+
+    /**
+     * @param int $id
+     * @return mixed
+     * @throws NotFoundException
+     */
+    public static function getByIdOrThrowError(int $id)
+    {
+        $user = User::find($id);
+        if($user === Null)
+            throw new NotFoundException('No user was found with id ' . $id);
+
+        return $user;
     }
 
 }
