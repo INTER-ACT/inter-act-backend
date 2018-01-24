@@ -54,7 +54,6 @@ class Handler extends ExceptionHandler
         //TODO: Change errors that have not been caught to Internal Server Error?
         if($exception instanceof AuthenticationException)
             throw new NotAuthorizedException('The user is not authenticated');
-
         return parent::render($request, $exception);
     }
 }

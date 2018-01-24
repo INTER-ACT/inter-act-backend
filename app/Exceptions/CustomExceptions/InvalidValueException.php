@@ -5,9 +5,12 @@ namespace App\Exceptions\CustomExceptions;
 
 class InvalidValueException extends ApiException
 {
+    public const HTTP_CODE = 400;
+    public const ERROR_CODE = "Request_05";
+
     public function __construct($details = null)
     {
-        $meta = new ApiExceptionMeta(400, "Request_05", "Invalid Value");
+        $meta = new ApiExceptionMeta(self::HTTP_CODE, self::ERROR_CODE, "Invalid Value");
         parent::__construct($meta, $details);
     }
 }

@@ -43,21 +43,27 @@ Route::get('/users/{user_id}/statistics', 'UserController@showStatistics');
 //region discussions
 Route::get('/discussions', 'DiscussionController@index');
 
+Route::post('/discussions', 'DiscussionController@store')->middleware('auth:api');
+
+//Route::post('/discussions', 'DiscussionController@test');
+
 Route::get('/discussions/{discussion_id}', 'DiscussionController@show');
 
-Route::put('/discussions/{discussion_id}', 'DiscussionController@update');
+Route::patch('/discussions/{discussion_id}', 'DiscussionController@update')->middleware('auth:api');
 
-Route::delete('/discussions/{discussion_id}', 'DiscussionController@destroy');
+Route::delete('/discussions/{discussion_id}', 'DiscussionController@destroy')->middleware('auth:api');
 
 Route::get('/discussions/{discussion_id}/amendments', 'DiscussionController@listAmendments');
 
-Route::post('/discussions/{discussion_id}/amendments', 'DiscussionController@createAmendment');
+Route::post('/discussions/{discussion_id}/amendments', 'DiscussionController@createAmendment')->middleware('auth:api');
 
 Route::get('/discussions/{discussion_id}/comments', 'DiscussionController@listComments');
 
-Route::post('/discussions/{discussion_id}/comments', 'DiscussionController@createComment');
+Route::post('/discussions/{discussion_id}/comments', 'DiscussionController@createComment')->middleware('auth:api');
 
-Route::get('/law_texts', 'DiscussionController@listLawTexts');
+Route::get('/law_texts', 'DiscussionController@listLawTexts')->middleware('auth:api');
+
+Route::get('/law_texts/{id}', 'DiscussionController@showLawText')->middleware('auth:api');
 //endregion
 
 //region amendments

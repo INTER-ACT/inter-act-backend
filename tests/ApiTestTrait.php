@@ -9,7 +9,10 @@
 namespace Tests;
 
 
+use Illuminate\Foundation\Testing\DatabaseMigrations;
+
 trait ApiTestTrait
 {
-
+    use DatabaseMigrations;
+    protected $baseURI = 'http://localhost';
 }

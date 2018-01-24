@@ -5,9 +5,12 @@ namespace App\Exceptions\CustomExceptions;
 
 class InternalServerError extends ApiException
 {
+    public const HTTP_CODE = 500;
+    public const ERROR_CODE = "A_03";
+
     public function __construct($details = null)
     {
-        $meta = new ApiExceptionMeta(500, "A_03", "Internal Server Error");
+        $meta = new ApiExceptionMeta(self::HTTP_CODE, self::ERROR_CODE, "Internal Server Error");
         parent::__construct($meta, $details);
     }
 }
