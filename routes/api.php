@@ -17,9 +17,27 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
 
+Route::get('/ping', function ()
+{
+    return "Test-API ping response";
+})->middleware('auth:api');
+
 //region users
-Route::get('/users', 'UserController@showAll');
+Route::get('/users', 'UserController@index');
+Route::post('/users', 'UserController@store');
+
 Route::get('/users/{user_id}', 'UserController@show');
+Route::patch('/users/{user_id}', 'UserController@update')->middleware('auth:api');
+Route::delete('/users/{user_id}', 'UserController@destroy')->middleware('auth:api');
+
+Route::put('/users/{user_id}/role', 'UserController@updateRole')->middleware('auth:api');
+
+Route::get('/users/{user_id}/amendments', 'UserController@listAmendments');
+Route::get('/users/{user_id}/subamendments', 'UserController@listSubAmendments');
+Route::get('/users/{user_id}/comments', 'UserController@listComments');
+Route::get('/users/{user_id}/discussions', 'UserController@listDiscussions');
+Route::get('/users/{user_id}/statistics', 'UserController@showStatistics');
+
 //endregion
 
 //region discussions
