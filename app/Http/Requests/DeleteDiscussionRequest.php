@@ -3,9 +3,11 @@
 namespace App\Http\Requests;
 
 use App\Discussions\Discussion;
+use App\Domain\ApiRequest;
+use App\Exceptions\CustomExceptions\NotPermittedException;
 use Illuminate\Foundation\Http\FormRequest;
 
-class DeleteDiscussionRequest extends FormRequest
+class DeleteDiscussionRequest extends ApiRequest
 {
     /**
      * Determine if the user is authorized to make this request.

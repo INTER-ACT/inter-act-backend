@@ -18,14 +18,13 @@ class LawRepository
     use CustomPaginationTrait;
 
     /**
-     * @param Request $request
-     * @param PageRequest $pageRequest
+     * @param PageGetRequest $pageRequest
      * @return LawCollection
      */
-    public function getAll(Request $request, PageRequest $pageRequest)// : LawCollection
+    public function getAll(PageGetRequest $pageRequest)// : LawCollection
     {
         //return $this->paginate(OgdRisApiBridge::getAllTexts(), $pageRequest->getPerPage(), $pageRequest->getPageNumber())->toArray($request);
-        return new LawCollection($this->paginate(OgdRisApiBridge::getAllTexts($pageRequest), $pageRequest->getPerPage(), $pageRequest->getPageNumber()));
+        return new LawCollection($this->paginate(OgdRisApiBridge::getAllTexts($pageRequest), $pageRequest->perPage, $pageRequest->pageNumber));
     }
 
     /**

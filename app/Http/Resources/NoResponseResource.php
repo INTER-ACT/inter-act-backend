@@ -4,7 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\Resource;
 
-class LawResource extends Resource
+class NoResponseResource extends Resource
 {
     /**
      * Transform the resource into an array.
@@ -14,10 +14,11 @@ class LawResource extends Resource
      */
     public function toArray($request)
     {
-        return [
-            'href' => $this->href,
-            'id' => $this->id,
-            'text' => $this->content
-        ];
+        return parent::toArray($request);
+    }
+
+    public function withResponse($request, $response)
+    {
+        $response->setStatusCode(204);
     }
 }

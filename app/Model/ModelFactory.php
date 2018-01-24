@@ -57,7 +57,7 @@ class ModelFactory
      * @param User $user
      * @param DateTime|null $archived_at
      * @param array|null $tags
-     * @param null $created_at
+     * @param Carbon|null $created_at
      *
      * @return Discussion
      */

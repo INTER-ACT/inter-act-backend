@@ -53,13 +53,17 @@ class DiscussionRepository implements IRestRepository   //TODO: Exceptions missi
 
     /**
      * @param PageRequest $pageRequest
-     * @param string $sort_by
-     * @param string $sort_dir
+     * @param string|null $sort_by
+     * @param string|null $sort_dir
      * @param int|null $tag_id
      * @return DiscussionCollection
      */
-    public function getAll(PageRequest $pageRequest, string $sort_by = self::DEFAULT_SORT_FIELD, string $sort_dir = self::DEFAULT_SORT_DIRECTION, int $tag_id = null) : DiscussionCollection
+    public function getAll(PageRequest $pageRequest, string $sort_by = null, string $sort_dir = null, int $tag_id = null) : DiscussionCollection
     {
+        if(!isset($sort_by))
+            $sort_by = self::DEFAULT_SORT_FIELD;
+        if(!isset($sort_dir))
+            $sort_dir = self::DEFAULT_SORT_DIRECTION;
         $query = Discussion::active();
         if(isset($tag_id))
             $query->whereHas('tags', function($tag) use($tag_id){
@@ -91,7 +95,7 @@ class DiscussionRepository implements IRestRepository   //TODO: Exceptions missi
      * @return AmendmentCollection
      * @throws ApiException
      */
-    public function getAmendments(int $id, string $sort_by = self::DEFAULT_SORT_FIELD, string $sort_dir = self::DEFAULT_SORT_DIRECTION, PageRequest $pageRequest)// : AmendmentCollection
+    public function getAmendments(int $id, string $sort_by = self::DEFAULT_SORT_FIELD, string $sort_dir = self::DEFAULT_SORT_DIRECTION, PageRequest $pageRequest) : AmendmentCollection
     {
         $discussion = $this->getDiscussionByIdOrThrowError($id);
         $relation = $discussion->amendments();
@@ -108,7 +112,7 @@ class DiscussionRepository implements IRestRepository   //TODO: Exceptions missi
     {
         $discussion = $this->getDiscussionByIdOrThrowError($id);
         $comments = $discussion->comments();
-        $comments = $this->updatePagination($comments->paginate($pageRequest->getPerPage(), ['*'], 'start', $pageRequest->getPageNumber()));
+        $comments = $this->updatePagination($comments->paginate($pageRequest->perPage, ['*'], 'start', $pageRequest->pageNumber));
         return new CommentCollection($comments);
     }
 
@@ -135,10 +139,10 @@ class DiscussionRepository implements IRestRepository   //TODO: Exceptions missi
 
         if($sort_by == self::DEFAULT_SORT_FIELD) {
             $collection = ($sort_dir == 'asc') ? $query->get()->sortBy('activity') : $query->get()->sortByDesc('activity');
-            $collection = $this->paginate($collection, $pageRequest->getPerPage(), $pageRequest->getPageNumber());
+            $collection = $this->paginate($collection, $pageRequest->perPage, $pageRequest->pageNumber);
         }
         else
-            $collection = $query->orderBy('created_at', $sort_dir)->paginate($pageRequest->getPerPage(), ['*'], 'start', $pageRequest->getPageNumber());
+            $collection = $query->orderBy('created_at', $sort_dir)->paginate($pageRequest->perPage, ['*'], 'start', $pageRequest->pageNumber);
         return $this->updatePagination($collection);
     }
 

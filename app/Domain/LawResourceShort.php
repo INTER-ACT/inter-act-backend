@@ -23,8 +23,6 @@ class LawResourceShort
     protected $proclamationOrgan;       //Kundmachungsorgan
     /** @var string */
     protected $articleParagraphUnit;    //je nach typ
-    /** @var string */
-    protected $dateOfComingIntoEffect;
 
     /**
      * LawResource constructor.
@@ -34,9 +32,8 @@ class LawResourceShort
      * @param string $title
      * @param string $proclamationOrgan
      * @param string $articleParagraphUnit
-     * @param string $dateOfComingIntoEffect
      */
-    public function __construct(string $id, string $url, string $shortTitle, string $title, string $proclamationOrgan, string $articleParagraphUnit, string $dateOfComingIntoEffect)
+    public function __construct(string $id, string $url, string $shortTitle, string $title, string $proclamationOrgan, string $articleParagraphUnit)
     {
         $this->url = $url;
         $this->shortTitle = $shortTitle;
@@ -44,7 +41,6 @@ class LawResourceShort
         $this->proclamationOrgan = $proclamationOrgan;
         $this->articleParagraphUnit = $articleParagraphUnit;
         $this->id = $id;
-        $this->dateOfComingIntoEffect = $dateOfComingIntoEffect;
     }
 
     //region Getters and Setters
@@ -143,22 +139,6 @@ class LawResourceShort
     {
         $this->articleParagraphUnit = $articleParagraphUnit;
     }
-
-    /**
-     * @return string
-     */
-    public function getDateOfComingIntoEffect(): string
-    {
-        return $this->dateOfComingIntoEffect;
-    }
-
-    /**
-     * @param string $dateOfComingIntoEffect
-     */
-    public function setDateOfComingIntoEffect(string $dateOfComingIntoEffect)
-    {
-        $this->dateOfComingIntoEffect = $dateOfComingIntoEffect;
-    }
     //endregion
 
     public function toArray()
@@ -167,10 +147,6 @@ class LawResourceShort
             "id" => $this->id,
             "href" => $this->url,
             "articleParagraphUnit" => $this->articleParagraphUnit,
-            "dateOfComingIntoEffect" => $this->dateOfComingIntoEffect
-            //"short_title" => $this->shortTitle,
-            //"title" => $this->title,
-            //"proclamationOrgan" => $this->proclamationOrgan,
         ];
     }
 }

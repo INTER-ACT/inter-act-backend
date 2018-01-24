@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Domain\Manipulators\UserManipulator;
-use App\Domain\PageGetRequest;
+use App\Domain\SortablePageGetRequest;
 use App\Domain\User\UserRepository;
 use App\Exceptions\CustomExceptions\InternalServerError;
 use App\Exceptions\CustomExceptions\NotPermittedException;
@@ -36,7 +36,7 @@ class UserController extends Controller
      */
     public function index()
     {
-        $getRequest = new PageGetRequest();
+        $getRequest = new SortablePageGetRequest();
 
         return $this->repository->getAll($getRequest);
     }
@@ -89,36 +89,36 @@ class UserController extends Controller
         return response('', 204);
     }
 
-    // TODO update in documentation : PageGetRequest as additional param in list operations
+    // TODO update in documentation : SortablePageGetRequest as additional param in list operations
 
     /**
      * Lists all Discussions the user has created
      *
      * @param int $id
-     * @param PageGetRequest $request
+     * @param SortablePageGetRequest $request
      * @return \App\Http\Resources\DiscussionResources\DiscussionCollection
      */
-    public function listDiscussions(int $id, PageGetRequest $request)
+    public function listDiscussions(int $id, SortablePageGetRequest $request)
     {
         return $this->repository->getDiscussions($id, $request);
     }
 
-    public function listAmendments(int $id, PageGetRequest $request)
+    public function listAmendments(int $id, SortablePageGetRequest $request)
     {
         return $this->repository->getAmendments($id, $request);
     }
 
-    public function listSubAmendments(int $id, PageGetRequest $request)
+    public function listSubAmendments(int $id, SortablePageGetRequest $request)
     {
         return $this->repository->getSubAmendments($id, $request);
     }
 
-    public function listComments(int $id, PageGetRequest $request)
+    public function listComments(int $id, SortablePageGetRequest $request)
     {
         return $this->repository->getComments($id, $request);
     }
 
-    public function listReports(int $id, PageGetRequest $request)
+    public function listReports(int $id, SortablePageGetRequest $request)
     {
         // TODO update this in documentation: this funciton only makes sense when /users
         // has a subresource /reports

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<!--
+=======================================================================
+                        RIS Judikatur Dokument
+=======================================================================
+Autor:			Hermann Anderl
+Version:		7.4.1
+Erzeugt:		20.01.2010
+Modifiziert:
+Datei:			RISDok.xsd
+Inhalt:
+XML Schema Definition (XSD) f�r RIS-Dokumente, in denen die Nutzdaten gehalten
+werden. Im Gegensatz dazu beschreibt RISDokument.xsd die ehemaligen
+"RIS-Dokumente", in denen seit Schema 7.0.0 keine Nutzdaten mehr gehalten werden.
+======================================================================= -->
+<xs:schema xmlns="http://www.bka.gv.at" xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.bka.gv.at" elementFormDefault="qualified" attributeFormDefault="unqualified">
+    <!-- //////////////////////////////////////////////////////////////////////////// -->
+    <xs:include schemaLocation="RISJudikaturNutzdaten.xsd"/>
+    <!-- //////////////////////////////////////////////////////////////////////////// -->
+    <xs:element name="risdok">
+        <xs:annotation>
+            <xs:documentation>Wurzelelement eines RIS-Dokuments.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="metadaten"/>
+                <xs:element ref="nutzdaten"/>
+                <xs:element ref="layoutdaten" minOccurs="0"/>
+            </xs:sequence>
+            <xs:attribute name="stylesheet" type="xs:anyURI" use="optional">
+                <xs:annotation>
+                    <xs:documentation>Gibt den XSLT-Namen ohne Pfad an. Zweck: Versionierung des Transformationsstylesheets.</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="h-version">
+                <xs:annotation>
+                    <xs:documentation>Hilfsattribut: Mit welcher Version des Konverters wurde dieses Dokument erzeugt.</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="h-creator">
+                <xs:annotation>
+                    <xs:documentation>Hilfsattribut: Welches Konverter-Objekt (ID) hat das Dokument erzeugt.</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="h-created">
+                <xs:annotation>
+                    <xs:documentation>Hilfsattribut: Wann (Datum, Uhrzeit) wurde das Dokument erzeugt.</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+        </xs:complexType>
+    </xs:element>
+</xs:schema>

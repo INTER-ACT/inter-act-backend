@@ -4,36 +4,25 @@ namespace App\Domain;
 
 
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Input;
 
-class PageGetRequest extends PageRequest
+class SortablePageGetRequest extends PageGetRequest
 {
-    use CustomPaginationTrait;
-
     /** @var string */
     public $sortedBy;
     /** @var string */
     public $sortDirection;
 
     /**
-     * PageRequest constructor.
-     *
-     * Fetch Get Params and assign them default values, if they do not exist
+     * SortablePageGetRequest constructor.
+     * @param Request $request
      */
-    public function __construct()
+    public function __construct(Request $request)
     {
-        parent::__construct(Input::get('count', null), Input::get('start', null));
+        parent::__construct($request);
 
-        $this->sortedBy = Input::get('sorted_by', Null);
-        $this->sortDirection = Input::get('sort_direction', 'desc');
-    }
-
-    /**
-     * @param Collection $collection
-     * @return \Illuminate\Pagination\LengthAwarePaginator
-     */
-    public function getPaginatedCollection(Collection $collection)
-    {
-        return $this->paginate($collection, $this->perPage, $this->pageNumber);
+        $this->sortedBy = $request->input('sorted_by', Null);
+        $this->sortDirection = $request->input('sort_direction', 'desc');
     }
 }

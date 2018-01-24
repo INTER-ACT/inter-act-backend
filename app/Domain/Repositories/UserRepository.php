@@ -7,7 +7,7 @@ use App\Amendments\SubAmendment;
 use App\Discussions\Discussion;
 use App\Domain\CustomPaginationTrait;
 use App\Domain\IRestRepository;
-use App\Domain\PageGetRequest;
+use App\Domain\SortablePageGetRequest;
 use App\Domain\PageRequest;
 use App\Exceptions\CustomExceptions\NotFoundException;
 use App\Http\Resources\AmendmentResources\AmendmentCollection;
@@ -53,10 +53,10 @@ class UserRepository implements IRestRepository
     }
 
     /**
-     * @param PageGetRequest $pageRequest
+     * @param SortablePageGetRequest $pageRequest
      * @return UserCollection
      */
-    public function getAll(PageGetRequest $pageRequest)
+    public function getAll(SortablePageGetRequest $pageRequest)
     {
         $users = new UserCollection($this->paginate(User::all(), $pageRequest->perPage, $pageRequest->pageNumber, 'users'));
 
@@ -94,10 +94,10 @@ class UserRepository implements IRestRepository
      * Returns a Collection of all discussions that the user created
      *
      * @param int $id UserId
-     * @param PageGetRequest $pageRequest
+     * @param SortablePageGetRequest $pageRequest
      * @return DiscussionCollection
      */
-    public function getDiscussions(int $id, PageGetRequest $pageRequest)
+    public function getDiscussions(int $id, SortablePageGetRequest $pageRequest)
     {
         //$discussions = Discussion::all()->where('user_id', '=', $id)->paginate($pageRequest->perPage,
         //    ['*'],'discussions', $pageRequest->pageNumber);
@@ -108,33 +108,33 @@ class UserRepository implements IRestRepository
         return new DiscussionCollection($discussions);
     }
 
-    public function getAmendments(int $id, PageGetRequest $request)
+    public function getAmendments(int $id, SortablePageGetRequest $request)
     {
         $amendments = User::find($id)->amendments()->paginate($request->perPage, ['*'], 'amendments', $request->pageNumber);
 
         return new AmendmentCollection($amendments);
     }
 
-    public function getSubAmendments(int $id, PageGetRequest $request)
+    public function getSubAmendments(int $id, SortablePageGetRequest $request)
     {
         $subAmendments = User::find($id)->sub_amendments()->paginate($request->perPage, ['*'], 'sub_amendments', $request->pageNumber);
 
         return new SubAmendmentCollection($subAmendments);
     }
 
-    public function getComments(int $id, PageGetRequest $request)
+    public function getComments(int $id, SortablePageGetRequest $request)
     {
         $comments = User::find($id)->comments()->paginate($request->perPage, ['*'], 'comments', $request->pageNumber);
 
         return new CommentCollection($comments);
     }
 
-    public function getRelevantDiscussions(int $id, PageGetRequest $request)
+    public function getRelevantDiscussions(int $id, SortablePageGetRequest $request)
     {
         // TODO check whether this exists in api doc; maybe add it to discussions instead : Popularity or relevance
     }
 
-    public function getReports(int $id, PageGetRequest $request)
+    public function getReports(int $id, SortablePageGetRequest $request)
     {
         $reports = User::find($id)->reports()->paginate($request->perPage, ['*'], 'reports', $request->pageNumber);
 

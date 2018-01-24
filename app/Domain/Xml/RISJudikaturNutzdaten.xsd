@@ -1,0 +1,2339 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+=======================================================================
+                        RIS Judikatur - Nutzdaten
+=======================================================================
+Zweck:
+Dieses Schema beschreibt den Aufbau eines RIS-Nutzdaten-XML-Dokuments.
+D.h. der Content im XML-Format.
+Autor:				Klaus Schipany, Hermann Anderl
+Version:			7.4.1
+Erzeugt:			29.03.2007
+Datei:				RISJudikaturNutzdaten.xsd
+Modifiziert:
+04.09.2006	TSA: Unnoetige Dokumenttypen und Elemente entfernt.
+06.09.2006	TSA: Wurzelelement wurde von <nutzdaten> auf <content> umbenannt, da <nutzdaten> auch auf Ebene 2 vorhanden.
+09.11.2006	TSA: Neues optionales Attribut "ct" (content type) für die Datenbank hinzugefügt. Gibt es nicht bei eRecht!
+16.11.2006	TSA: Das Attribut "ct" wanderte von <betragliste> bzw. <betraglistetgue> zu <listelem>.
+05.12.2006	TSA: Abstimmung mit der eRecht-Version.
+29.01.2007	TSA: RISDokument.xsd wurde integriert
+06.06.2007	TSA: Neue Elemente innerhalb eines Word-Absatzes: <em>, <en>, <em14>, <tm>, <dots>, <rdquo>, <sbquo>, <rsquo>, <lsquo>
+06.09.2007	TSA: Neues Element <block> um Content innerhalb von Word-Abschnitten zusammenzufassen und mit einem Namen zu versehen (früher Attribut @ct="..." = content type).
+03.10.2007	TSA: @nr bei <absatz>: Typ von xs:integer zu xs:string: Wegen Seitenangaben in BGBl.PDF wie z.B. "1090a".
+23.10.2007	TSA: innerhalbAbsatz dürfen nun auch Links vorkommen (wird gebraucht da in den RIS-Judikatur CPL-Dateien oft HTML-Links enthalten sind).
+20.11.2007	BKA: Die Referenz auf <binary> wurde in allen betroffenen Elementen auskommentiert. Wird derzeit nicht verwendet.
+22.11.2007	TSA: Die Referenz auf <binary> wurde wieder aktiviert. Dafür wurde <base64> das in <binary> vorkommt auskommentiert.
+28.11.2007	TSA: typ="pre" bei absatz; Ziffern-, Litera- und Subliteraaufzaehlungen haben nun eine 4. und 5. Ebene.
+04.12.2007	TSA: Nun werden auch Schlussteile auf Ebene 4 + 5 erlaubt.
+31.01.2008	TSA: Nun werden auch Schlussteile auf Ebene 1 erlaubt (SchlussteilAbs entspricht naemlich nicht Ebene 1 sondern Ebene 0).
+31.01.2008	TSA: Da in manchen DSK-Dokumenten auch Durchstreichungen vorkommen können, wird nun bei den Zeichenformaten auch der HTML-Tag <s> erlaubt.
+13.03.2009	TSA: Bei <unterschrift> gibt's nun das Attribut @halign (das ist mit Herrn Indrak abgestimmt).
+10.04.2009	TSA: Bei <table> ist nun das Attribut id vom Typ xs:string statt xs:ID. Das ist für BGBl.auth. relevant wenn diese mehrere Anlagen mit Tabellen haben.
+20.01.2010	TSA: Namespace http://www.ris.bka.gv.at/ durch http://www.bka.gv.at ersetzt.
+18.08.2011	TSA: Innerhalb eines <link>-Elements ist uA nun <amp> erlaubt.
+27.03.2012	TSA: Innerhalb eines <binary>-Elements ist nun auch <base64> erlaubt, damit das Schema für den RIS2OGD-Konverter verwendet werden kann (das ist für Rubicon irrelevant, da an Rubicon weiterhin keine base64-Elemente geliefert werden).
+05.07.2012	TSA: Neue Attribute title und summary beim Element table. Neues Attribut font beim Element uchar (wegen neuem RTF2XML-Konverter).
+13.07.2012  TSA: Beim Attribut paperf sind jetzt auch die Werte q100 und h100 erlaubt.
+11.03.2015  TSA: Beim Element absatz gibt es jetzt ein neues Attribut style. Beim Element gs gibt es ein neues Attribut sperrweite.
+======================================================================= -->
+<xs:schema xmlns="http://www.bka.gv.at" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:t="http://www.bka.gv.at" targetNamespace="http://www.bka.gv.at" elementFormDefault="qualified" attributeFormDefault="unqualified">
+    <!-- //////////////////////////////////////////////////////////////////////////// -->
+    <!-- Root Element -->
+    <!-- //////////////////////////////////////////////////////////////////////////// -->
+    <xs:element name="nutzdaten">
+        <xs:annotation>
+            <xs:documentation>Jener Teil der Daten, der in layoutierter Form mittels Stylesheets als HTML ausgegeben wird; Zusätzlich werden auch Metadaten ausgegeben.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="fnen" minOccurs="0">
+                    <xs:annotation>
+                        <xs:documentation>Fußnoten/Endnoten</xs:documentation>
+                    </xs:annotation>
+                </xs:element>
+                <xs:element ref="abschnitt" minOccurs="0" maxOccurs="unbounded">
+                    <xs:annotation>
+                        <xs:documentation>Einzelne Dokumentabschnitte (Vorlage: Microsoft Word)</xs:documentation>
+                    </xs:annotation>
+                </xs:element>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+    <!-- //////////////////////////////////////////////////////////////////////////// -->
+    <!-- Typen -->
+    <!-- //////////////////////////////////////////////////////////////////////////// -->
+    <xs:element name="abschnitt">
+        <xs:annotation>
+            <xs:documentation>Ein Dokument besteht aus mindestens einem Abschnitt.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="kzinhalt" minOccurs="0" maxOccurs="3"/>
+                <xs:element ref="fzinhalt" minOccurs="0" maxOccurs="3"/>
+                <xs:choice minOccurs="0" maxOccurs="unbounded">
+                    <xs:annotation>
+                        <xs:documentation>Ein Abschnitt enthält...</xs:documentation>
+                    </xs:annotation>
+                    <xs:element name="block" type="blockType">
+                        <xs:annotation>
+                            <xs:documentation>RISJudikatur: Damit kann Content in Blöcken zusammengefasst werden (vgl. Kategorie im CPL)</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element ref="ueberschrift"/>
+                    <xs:element ref="absatz"/>
+                    <xs:element ref="ausgabe"/>
+                    <xs:element ref="abstand"/>
+                    <xs:element ref="liste"/>
+                    <xs:element ref="inhaltsvz"/>
+                    <xs:element ref="unterschrift"/>
+                    <xs:element ref="binary"/>
+                    <xs:element ref="textbox"/>
+                    <xs:element ref="beschr"/>
+                    <xs:element ref="table"/>
+                    <xs:element ref="pdvorlage"/>
+                </xs:choice>
+            </xs:sequence>
+            <xs:attribute name="nr" type="xs:string"/>
+            <xs:attribute name="endnhier" type="xs:boolean" default="false"/>
+            <xs:attribute name="typ">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="ns">
+                            <xs:annotation>
+                                <xs:documentation>Nächste Seite</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="f">
+                            <xs:annotation>
+                                <xs:documentation>Fortlaufend</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="gs">
+                            <xs:annotation>
+                                <xs:documentation>Gerade Seite</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="us">
+                            <xs:annotation>
+                                <xs:documentation>Ungerade Seite</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="nsp">
+                            <xs:annotation>
+                                <xs:documentation>Neue Spalte</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="paperf" default="h">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="q">
+                            <xs:annotation>
+                                <xs:documentation>Querformat</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="q100">
+                            <xs:annotation>
+                                <xs:documentation>Querformat 100 % (die Seitenränder sind alle 0)</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="h">
+                            <xs:annotation>
+                                <xs:documentation>Hochformat</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="h100">
+                            <xs:annotation>
+                                <xs:documentation>Hochformat 100 % (die Seitenränder sind alle 0)</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="ct" type="xs:string" use="optional"/>
+        </xs:complexType>
+    </xs:element>
+    <!-- //////////////////////////////////////////////////////////////////////////// -->
+    <!-- // Tabelle                                                                   -->
+    <!-- //////////////////////////////////////////////////////////////////////////// -->
+    <xs:element name="table">
+        <xs:annotation>
+            <xs:documentation>Aufbau wie HTML-Tabelle</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="caption" minOccurs="0"/>
+                <xs:choice minOccurs="0" maxOccurs="unbounded">
+                    <xs:element ref="tr" minOccurs="0" maxOccurs="unbounded"/>
+                    <xs:element ref="col" minOccurs="0" maxOccurs="unbounded"/>
+                    <xs:element ref="colgroup" minOccurs="0" maxOccurs="unbounded"/>
+                    <xs:element ref="thead" minOccurs="0"/>
+                    <xs:element ref="tfoot" minOccurs="0"/>
+                    <xs:element ref="tbody" minOccurs="0" maxOccurs="unbounded"/>
+                </xs:choice>
+            </xs:sequence>
+            <xs:attribute name="title" type="xs:string"/>
+            <xs:attribute name="summary" type="xs:string"/>
+            <xs:attribute name="id" type="xs:string"/>
+            <xs:attribute name="class" type="xs:string"/>
+            <xs:attribute name="lang" type="xs:string"/>
+            <xs:attribute name="dir" default="ltr">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="ltr"/>
+                        <xs:enumeration value="rtl"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="style" type="xs:string"/>
+            <xs:attribute name="width" type="xs:string"/>
+            <xs:attribute name="twips" type="xs:string"/>
+            <xs:attribute name="h-start" type="xs:string"/>
+            <xs:attribute name="align">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="left"/>
+                        <xs:enumeration value="center"/>
+                        <xs:enumeration value="right"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="cols" type="xs:string"/>
+            <xs:attribute name="border" type="xs:string"/>
+            <xs:attribute name="frame">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="void"/>
+                        <xs:enumeration value="above"/>
+                        <xs:enumeration value="below"/>
+                        <xs:enumeration value="hsides"/>
+                        <xs:enumeration value="lhs"/>
+                        <xs:enumeration value="rhs"/>
+                        <xs:enumeration value="vsides"/>
+                        <xs:enumeration value="box"/>
+                        <xs:enumeration value="border"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="rules">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="none"/>
+                        <xs:enumeration value="groups"/>
+                        <xs:enumeration value="rows"/>
+                        <xs:enumeration value="cols"/>
+                        <xs:enumeration value="all"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="cellspacing" type="xs:string"/>
+            <xs:attribute name="cellpadding" type="xs:string"/>
+        </xs:complexType>
+    </xs:element>
+    <!-- //////////////////////////////////////////////////////////////////////////// -->
+    <xs:element name="caption">
+        <xs:complexType>
+            <xs:choice maxOccurs="unbounded">
+                <xs:element ref="ueberschrift"/>
+                <xs:element ref="absatz"/>
+                <xs:element ref="ausgabe"/>
+                <xs:element ref="abstand"/>
+                <xs:element ref="liste"/>
+                <xs:element ref="inhaltsvz"/>
+                <xs:element ref="unterschrift"/>
+                <xs:element ref="binary"/>
+                <xs:element ref="textbox"/>
+                <xs:element ref="beschr"/>
+                <xs:element ref="table"/>
+                <xs:element ref="pdvorlage"/>
+            </xs:choice>
+            <xs:attribute name="id" type="xs:ID"/>
+            <xs:attribute name="class" type="xs:string"/>
+            <xs:attribute name="lang" type="xs:string"/>
+            <xs:attribute name="dir" default="ltr">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="ltr"/>
+                        <xs:enumeration value="rtl"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="style" type="xs:string"/>
+            <xs:attribute name="h-start" type="xs:string"/>
+            <xs:attribute name="width" type="xs:string"/>
+            <xs:attribute name="align" default="left">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="top"/>
+                        <xs:enumeration value="bottom"/>
+                        <xs:enumeration value="left"/>
+                        <xs:enumeration value="right"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:attribute>
+        </xs:complexType>
+    </xs:element>
+    <!-- //////////////////////////////////////////////////////////////////////////// -->
+    <xs:element name="thead">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="tr" maxOccurs="unbounded"/>
+            </xs:sequence>
+            <xs:attribute name="id" type="xs:ID"/>
+            <xs:attribute name="class" type="xs:string"/>
+            <xs:attribute name="lang" type="xs:string"/>
+            <xs:attribute name="dir" default="ltr">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="ltr"/>
+                        <xs:enumeration value="rtl"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="style" type="xs:string"/>
+            <xs:attribute name="h-start" type="xs:string"/>
+            <xs:attribute name="width" type="xs:string"/>
+            <xs:attribute name="align" default="left">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="left"/>
+                        <xs:enumeration value="center"/>
+                        <xs:enumeration value="right"/>
+                        <xs:enumeration value="justify"/>
+                        <xs:enumeration value="char"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="char" type="xs:string"/>
+            <xs:attribute name="charoff" type="xs:string"/>
+            <xs:attribute name="valign" default="middle">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="top"/>
+                        <xs:enumeration value="middle"/>
+                        <xs:enumeration value="bottom"/>
+                        <xs:enumeration value="baseline"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:attribute>
+        </xs:complexType>
+    </xs:element>
+    <!-- //////////////////////////////////////////////////////////////////////////// -->
+    <xs:element name="tfoot">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="tr" maxOccurs="unbounded"/>
+            </xs:sequence>
+            <xs:attribute name="id" type="xs:ID"/>
+            <xs:attribute name="class" type="xs:string"/>
+            <xs:attribute name="lang" type="xs:string"/>
+            <xs:attribute name="dir" default="ltr">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="ltr"/>
+                        <xs:enumeration value="rtl"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="style" type="xs:string"/>
+            <xs:attribute name="h-start" type="xs:string"/>
+            <xs:attribute name="width" type="xs:string"/>
+            <xs:attribute name="align" default="left">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="left"/>
+                        <xs:enumeration value="center"/>
+                        <xs:enumeration value="right"/>
+                        <xs:enumeration value="justify"/>
+                        <xs:enumeration value="char"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="char" type="xs:string"/>
+            <xs:attribute name="charoff" type="xs:string"/>
+            <xs:attribute name="valign" default="middle">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="top"/>
+                        <xs:enumeration value="middle"/>
+                        <xs:enumeration value="bottom"/>
+                        <xs:enumeration value="baseline"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:attribute>
+        </xs:complexType>
+    </xs:element>
+    <!-- //////////////////////////////////////////////////////////////////////////// -->
+    <xs:element name="tbody">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="tr" maxOccurs="unbounded"/>
+            </xs:sequence>
+            <xs:attribute name="id" type="xs:ID"/>
+            <xs:attribute name="class" type="xs:string"/>
+            <xs:attribute name="lang" type="xs:string"/>
+            <xs:attribute name="dir" default="ltr">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="ltr"/>
+                        <xs:enumeration value="rtl"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="style" type="xs:string"/>
+            <xs:attribute name="h-start" type="xs:string"/>
+            <xs:attribute name="width" type="xs:string"/>
+            <xs:attribute name="align" default="left">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="left"/>
+                        <xs:enumeration value="center"/>
+                        <xs:enumeration value="right"/>
+                        <xs:enumeration value="justify"/>
+                        <xs:enumeration value="char"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="char" type="xs:string"/>
+            <xs:attribute name="charoff" type="xs:string"/>
+            <xs:attribute name="valign" default="middle">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="top"/>
+                        <xs:enumeration value="middle"/>
+                        <xs:enumeration value="bottom"/>
+                        <xs:enumeration value="baseline"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:attribute>
+        </xs:complexType>
+    </xs:element>
+    <!-- //////////////////////////////////////////////////////////////////////////// -->
+    <xs:element name="colgroup">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="col" minOccurs="0" maxOccurs="unbounded"/>
+            </xs:sequence>
+            <xs:attribute name="id" type="xs:ID"/>
+            <xs:attribute name="class" type="xs:string"/>
+            <xs:attribute name="lang" type="xs:string"/>
+            <xs:attribute name="dir" default="ltr">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="ltr"/>
+                        <xs:enumeration value="rtl"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="style" type="xs:string"/>
+            <xs:attribute name="h-start" type="xs:string"/>
+            <xs:attribute name="width" type="xs:string"/>
+            <xs:attribute name="span" type="xs:string" default="1"/>
+            <xs:attribute name="align" default="left">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="left"/>
+                        <xs:enumeration value="center"/>
+                        <xs:enumeration value="right"/>
+                        <xs:enumeration value="justify"/>
+                        <xs:enumeration value="char"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="char" type="xs:string"/>
+            <xs:attribute name="charoff" type="xs:string"/>
+            <xs:attribute name="valign" default="middle">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="top"/>
+                        <xs:enumeration value="middle"/>
+                        <xs:enumeration value="bottom"/>
+                        <xs:enumeration value="baseline"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:attribute>
+        </xs:complexType>
+    </xs:element>
+    <!-- //////////////////////////////////////////////////////////////////////////// -->
+    <xs:element name="col">
+        <xs:complexType>
+            <xs:attribute name="id" type="xs:ID"/>
+            <xs:attribute name="class" type="xs:string"/>
+            <xs:attribute name="lang" type="xs:string"/>
+            <xs:attribute name="dir" default="ltr">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="ltr"/>
+                        <xs:enumeration value="rtl"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="style" type="xs:string"/>
+            <xs:attribute name="h-start" type="xs:string"/>
+            <xs:attribute name="width" type="xs:string"/>
+            <xs:attribute name="span" type="xs:string" default="1"/>
+            <xs:attribute name="align" default="left">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="left"/>
+                        <xs:enumeration value="center"/>
+                        <xs:enumeration value="right"/>
+                        <xs:enumeration value="justify"/>
+                        <xs:enumeration value="char"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="char" type="xs:string"/>
+            <xs:attribute name="charoff" type="xs:string"/>
+            <xs:attribute name="valign" default="middle">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="top"/>
+                        <xs:enumeration value="middle"/>
+                        <xs:enumeration value="bottom"/>
+                        <xs:enumeration value="baseline"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:attribute>
+        </xs:complexType>
+    </xs:element>
+    <!-- //////////////////////////////////////////////////////////////////////////// -->
+    <xs:element name="tr">
+        <xs:complexType>
+            <xs:choice maxOccurs="unbounded">
+                <xs:element ref="th"/>
+                <xs:element ref="td"/>
+            </xs:choice>
+            <xs:attribute name="id" type="xs:ID"/>
+            <xs:attribute name="class" type="xs:string"/>
+            <xs:attribute name="height" type="xs:string"/>
+            <xs:attribute name="lang" type="xs:string"/>
+            <xs:attribute name="dir" default="ltr">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="ltr"/>
+                        <xs:enumeration value="rtl"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="style" type="xs:string"/>
+            <xs:attribute name="h-start" type="xs:string"/>
+            <xs:attribute name="width" type="xs:string"/>
+            <xs:attribute name="align" default="left">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="left"/>
+                        <xs:enumeration value="center"/>
+                        <xs:enumeration value="right"/>
+                        <xs:enumeration value="justify"/>
+                        <xs:enumeration value="char"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="char" type="xs:string"/>
+            <xs:attribute name="charoff" type="xs:string"/>
+            <xs:attribute name="valign" default="middle">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="top"/>
+                        <xs:enumeration value="middle"/>
+                        <xs:enumeration value="bottom"/>
+                        <xs:enumeration value="baseline"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:attribute>
+        </xs:complexType>
+    </xs:element>
+    <!-- //////////////////////////////////////////////////////////////////////////// -->
+    <xs:element name="th">
+        <xs:complexType>
+            <xs:choice maxOccurs="unbounded">
+                <xs:element ref="ueberschrift"/>
+                <xs:element ref="absatz"/>
+                <xs:element ref="ausgabe"/>
+                <xs:element ref="abstand"/>
+                <xs:element ref="liste"/>
+                <xs:element ref="inhaltsvz"/>
+                <xs:element ref="unterschrift"/>
+                <xs:element ref="binary"/>
+                <xs:element ref="textbox"/>
+                <xs:element ref="beschr"/>
+                <xs:element ref="table"/>
+                <xs:element ref="pdvorlage"/>
+                <xs:element ref="div"/>
+            </xs:choice>
+            <xs:attribute name="id" type="xs:ID"/>
+            <xs:attribute name="class" type="xs:string"/>
+            <xs:attribute name="lang" type="xs:string"/>
+            <xs:attribute name="dir" default="ltr">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="ltr"/>
+                        <xs:enumeration value="rtl"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="style" type="xs:string"/>
+            <xs:attribute name="h-start" type="xs:string"/>
+            <xs:attribute name="width" type="xs:string"/>
+            <xs:attribute name="axis" type="xs:string"/>
+            <xs:attribute name="axes" type="xs:string"/>
+            <xs:attribute name="nowrap">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="nowrap"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="rowspan" type="xs:string" default="1"/>
+            <xs:attribute name="colspan" type="xs:string" default="1"/>
+            <xs:attribute name="align" default="left">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="left"/>
+                        <xs:enumeration value="center"/>
+                        <xs:enumeration value="right"/>
+                        <xs:enumeration value="justify"/>
+                        <xs:enumeration value="char"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="char" type="xs:string"/>
+            <xs:attribute name="charoff" type="xs:string"/>
+            <xs:attribute name="valign" default="middle">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="top"/>
+                        <xs:enumeration value="middle"/>
+                        <xs:enumeration value="bottom"/>
+                        <xs:enumeration value="baseline"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:attribute>
+        </xs:complexType>
+    </xs:element>
+    <!-- //////////////////////////////////////////////////////////////////////////// -->
+    <!-- Tabellenzelle -->
+    <!-- //////////////////////////////////////////////////////////////////////////// -->
+    <xs:element name="td">
+        <xs:complexType>
+            <xs:choice minOccurs="0" maxOccurs="unbounded">
+                <xs:element ref="ueberschrift"/>
+                <xs:element ref="absatz"/>
+                <xs:element ref="ausgabe"/>
+                <xs:element ref="abstand"/>
+                <xs:element ref="liste"/>
+                <xs:element ref="inhaltsvz"/>
+                <xs:element ref="unterschrift"/>
+                <xs:element ref="binary"/>
+                <xs:element ref="textbox"/>
+                <xs:element ref="beschr"/>
+                <xs:element ref="table"/>
+                <xs:element ref="pre"/>
+                <xs:element ref="br"/>
+                <xs:element ref="nbsp"/>
+                <xs:element ref="pdvorlage"/>
+                <xs:element ref="div"/>
+                <xs:group ref="zeichenformate" minOccurs="0" maxOccurs="unbounded"/>
+            </xs:choice>
+            <xs:attribute name="id" type="xs:ID"/>
+            <xs:attribute name="class" type="xs:string"/>
+            <xs:attribute name="lang" type="xs:string"/>
+            <xs:attribute name="dir" default="ltr">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="ltr"/>
+                        <xs:enumeration value="rtl"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="style" type="xs:string"/>
+            <xs:attribute name="h-start" type="xs:string"/>
+            <xs:attribute name="width" type="xs:string"/>
+            <xs:attribute name="height" type="xs:string"/>
+            <xs:attribute name="twips" type="xs:string"/>
+            <xs:attribute name="axis" type="xs:string"/>
+            <xs:attribute name="axes" type="xs:string"/>
+            <xs:attribute name="nowrap">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="nowrap"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="rowspan" type="xs:string" default="1"/>
+            <xs:attribute name="colspan" type="xs:string" default="1"/>
+            <xs:attribute name="align" default="left">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="left"/>
+                        <xs:enumeration value="center"/>
+                        <xs:enumeration value="right"/>
+                        <xs:enumeration value="justify"/>
+                        <xs:enumeration value="char"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="char" type="xs:string"/>
+            <xs:attribute name="charoff" type="xs:string"/>
+            <xs:attribute name="valign" default="middle">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="top"/>
+                        <xs:enumeration value="middle"/>
+                        <xs:enumeration value="bottom"/>
+                        <xs:enumeration value="baseline"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:attribute>
+        </xs:complexType>
+    </xs:element>
+    <!-- //////////////////////////////////////////////////////////////////////////// -->
+    <!-- // Absätze                                                                   -->
+    <!-- //////////////////////////////////////////////////////////////////////////// -->
+    <xs:element name="absatz">
+        <xs:annotation>
+            <xs:documentation>Absätze mit Absatzformatvorlage formatiert (siehe Attribut "typ").</xs:documentation>
+        </xs:annotation>
+        <xs:complexType mixed="true">
+            <xs:group ref="innerhalbAbsatz" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:attribute name="typ">
+                <xs:annotation>
+                    <xs:documentation>Absatztyp (siehe Word Formatvorlagen-Bezeichnungen)</xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="promkleinlsatz">
+                            <xs:annotation>
+                                <xs:documentation>12_PromKl_EinlSatz</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="novao1">
+                            <xs:annotation>
+                                <xs:documentation>21_NovAo1</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="novao2">
+                            <xs:annotation>
+                                <xs:documentation>22_NovAo2</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="satz">
+                            <xs:annotation>
+                                <xs:documentation>23_Satz_(nach_Novao)</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="abs">
+                            <xs:annotation>
+                                <xs:documentation>51_Abs</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="tabtext">
+                            <xs:annotation>
+                                <xs:documentation>61_TabText</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="tabtextr">
+                            <xs:annotation>
+                                <xs:documentation>61a_TabTextRechtsb</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="tabtextz">
+                            <xs:annotation>
+                                <xs:documentation>61b_TabTextZentriert</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="tabtextb">
+                            <xs:annotation>
+                                <xs:documentation>61a_TabTextBlock</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="kz">
+                            <xs:annotation>
+                                <xs:documentation>62_Kopfzeile</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="fz">
+                            <xs:annotation>
+                                <xs:documentation>63_Fußzeile</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="erltext">
+                            <xs:annotation>
+                                <xs:documentation>83_ErlText</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="abbobj">
+                            <xs:annotation>
+                                <xs:documentation>18_Abbildung_oder_Objekt</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="pre">
+                            <xs:annotation>
+                                <xs:documentation>99_PreformattedText</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="undef">
+                            <xs:annotation>
+                                <xs:documentation>01_Undefiniert</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="halign">
+                <xs:annotation>
+                    <xs:documentation>Horizontale Ausrichtung: l, r, c, j</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="ct" type="xs:string" use="optional">
+                <xs:annotation>
+                    <xs:documentation>content type</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="style" type="xs:string" use="optional"/>
+        </xs:complexType>
+    </xs:element>
+    <!-- //////////////////////////////////////////////////////////////////////////// -->
+    <!-- // Ausgabedaten                                                     -->
+    <!-- //////////////////////////////////////////////////////////////////////////// -->
+    <xs:element name="ausgabe">
+        <xs:annotation>
+            <xs:documentation>BGBl. Ausgabedaten: 04_AusgabeDaten</xs:documentation>
+        </xs:annotation>
+        <xs:complexType mixed="true">
+            <xs:sequence>
+                <xs:element ref="adtext"/>
+                <xs:element ref="addat"/>
+                <xs:element ref="adid"/>
+            </xs:sequence>
+            <xs:attribute name="ct" type="xs:string" use="optional"/>
+        </xs:complexType>
+    </xs:element>
+    <!-- //////////////////////////////////////////////////////////////////////////// -->
+    <xs:element name="adtext">
+        <xs:annotation>
+            <xs:documentation>Ausgegeben am</xs:documentation>
+        </xs:annotation>
+        <xs:complexType mixed="true">
+            <xs:choice minOccurs="0" maxOccurs="unbounded">
+                <xs:group ref="innerhalbAbsatz" minOccurs="0" maxOccurs="unbounded"/>
+            </xs:choice>
+        </xs:complexType>
+    </xs:element>
+    <!-- //////////////////////////////////////////////////////////////////////////// -->
+    <xs:element name="addat">
+        <xs:annotation>
+            <xs:documentation>11.01.2003</xs:documentation>
+        </xs:annotation>
+        <xs:complexType mixed="true">
+            <xs:choice minOccurs="0" maxOccurs="unbounded">
+                <xs:group ref="innerhalbAbsatz" minOccurs="0" maxOccurs="unbounded"/>
+            </xs:choice>
+        </xs:complexType>
+    </xs:element>
+    <!-- //////////////////////////////////////////////////////////////////////////// -->
+    <xs:element name="adid">
+        <xs:annotation>
+            <xs:documentation>11/2003</xs:documentation>
+        </xs:annotation>
+        <xs:complexType mixed="true">
+            <xs:choice minOccurs="0" maxOccurs="unbounded">
+                <xs:group ref="innerhalbAbsatz" minOccurs="0" maxOccurs="unbounded"/>
+            </xs:choice>
+        </xs:complexType>
+    </xs:element>
+    <!-- //////////////////////////////////////////////////////////////////////////// -->
+    <!-- // Kopfzeile / Fußzeile                                        -->
+    <!-- //////////////////////////////////////////////////////////////////////////// -->
+    <xs:group name="kzfz">
+        <xs:choice>
+            <xs:element ref="kzinhalt"/>
+            <xs:element ref="fzinhalt"/>
+        </xs:choice>
+    </xs:group>
+    <!-- //////////////////////////////////////////////////////////////////////////// -->
+    <xs:element name="kzinhalt">
+        <xs:annotation>
+            <xs:documentation>Optional: Kopfzeileninhalt für diesen Abschnitt.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:choice maxOccurs="unbounded">
+                <xs:element ref="ueberschrift"/>
+                <xs:element ref="absatz"/>
+                <xs:element ref="ausgabe"/>
+                <xs:element ref="abstand"/>
+                <xs:element ref="liste"/>
+                <xs:element ref="binary"/>
+                <xs:element ref="beschr"/>
+                <xs:element ref="table"/>
+                <xs:element ref="pdvorlage"/>
+            </xs:choice>
+            <xs:attribute name="typ">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="p">
+                            <xs:annotation>
+                                <xs:documentation>HeaderFooterPrimary - gilt für alle Seiten</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="f">
+                            <xs:annotation>
+                                <xs:documentation>HeaderFooterFirstPage - für die jeweils erste Seite eines Abschnittes</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="e">
+                            <xs:annotation>
+                                <xs:documentation>HeaderFooterEvenPages - für jede gerade Seite</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="ct" type="xs:string" use="optional"/>
+        </xs:complexType>
+    </xs:element>
+    <!--///////////////////////////////////////////////////////////////////////-->
+    <xs:element name="fzinhalt">
+        <xs:annotation>
+            <xs:documentation>Optional: Fußzeileninhalt für diesen Abschnitt.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType mixed="true">
+            <xs:choice maxOccurs="unbounded">
+                <xs:element ref="ueberschrift"/>
+                <xs:element ref="absatz"/>
+                <xs:element ref="ausgabe"/>
+                <xs:element ref="abstand"/>
+                <xs:element ref="liste"/>
+                <xs:element ref="binary"/>
+                <xs:element ref="beschr"/>
+                <xs:element ref="table"/>
+                <xs:element ref="pdvorlage"/>
+            </xs:choice>
+            <xs:attribute name="typ"/>
+            <xs:attribute name="abschnittnr"/>
+            <xs:attribute name="ct" type="xs:string" use="optional"/>
+        </xs:complexType>
+    </xs:element>
+    <!-- //////////////////////////////////////////////////////////////////////////// -->
+    <!-- // Fußnoten / Endnoten                                                       -->
+    <!-- //////////////////////////////////////////////////////////////////////////// -->
+    <xs:element name="fnen">
+        <xs:annotation>
+            <xs:documentation>Optional Fußnoten/Endnoten</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:choice>
+                <xs:element ref="fntext" maxOccurs="unbounded"/>
+                <xs:element ref="fnzeichen"/>
+            </xs:choice>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="fntext">
+        <xs:complexType mixed="true">
+            <xs:group ref="innerhalbAbsatz" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:attribute name="nr" type="xs:nonNegativeInteger"/>
+            <xs:attribute name="typ">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="f">
+                            <xs:annotation>
+                                <xs:documentation>Fußnote</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="e">
+                            <xs:annotation>
+                                <xs:documentation>Endnote</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="ct" type="xs:string" use="optional"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="fnzeichen">
+        <xs:annotation>
+            <xs:documentation>Fußnotenreferenz im Text</xs:documentation>
+        </xs:annotation>
+        <xs:complexType mixed="true">
+            <xs:annotation>
+                <xs:documentation>Nummer wird zwischen den Tags ausgegeben</xs:documentation>
+            </xs:annotation>
+            <xs:sequence>
+                <xs:element ref="feld" minOccurs="0"/>
+            </xs:sequence>
+            <xs:attribute name="typ">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="f">
+                            <xs:annotation>
+                                <xs:documentation>Fußnote</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="e">
+                            <xs:annotation>
+                                <xs:documentation>Endnote</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="r">
+                            <xs:annotation>
+                                <xs:documentation>Referenz auf Fußnote oder Endnote</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="ct" type="xs:string" use="optional"/>
+        </xs:complexType>
+    </xs:element>
+    <!-- //////////////////////////////////////////////////////////////////////////// -->
+    <!-- // Überschriften                                                             -->
+    <!-- //////////////////////////////////////////////////////////////////////////// -->
+    <xs:element name="ueberschrift">
+        <xs:annotation>
+            <xs:documentation>Absätze mit Überschriftenformatvorlage formatiert (siehe Attribut "typ").</xs:documentation>
+        </xs:annotation>
+        <xs:complexType mixed="true">
+            <xs:group ref="innerhalbAbsatz" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:attribute name="typ">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="bdgesblatt">
+                            <xs:annotation>
+                                <xs:documentation>02_BDGESBLATT</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="repoesterr">
+                            <xs:annotation>
+                                <xs:documentation>03_REPOESTERR</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="kurztitel">
+                            <xs:annotation>
+                                <xs:documentation>05_Kurztitel</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="entwurf">
+                            <xs:annotation>
+                                <xs:documentation>10_Entwurf</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="titel">
+                            <xs:annotation>
+                                <xs:documentation>11_Titel</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="g1">
+                            <xs:annotation>
+                                <xs:documentation>41_UeberschrG1</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="g1min">
+                            <xs:annotation>
+                                <xs:documentation>42_UeberschrG1-</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="g2">
+                            <xs:annotation>
+                                <xs:documentation>43_UeberschrG2</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="art">
+                            <xs:annotation>
+                                <xs:documentation>44_UeberschrArt+</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="para">
+                            <xs:annotation>
+                                <xs:documentation>45_UeberschrPara</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="anlage">
+                            <xs:annotation>
+                                <xs:documentation>71_Anlagenbez</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="erlz">
+                            <xs:annotation>
+                                <xs:documentation>81_ErlUeberschrZ</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="erll">
+                            <xs:annotation>
+                                <xs:documentation>82_ErlUeberschrL</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="tgue">
+                            <xs:annotation>
+                                <xs:documentation>89_TGUE_UeberschrSpalte</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="halign"/>
+            <xs:attribute name="ct" type="xs:string" use="optional"/>
+        </xs:complexType>
+    </xs:element>
+    <!-- //////////////////////////////////////////////////////////////////////////// -->
+    <!-- // Preformatted                                          		  -->
+    <!-- //////////////////////////////////////////////////////////////////////////// -->
+    <xs:element name="pre">
+        <xs:complexType mixed="true">
+            <xs:choice minOccurs="0" maxOccurs="unbounded">
+                <xs:element ref="ueberschrift"/>
+                <xs:element ref="absatz"/>
+                <xs:element ref="ausgabe"/>
+                <xs:element ref="abstand"/>
+                <xs:element ref="liste"/>
+                <xs:element ref="inhaltsvz"/>
+                <xs:element ref="unterschrift"/>
+                <xs:element ref="binary"/>
+                <xs:element ref="textbox"/>
+                <xs:element ref="beschr"/>
+                <xs:element ref="table"/>
+                <xs:element ref="pre"/>
+                <xs:element ref="pdvorlage"/>
+                <xs:group ref="zeichenformate" minOccurs="0" maxOccurs="unbounded"/>
+            </xs:choice>
+        </xs:complexType>
+    </xs:element>
+    <!-- //////////////////////////////////////////////////////////////////////////// -->
+    <!-- // Textboxen                                          -->
+    <!-- //////////////////////////////////////////////////////////////////////////// -->
+    <xs:element name="textbox">
+        <xs:complexType mixed="true">
+            <xs:group ref="innerhalbAbsatz" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:attribute name="format" type="xs:string">
+                <xs:annotation>
+                    <xs:documentation>Verwendete Absatzformatvorlage</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+        </xs:complexType>
+    </xs:element>
+    <!-- //////////////////////////////////////////////////////////////////////////// -->
+    <!-- // Binary -->
+    <!-- //////////////////////////////////////////////////////////////////////////// -->
+    <xs:element name="binary">
+        <xs:annotation>
+            <xs:documentation>Beliebige Binärdateien werden Base64 eingebettet</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:choice minOccurs="1" maxOccurs="1">
+                    <xs:element ref="src"/>
+                    <xs:element ref="base64"/>
+                </xs:choice>
+                <xs:element ref="beschr" minOccurs="0" maxOccurs="1"/>
+            </xs:sequence>
+            <xs:attribute name="nr" type="xs:integer">
+                <xs:annotation>
+                    <xs:documentation>Laufende Nummer der Grafik</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="datatype" type="xs:string" default="jpeg">
+                <xs:annotation>
+                    <xs:documentation>Gibt den Binärtyp an: jpeg | tiff | pdf | ...</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="shapetype" type="xs:string" default="is">
+                <xs:annotation>
+                    <xs:documentation>Wenn Grafik aus Microsoft Word: is..inline shape, s..shape</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="filename" type="xs:string">
+                <xs:annotation>
+                    <xs:documentation>Ursprünglicher Dateiname der eingebetteten Binärdaten (base64) - keine Pfadangabe.</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="height" type="xs:string">
+                <xs:annotation>
+                    <xs:documentation>Höhe in pt</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="width" type="xs:string">
+                <xs:annotation>
+                    <xs:documentation>Breite in pt</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="brightness" type="xs:string">
+                <xs:annotation>
+                    <xs:documentation>Helligkeit in % (dezimal)</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="contrast" type="xs:string">
+                <xs:annotation>
+                    <xs:documentation>Kontrast in % (dezimal)</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="oleclass" type="xs:string"/>
+            <xs:attribute name="name" type="xs:string"/>
+            <xs:attribute name="alt" type="xs:string"/>
+            <xs:attribute name="left" type="xs:string"/>
+            <xs:attribute name="top" type="xs:string"/>
+            <xs:attribute name="hpos" type="xs:string"/>
+            <xs:attribute name="vpos" type="xs:string"/>
+            <xs:attribute name="align">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="l">
+                            <xs:annotation>
+                                <xs:documentation>linksbündig</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="z">
+                            <xs:annotation>
+                                <xs:documentation>zentriert</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="r">
+                            <xs:annotation>
+                                <xs:documentation>rechtsbündig</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:attribute>
+        </xs:complexType>
+    </xs:element>
+    <!-- ////////////////////////////////////////////////////////////////// -->
+    <xs:element name="beschr">
+        <xs:annotation>
+            <xs:documentation>19_Beschriftung</xs:documentation>
+        </xs:annotation>
+        <xs:complexType mixed="true">
+            <xs:group ref="innerhalbAbsatz" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:attribute name="halign">
+                <xs:annotation>
+                    <xs:documentation>Horizontale Ausrichtung: l, r, c, j</xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="l">
+                            <xs:annotation>
+                                <xs:documentation>linksbündig</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="c">
+                            <xs:annotation>
+                                <xs:documentation>zentriert (center)</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="r">
+                            <xs:annotation>
+                                <xs:documentation>rechtsbündig</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="j">
+                            <xs:annotation>
+                                <xs:documentation>Blocksatz (justify)</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="ct" type="xs:string" use="optional"/>
+        </xs:complexType>
+    </xs:element>
+    <!-- ////////////////////////////////////////////////////////////////// -->
+    <xs:element name="base64" type="xs:base64Binary">
+        <xs:annotation>
+            <xs:documentation>Base64-Kodierte Binärdateien.</xs:documentation>
+        </xs:annotation>
+    </xs:element>
+    <!-- ////////////////////////////////////////////////////////////////// -->
+    <xs:element name="src" type="xs:string">
+        <xs:annotation>
+            <xs:documentation>Referenz (Pfad + Dateiname) auf extern gehaltenes File. Nur vorhanden, wenn nicht Base64 eingebettet.</xs:documentation>
+        </xs:annotation>
+    </xs:element>
+    <!-- //////////////////////////////////////////////////////////////////////////// -->
+    <!-- // Listen/Aufzählungen                                                       -->
+    <!-- //////////////////////////////////////////////////////////////////////////// -->
+    <xs:element name="liste">
+        <xs:annotation>
+            <xs:documentation>Aufzählungen</xs:documentation>
+        </xs:annotation>
+        <xs:complexType mixed="false">
+            <xs:choice maxOccurs="unbounded">
+                <xs:element ref="ziffernliste"/>
+                <xs:element ref="literaliste"/>
+                <xs:element ref="subliteraliste"/>
+                <xs:element ref="strichliste"/>
+                <xs:element ref="betragliste"/>
+                <xs:element ref="betraglistetgue"/>
+                <xs:element ref="erlliste"/>
+                <xs:element ref="schluss"/>
+            </xs:choice>
+        </xs:complexType>
+    </xs:element>
+    <!-- //////////////////////////////////////////////////////////////////////////// -->
+    <xs:element name="listelem">
+        <xs:complexType mixed="true">
+            <xs:sequence>
+                <xs:element ref="symbol"/>
+                <xs:group ref="innerhalbAbsatz" minOccurs="0" maxOccurs="unbounded"/>
+            </xs:sequence>
+            <xs:attribute name="ct" type="xs:string" use="optional"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="symbol">
+        <xs:complexType mixed="true">
+            <xs:group ref="innerhalbAbsatz" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:attribute name="stellen" type="xs:integer"/>
+        </xs:complexType>
+    </xs:element>
+    <!-- //////////////////////////////////////////////////////////////////////////// -->
+    <xs:element name="ziffernliste">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:choice minOccurs="0" maxOccurs="unbounded">
+                    <xs:element ref="listelem"/>
+                    <xs:element ref="literaliste"/>
+                    <xs:element ref="subliteraliste"/>
+                    <xs:element ref="strichliste"/>
+                    <xs:element ref="schluss"/>
+                </xs:choice>
+            </xs:sequence>
+            <xs:attribute name="ebene" default="1">
+                <xs:simpleType>
+                    <xs:restriction base="xs:nonNegativeInteger">
+                        <xs:enumeration value="1">
+                            <xs:annotation>
+                                <xs:documentation>52_Ziffer_e1</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="2">
+                            <xs:annotation>
+                                <xs:documentation>52_Ziffer_e2 (intern)</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="3">
+                            <xs:annotation>
+                                <xs:documentation>52_Ziffer_e3 (intern)</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="4">
+                            <xs:annotation>
+                                <xs:documentation>52_Ziffer_e4 (intern)</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="5">
+                            <xs:annotation>
+                                <xs:documentation>52_Ziffer_e5 (intern)</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:attribute>
+        </xs:complexType>
+    </xs:element>
+    <!-- //////////////////////////////////////////////////////////////////////////// -->
+    <xs:element name="literaliste">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:choice minOccurs="0" maxOccurs="unbounded">
+                    <xs:element ref="listelem"/>
+                    <xs:element ref="subliteraliste"/>
+                    <xs:element ref="strichliste"/>
+                    <xs:element ref="schluss"/>
+                </xs:choice>
+            </xs:sequence>
+            <xs:attribute name="ebene" default="2">
+                <xs:simpleType>
+                    <xs:restriction base="xs:nonNegativeInteger">
+                        <xs:enumeration value="1">
+                            <xs:annotation>
+                                <xs:documentation>53_Litera_e1 (intern)</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="2">
+                            <xs:annotation>
+                                <xs:documentation>53_Litera_e2</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="3">
+                            <xs:annotation>
+                                <xs:documentation>53_Litera_e3</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="4">
+                            <xs:annotation>
+                                <xs:documentation>53_Litera_e4</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="5">
+                            <xs:annotation>
+                                <xs:documentation>53_Litera_e5</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:attribute>
+        </xs:complexType>
+    </xs:element>
+    <!-- //////////////////////////////////////////////////////////////////////////// -->
+    <xs:element name="subliteraliste">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:choice minOccurs="0" maxOccurs="unbounded">
+                    <xs:element ref="listelem"/>
+                    <xs:element ref="strichliste"/>
+                    <xs:element ref="schluss"/>
+                </xs:choice>
+            </xs:sequence>
+            <xs:attribute name="ebene" default="3">
+                <xs:simpleType>
+                    <xs:restriction base="xs:nonNegativeInteger">
+                        <xs:enumeration value="1">
+                            <xs:annotation>
+                                <xs:documentation>54_Sublitera_e1 (intern)</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="2">
+                            <xs:annotation>
+                                <xs:documentation>54_Sublitera_e2 (intern)</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="3">
+                            <xs:annotation>
+                                <xs:documentation>54_Sublitera_e3</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="4">
+                            <xs:annotation>
+                                <xs:documentation>54_Sublitera_e4</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="5">
+                            <xs:annotation>
+                                <xs:documentation>54_Sublitera_e5</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:attribute>
+        </xs:complexType>
+    </xs:element>
+    <!-- //////////////////////////////////////////////////////////////////////////// -->
+    <xs:element name="strichliste">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:choice minOccurs="0" maxOccurs="unbounded">
+                    <xs:element ref="listelem"/>
+                </xs:choice>
+            </xs:sequence>
+            <xs:attribute name="ebene" default="4">
+                <xs:simpleType>
+                    <xs:restriction base="xs:nonNegativeInteger">
+                        <xs:enumeration value="1">
+                            <xs:annotation>
+                                <xs:documentation>54a_Strich_e1 (intern)</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="2">
+                            <xs:annotation>
+                                <xs:documentation>54a_Strich_e2 (intern)</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="3">
+                            <xs:annotation>
+                                <xs:documentation>54a_Strich_e3 (intern)</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="4">
+                            <xs:annotation>
+                                <xs:documentation>54a_Strich_e4</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="5">
+                            <xs:annotation>
+                                <xs:documentation>54a_Strich_e5 (intern)</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="6">
+                            <xs:annotation>
+                                <xs:documentation>54a_Strich_e6 (intern)</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="7">
+                            <xs:annotation>
+                                <xs:documentation>54a_Strich_e7 (intern)</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:attribute>
+        </xs:complexType>
+    </xs:element>
+    <!-- //////////////////////////////////////////////////////////////////////////////////////// -->
+    <xs:element name="betragliste">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:choice minOccurs="0" maxOccurs="unbounded">
+                    <xs:element ref="listelem"/>
+                </xs:choice>
+            </xs:sequence>
+            <xs:attribute name="typ">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="ziffer">
+                            <xs:annotation>
+                                <xs:documentation>52_Ziffer_mit_Betrag</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="litera">
+                            <xs:annotation>
+                                <xs:documentation>53_Litera_mit_Betrag</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="sublitera">
+                            <xs:annotation>
+                                <xs:documentation>54_Sublitera_mit_Betrag</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:attribute>
+        </xs:complexType>
+    </xs:element>
+    <!-- //////////////////////////////////////////////////////////////////////////////////////// -->
+    <xs:element name="betraglistetgue">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:choice minOccurs="0" maxOccurs="unbounded">
+                    <xs:element ref="listelem"/>
+                </xs:choice>
+            </xs:sequence>
+            <xs:attribute name="typ">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="ziffer">
+                            <xs:annotation>
+                                <xs:documentation>52aT_Ziffer_mit_Betrag_TGUE</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="litera">
+                            <xs:annotation>
+                                <xs:documentation>53aT_Litera_mit_Betrag_TGUE</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="sublitera">
+                            <xs:annotation>
+                                <xs:documentation>54aT_Sublitera_mit_Betrag_TGUE</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:attribute>
+        </xs:complexType>
+    </xs:element>
+    <!-- //////////////////////////////////////////////////////////////////////////// -->
+    <xs:element name="erlliste">
+        <xs:annotation>
+            <xs:documentation>85_ErlAufzaehlg</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:choice minOccurs="0" maxOccurs="unbounded">
+                    <xs:element ref="listelem"/>
+                </xs:choice>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+    <!-- //////////////////////////////////////////////////////////////////////////// -->
+    <xs:element name="schluss">
+        <xs:complexType mixed="true">
+            <xs:group ref="innerhalbAbsatz" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:attribute name="typ">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="Abs">
+                            <xs:annotation>
+                                <xs:documentation>55_SchlussteilAbs</xs:documentation>
+                            </xs:annotation>
+                            <!-- A.H., 31. Jän. 2008: das entspricht Ebene 0 -->
+                        </xs:enumeration>
+                        <xs:enumeration value="e1">
+                            <xs:annotation>
+                                <xs:documentation>57_Schlussteil_e1</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="Ziff">
+                            <xs:annotation>
+                                <xs:documentation>56_SchlussteilZiff</xs:documentation>
+                            </xs:annotation>
+                            <!-- A.H., 31. Jän. 2008: das entspricht Ebene 2 -->
+                        </xs:enumeration>
+                        <xs:enumeration value="Lit">
+                            <xs:annotation>
+                                <xs:documentation>57_SchlussteilLit</xs:documentation>
+                            </xs:annotation>
+                            <!-- A.H., 31. Jän. 2008: das entspricht Ebene 3 -->
+                        </xs:enumeration>
+                        <xs:enumeration value="e4">
+                            <xs:annotation>
+                                <xs:documentation>57_Schlussteil_e4</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="e5">
+                            <xs:annotation>
+                                <xs:documentation>57_Schlussteil_e5</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="ct" type="xs:string" use="optional"/>
+        </xs:complexType>
+    </xs:element>
+    <!-- //////////////////////////////////////////////////////////////////////////// -->
+    <!-- // Inhaltsverzeichnis                                                 -->
+    <!-- //////////////////////////////////////////////////////////////////////////// -->
+    <xs:element name="inhaltsvz">
+        <xs:complexType mixed="true">
+            <xs:group ref="innerhalbAbsatz" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:attribute name="typ">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="ueberschrift">
+                            <xs:annotation>
+                                <xs:documentation>30_InhaltUeberschrift</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="spalte">
+                            <xs:annotation>
+                                <xs:documentation>31_InhaltSpalte</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="eintrag">
+                            <xs:annotation>
+                                <xs:documentation>32_InhaltEintrag</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="halign"/>
+            <xs:attribute name="ct" type="xs:string" use="optional"/>
+        </xs:complexType>
+    </xs:element>
+    <!-- //////////////////////////////////////////////////////////////////////////// -->
+    <!-- // Unterschriften                                                   -->
+    <!-- //////////////////////////////////////////////////////////////////////////// -->
+    <xs:element name="unterschrift">
+        <xs:complexType mixed="true">
+            <xs:group ref="innerhalbAbsatz" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:attribute name="typ" use="required">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="links">
+                            <xs:annotation>
+                                <xs:documentation>68_UnterschrL</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="mitte">
+                            <xs:annotation>
+                                <xs:documentation>69_UnterschrM</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="rechts">
+                            <xs:annotation>
+                                <xs:documentation>Optional: frei</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="halign"/>
+            <xs:attribute name="ct" type="xs:string" use="optional"/>
+        </xs:complexType>
+    </xs:element>
+    <!-- //////////////////////////////////////////////////////////////////////////// -->
+    <!-- // Zeichenformate (-vorlagen)                                                -->
+    <!-- //////////////////////////////////////////////////////////////////////////// -->
+    <xs:group name="zeichenformate">
+        <xs:choice>
+            <xs:element ref="error"/>
+            <xs:element ref="gldsym"/>
+            <xs:element ref="n"/>
+            <xs:element ref="b"/>
+            <xs:element ref="i"/>
+            <xs:element ref="u"/>
+            <xs:element ref="gs"/>
+            <xs:element ref="super"/>
+            <xs:element ref="sub"/>
+            <xs:element ref="s"/>
+            <!-- A.H., 31. Jän. 2008: Da in manchen DSK-Dokumenten auch Durchstreichungen vorkommen können. -->
+        </xs:choice>
+    </xs:group>
+    <!-- //////////////////////////////////////////////////////////////////////////// -->
+    <xs:element name="error">
+        <xs:annotation>
+            <xs:documentation>990_Fehler</xs:documentation>
+        </xs:annotation>
+        <xs:complexType mixed="true">
+            <xs:group ref="innerhalbAbsatz" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="gldsym">
+        <xs:annotation>
+            <xs:documentation>991_GldSymbol</xs:documentation>
+        </xs:annotation>
+        <xs:complexType mixed="true">
+            <xs:group ref="innerhalbAbsatz" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="n">
+        <xs:annotation>
+            <xs:documentation>992_Normal</xs:documentation>
+        </xs:annotation>
+        <xs:complexType mixed="true">
+            <xs:group ref="innerhalbAbsatz" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="b">
+        <xs:annotation>
+            <xs:documentation>993_Fett bzw. 999_Fett_und_Kursiv</xs:documentation>
+        </xs:annotation>
+        <xs:complexType mixed="true">
+            <xs:group ref="innerhalbAbsatz" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="i">
+        <xs:annotation>
+            <xs:documentation>994_Kursiv bzw. 999_Fett_und_Kursiv</xs:documentation>
+        </xs:annotation>
+        <xs:complexType mixed="true">
+            <xs:group ref="innerhalbAbsatz" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="u">
+        <xs:annotation>
+            <xs:documentation>995_Unterstrichen</xs:documentation>
+        </xs:annotation>
+        <xs:complexType mixed="true">
+            <xs:group ref="innerhalbAbsatz" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="gs">
+        <xs:annotation>
+            <xs:documentation>996_Gesperrt</xs:documentation>
+        </xs:annotation>
+        <xs:complexType mixed="true">
+            <xs:group ref="innerhalbAbsatz" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:attribute name="sperrweite" type="xs:string" use="optional"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="super">
+        <xs:annotation>
+            <xs:documentation>997_Hoch (siehe CSS: vertical-align)</xs:documentation>
+        </xs:annotation>
+        <xs:complexType mixed="true">
+            <xs:group ref="innerhalbAbsatz" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="sub">
+        <xs:annotation>
+            <xs:documentation>998_Tief (siehe CSS: vertical-align)</xs:documentation>
+        </xs:annotation>
+        <xs:complexType mixed="true">
+            <xs:group ref="innerhalbAbsatz" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="s">
+        <xs:annotation>
+            <xs:documentation>Durchgestrichen</xs:documentation>
+        </xs:annotation>
+        <!-- A.H., 31. Jän. 2008: Da in manchen DSK-Dokumenten auch Durchstreichungen vorkommen können. -->
+        <xs:complexType mixed="true">
+            <xs:group ref="innerhalbAbsatz" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="uchar">
+        <xs:annotation>
+            <xs:documentation>Legistik 2005: Sonderzeichen</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:attribute name="font" type="xs:string"/>
+            <xs:attribute name="code" type="xs:string"/>
+            <!-- empty -->
+        </xs:complexType>
+    </xs:element>
+    <!-- //////////////////////////////////////////////////////////////////////////// -->
+    <!-- // Felder                                                               -->
+    <!-- //////////////////////////////////////////////////////////////////////////// -->
+    <xs:element name="feld">
+        <xs:annotation>
+            <xs:documentation>Enthält das Resultat; darf mit Zeichenformaten formatiert sein. Hat sonst das Format des Absatzes.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType mixed="true">
+            <xs:group ref="zeichenformate" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:attribute name="code" type="xs:string">
+                <xs:annotation>
+                    <xs:documentation>Code aus MS Word</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+        </xs:complexType>
+    </xs:element>
+    <!-- //////////////////////////////////////////////////////////////////////////// -->
+    <!-- // Hyperlink                                                           -->
+    <!-- //////////////////////////////////////////////////////////////////////////// -->
+    <xs:element name="link">
+        <xs:annotation>
+            <xs:documentation>Stellt einen Hyperlink dar.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType mixed="true">
+            <xs:choice minOccurs="0" maxOccurs="unbounded">
+                <xs:group ref="zeichenformate" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element ref="nbsp"/>
+                <xs:element ref="bdash"/>
+                <xs:element ref="gdash"/>
+                <xs:element ref="kidea"/>
+                <xs:element ref="lidea"/>
+                <xs:element ref="euro"/>
+                <xs:element ref="lt"/>
+                <xs:element ref="gt"/>
+                <xs:element ref="amp"/>
+                <xs:element ref="bdquo"/>
+                <xs:element ref="ldquo"/>
+                <xs:element ref="em"/>
+                <xs:element ref="en"/>
+                <xs:element ref="em14"/>
+                <xs:element ref="tm"/>
+                <xs:element ref="dots"/>
+                <xs:element ref="rdquo"/>
+                <xs:element ref="sbquo"/>
+                <xs:element ref="rsquo"/>
+                <xs:element ref="lsquo"/>
+                <xs:element ref="uchar"/>
+            </xs:choice>
+            <xs:attribute name="href" type="xs:string"/>
+            <xs:attribute name="target" type="xs:string"/>
+        </xs:complexType>
+    </xs:element>
+    <!-- //////////////////////////////////////////////////////////////////////////// -->
+    <!-- // Was ist innerhalb eines Absatzes erlaubt   -->
+    <!-- //////////////////////////////////////////////////////////////////////////// -->
+    <xs:group name="innerhalbAbsatz">
+        <xs:annotation>
+            <xs:documentation>Was ist innerhalb eines Absatzes erlaubt?</xs:documentation>
+        </xs:annotation>
+        <xs:choice>
+            <xs:group ref="zeichenformate" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element ref="br"/>
+            <xs:element ref="tab"/>
+            <xs:element ref="fnzeichen"/>
+            <xs:element ref="feld"/>
+            <xs:element ref="link"/>
+            <xs:element ref="nbsp"/>
+            <xs:element ref="bdash"/>
+            <xs:element ref="gdash"/>
+            <xs:element ref="kidea"/>
+            <xs:element ref="lidea"/>
+            <xs:element ref="euro"/>
+            <xs:element ref="lt"/>
+            <xs:element ref="gt"/>
+            <xs:element ref="amp"/>
+            <xs:element ref="bdquo"/>
+            <xs:element ref="ldquo"/>
+            <xs:element ref="em"/>
+            <xs:element ref="en"/>
+            <xs:element ref="em14"/>
+            <xs:element ref="tm"/>
+            <xs:element ref="dots"/>
+            <xs:element ref="rdquo"/>
+            <xs:element ref="sbquo"/>
+            <xs:element ref="rsquo"/>
+            <xs:element ref="lsquo"/>
+            <xs:element ref="binary"/>
+            <!--xs:group ref="verweise"/-->
+            <xs:element ref="aw"/>
+            <xs:element ref="wechsel"/>
+            <xs:element ref="uchar"/>
+        </xs:choice>
+    </xs:group>
+    <!-- //////////////////////////////////////////////////////////////////////////// -->
+    <xs:element name="br">
+        <xs:annotation>
+            <xs:documentation>Manueller Zeilenumbruch (^11 bzw. ^l)</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:attribute name="class" type="xs:string"/>
+            <xs:attribute name="style" type="xs:string"/>
+            <!-- empty -->
+        </xs:complexType>
+    </xs:element>
+    <!-- //////////////////////////////////////////////////////////////////////////// -->
+    <xs:element name="aw">
+        <xs:annotation>
+            <xs:documentation>Abschnittswechsel: ^b</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <!-- empty -->
+        </xs:complexType>
+    </xs:element>
+    <!-- //////////////////////////////////////////////////////////////////////////// -->
+    <xs:element name="tab">
+        <xs:annotation>
+            <xs:documentation>Tabulator</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:attribute name="align">
+                <xs:annotation>
+                    <xs:documentation>Ausrichtung des Tabulators (l, z, r, d, vl, li)</xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="l">
+                            <xs:annotation>
+                                <xs:documentation>links</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="z">
+                            <xs:annotation>
+                                <xs:documentation>zentriert</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="r">
+                            <xs:annotation>
+                                <xs:documentation>rechts</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="d">
+                            <xs:annotation>
+                                <xs:documentation>dezimal</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="vl">
+                            <xs:annotation>
+                                <xs:documentation>vertikale Linie</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="li">
+                            <xs:annotation>
+                                <xs:documentation>Liste (word intern?)</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="position" type="xs:string"/>
+            <xs:attribute name="leader">
+                <xs:annotation>
+                    <xs:documentation>Führungslinie durch Punkte, Striche,...</xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="o">
+                            <xs:annotation>
+                                <xs:documentation>Ohne</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="p">
+                            <xs:annotation>
+                                <xs:documentation>Punkte</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="mp">
+                            <xs:annotation>
+                                <xs:documentation>Punkte in der Mitte des Zeilenhöhe</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="s">
+                            <xs:annotation>
+                                <xs:documentation>Striche</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="u">
+                            <xs:annotation>
+                                <xs:documentation>Unterstriche (underscore)</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:attribute>
+            <!-- empty -->
+            <!-- absolut  in pt-->
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="nbsp">
+        <xs:annotation>
+            <xs:documentation>Geschütztes Leerzeichen</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:annotation>
+                <xs:documentation>Geschützes Leerzeichen ^s, ^0160</xs:documentation>
+            </xs:annotation>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="gdash">
+        <xs:annotation>
+            <xs:documentation>Geschützter Trennstrich</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:annotation>
+                <xs:documentation>Geschützter Trennstrich ^~, ^030</xs:documentation>
+            </xs:annotation>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="bdash">
+        <xs:annotation>
+            <xs:documentation>Bedingter Trennstrich</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:annotation>
+                <xs:documentation>Bedingter Trennstrich ^-, ^031</xs:documentation>
+            </xs:annotation>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="kidea">
+        <xs:annotation>
+            <xs:documentation>Kurzer Gedankenstrich</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:annotation>
+                <xs:documentation>Kurzer Gedankenstrich ^=</xs:documentation>
+            </xs:annotation>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="lidea">
+        <xs:annotation>
+            <xs:documentation>Langer Gedankenstrich</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:annotation>
+                <xs:documentation>Langer Gedankenstrich ^+</xs:documentation>
+            </xs:annotation>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="euro">
+        <xs:annotation>
+            <xs:documentation>Zeichen "Euro"</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:annotation>
+                <xs:documentation>Euro Zeichen - zur einfacheren Verarbeitung (0x20AC)</xs:documentation>
+            </xs:annotation>
+            <!-- empty -->
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="lt">
+        <xs:annotation>
+            <xs:documentation>Zeichen "kleiner als"</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:annotation>
+                <xs:documentation>Kleiner als: mathematisch</xs:documentation>
+            </xs:annotation>
+            <!-- empty -->
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="gt">
+        <xs:annotation>
+            <xs:documentation>Zeichen "größer als"</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:annotation>
+                <xs:documentation>Größer als: mathematisch</xs:documentation>
+            </xs:annotation>
+            <!-- empty -->
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="amp">
+        <xs:annotation>
+            <xs:documentation>Zeichen "Ampersand / Und"</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:annotation>
+                <xs:documentation>Kaufmännisches "UND"</xs:documentation>
+            </xs:annotation>
+            <!-- empty -->
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="bdquo">
+        <xs:annotation>
+            <xs:documentation>Typographisches Anführungszeichen unten ^0132 (HTML: #8222)</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <!-- empty -->
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="ldquo">
+        <xs:annotation>
+            <xs:documentation>Typographisches Anführungszeichen oben ^0147 (HTML: #8220)</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <!-- empty -->
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="em">
+        <xs:annotation>
+            <xs:documentation>Em-Abstand (HTML: &#8195;)</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <!-- empty -->
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="en">
+        <xs:annotation>
+            <xs:documentation>En-Abstand (HTML: &#8194;)</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <!-- empty -->
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="em14">
+        <xs:annotation>
+            <xs:documentation>1/4 Em-Abstand (HTML: &#8197;)</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <!-- empty -->
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="tm">
+        <xs:annotation>
+            <xs:documentation>Trademark-Zeichen (HTML: &#8482;)</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <!-- empty -->
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="dots">
+        <xs:annotation>
+            <xs:documentation>Auslassungszeichen (HTML: &#8230;)</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <!-- empty -->
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="rdquo">
+        <xs:annotation>
+            <xs:documentation>Schließendes doppeltes Anführungszeichen (HTML: #8221;)</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <!-- empty -->
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="sbquo">
+        <xs:annotation>
+            <xs:documentation>Typographisch einfach unten (HTML: &#8218;)</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <!-- empty -->
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="rsquo">
+        <xs:annotation>
+            <xs:documentation>Typographisch einfach oben, schließend (HTML: &#8217;)</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <!-- empty -->
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="lsquo">
+        <xs:annotation>
+            <xs:documentation>Typographisch einfach oben, öffnend (HTML: &#8216;)</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <!-- empty -->
+        </xs:complexType>
+    </xs:element>
+    <!-- //////////////////////////////////////////////////////////////////////////// -->
+    <!-- // Zusätzlicher Abstand zu Layoutzwecken      -->
+    <!-- //////////////////////////////////////////////////////////////////////////// -->
+    <xs:element name="abstand">
+        <xs:annotation>
+            <xs:documentation>09_Abstand</xs:documentation>
+        </xs:annotation>
+        <xs:complexType mixed="true">
+            <xs:choice minOccurs="0">
+                <xs:group ref="innerhalbAbsatz" minOccurs="0" maxOccurs="unbounded"/>
+            </xs:choice>
+            <xs:attribute name="halign"/>
+            <xs:attribute name="ct" type="xs:string" use="optional"/>
+        </xs:complexType>
+    </xs:element>
+    <!-- //////////////////////////////////////////////////////////////////////////// -->
+    <!-- // PD-Parlamentsdirektion                                 -->
+    <!-- //////////////////////////////////////////////////////////////////////////// -->
+    <xs:element name="pdvorlage">
+        <xs:complexType mixed="true">
+            <xs:sequence>
+                <xs:element ref="pdeinst"/>
+                <xs:group ref="innerhalbAbsatz" minOccurs="0" maxOccurs="unbounded"/>
+            </xs:sequence>
+            <xs:attribute name="ct" type="xs:string" use="optional"/>
+        </xs:complexType>
+    </xs:element>
+    <!-- //////////////////////////////////////////////////////////////////////////// -->
+    <xs:element name="pdeinst">
+        <xs:complexType mixed="true">
+            <xs:sequence minOccurs="0" maxOccurs="unbounded">
+                <xs:element ref="tab"/>
+            </xs:sequence>
+            <xs:attribute name="formatname"/>
+            <xs:attribute name="name"/>
+            <xs:attribute name="size"/>
+            <xs:attribute name="bold"/>
+            <xs:attribute name="italic"/>
+            <xs:attribute name="underline"/>
+            <xs:attribute name="underlinecolor"/>
+            <xs:attribute name="strikethrough"/>
+            <xs:attribute name="doublestrikethrough"/>
+            <xs:attribute name="outline"/>
+            <xs:attribute name="emboss"/>
+            <xs:attribute name="shadow"/>
+            <xs:attribute name="hidden"/>
+            <xs:attribute name="smallcaps"/>
+            <xs:attribute name="allcaps"/>
+            <xs:attribute name="color"/>
+            <xs:attribute name="engrave"/>
+            <xs:attribute name="superscript"/>
+            <xs:attribute name="subscript"/>
+            <xs:attribute name="scaling"/>
+            <xs:attribute name="kerning"/>
+            <xs:attribute name="animation"/>
+            <xs:attribute name="leftindent"/>
+            <xs:attribute name="rightindent"/>
+            <xs:attribute name="spacebefore"/>
+            <xs:attribute name="spacebeforeauto"/>
+            <xs:attribute name="spaceafter"/>
+            <xs:attribute name="spaceafterauto"/>
+            <xs:attribute name="linespacingrule"/>
+            <xs:attribute name="alignment"/>
+            <xs:attribute name="widowcontrol"/>
+            <xs:attribute name="keepwithnext"/>
+            <xs:attribute name="keeptogether"/>
+            <xs:attribute name="pagebreakbefore"/>
+            <xs:attribute name="nolinenumber"/>
+            <xs:attribute name="hyphenation"/>
+            <xs:attribute name="firstlineindent"/>
+            <xs:attribute name="outlinelevel"/>
+            <xs:attribute name="characterunitleftindent"/>
+            <xs:attribute name="characterunitrightindent"/>
+            <xs:attribute name="characterunitfirstlineindent"/>
+            <xs:attribute name="lineunitbefore"/>
+            <xs:attribute name="lineunitafter"/>
+        </xs:complexType>
+    </xs:element>
+    <!-- /////////////////////////////////////////////////////////////////////////////////////// -->
+    <xs:element name="div">
+        <xs:annotation>
+            <xs:documentation>generic language/style container</xs:documentation>
+        </xs:annotation>
+        <!-- seit 16.08.2005 -->
+        <xs:complexType mixed="true">
+            <xs:choice minOccurs="0" maxOccurs="unbounded">
+                <xs:element ref="ueberschrift"/>
+                <xs:element ref="absatz"/>
+                <xs:element ref="ausgabe"/>
+                <xs:element ref="abstand"/>
+                <xs:element ref="liste"/>
+                <xs:element ref="inhaltsvz"/>
+                <xs:element ref="unterschrift"/>
+                <xs:element ref="binary"/>
+                <xs:element ref="textbox"/>
+                <xs:element ref="beschr"/>
+                <xs:element ref="table"/>
+                <xs:element ref="pdvorlage"/>
+            </xs:choice>
+            <xs:attributeGroup ref="div.attlist"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:attributeGroup name="div.attlist">
+        <xs:attribute name="id" type="xs:ID"/>
+        <xs:attribute name="align" type="xs:string"/>
+        <xs:attribute name="class" type="xs:string"/>
+        <xs:attribute name="style" type="xs:string"/>
+        <xs:attribute name="width" type="xs:string"/>
+        <xs:attribute name="twips" type="xs:string"/>
+    </xs:attributeGroup>
+    <!-- //////////////////////////////////////////////////////////////////////////// -->
+    <!-- Word: [Einfügen]-[Manueller Wechsel...] -->
+    <!-- //////////////////////////////////////////////////////////////////////////// -->
+    <xs:element name="layoutdaten">
+        <xs:annotation>
+            <xs:documentation>Word Dokumenteinstellungen (Properties). Alle Angaben in pt (Punkt).</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence minOccurs="0">
+                <xs:element name="classes" type="xs:string"/>
+            </xs:sequence>
+            <xs:attribute name="paperf"/>
+            <xs:attribute name="paperw"/>
+            <xs:attribute name="paperh"/>
+            <xs:attribute name="margl"/>
+            <xs:attribute name="margr"/>
+            <xs:attribute name="margt"/>
+            <xs:attribute name="margb"/>
+            <xs:attribute name="headerd"/>
+            <xs:attribute name="footerd"/>
+            <xs:attribute name="gutter"/>
+            <xs:attribute name="gutterpos"/>
+            <xs:attribute name="deftab"/>
+        </xs:complexType>
+    </xs:element>
+    <!-- //////////////////////////////////////////////////////////////////////////// -->
+    <xs:element name="wechsel">
+        <xs:annotation>
+            <xs:documentation>Wechsel</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:attribute name="typ">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="s">
+                            <xs:annotation>
+                                <xs:documentation>manueller Seitenwechsel: ^m</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="sp">
+                            <xs:annotation>
+                                <xs:documentation>manueller Spaltenwechsel: ^n</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:attribute>
+        </xs:complexType>
+    </xs:element>
+    <!-- //////////////////////////////////////////////////////////////////////////// -->
+    <!-- RIS-Erweiterung für die Blockung von Content -->
+    <!-- //////////////////////////////////////////////////////////////////////////// -->
+    <xs:complexType name="blockType">
+        <xs:choice minOccurs="0" maxOccurs="unbounded">
+            <xs:element ref="ueberschrift"/>
+            <xs:element ref="absatz"/>
+            <xs:element ref="ausgabe"/>
+            <xs:element ref="abstand"/>
+            <xs:element ref="liste"/>
+            <xs:element ref="inhaltsvz"/>
+            <xs:element ref="unterschrift"/>
+            <xs:element ref="binary"/>
+            <xs:element ref="textbox"/>
+            <xs:element ref="beschr"/>
+            <xs:element ref="table"/>
+            <xs:element ref="pre"/>
+            <xs:element ref="br"/>
+            <xs:element ref="nbsp"/>
+            <xs:element ref="pdvorlage"/>
+            <xs:element ref="div"/>
+            <xs:group ref="zeichenformate" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:choice>
+        <xs:attribute name="name">
+            <xs:annotation>
+                <xs:documentation>Bezeichnung des Blocks (vgl. Kategorie im CPL)</xs:documentation>
+            </xs:annotation>
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:enumeration value="betreff"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+    </xs:complexType>
+    <!-- //////////////////////////////////////////////////////////////////////////// -->
+</xs:schema>

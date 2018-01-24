@@ -111,6 +111,14 @@ class Discussion extends Model implements ITaggable, ICommentable, IRestResource
     }
     //endregion
 
+    /**
+     * @return bool
+     */
+    public function isActive() : bool
+    {
+        return $this->archived_at == null;
+    }
+
     public function scopeActive($query)
     {
         return $query->whereNull('archived_at');
