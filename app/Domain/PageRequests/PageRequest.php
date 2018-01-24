@@ -10,7 +10,9 @@ namespace App\Domain;
 
 
 use App\Exceptions\CustomExceptions\InvalidPaginationException;
+use App\Exceptions\CustomExceptions\InvalidValueException;
 use App\Exceptions\CustomExceptions\PaginationOutOfRangeException;
+use App\Exceptions\CustomExceptions\PayloadTooLargeException;
 
 class PageRequest
 {
@@ -28,10 +30,13 @@ class PageRequest
      * @param int $per_page
      * @param int $page_number
      * @throws InvalidPaginationException
-     * @throws PaginationOutOfRangeException
+     * @throws InvalidValueException
+     * @throws PayloadTooLargeException
      */
-    public function __construct(int $per_page = null, int $page_number = null)
+    public function __construct($per_page = null, $page_number = null)
     {
+        $per_page = (int)$per_page;
+        $page_number = (int)$page_number;
         if(!isset($per_page))
             $this->perPage = self::DEFAULT_PER_PAGE;
         else if(!is_int($per_page))
@@ -39,7 +44,7 @@ class PageRequest
         else if($per_page <= 0)
             throw new InvalidPaginationException("The given count for the pagination has to be greater than 0.");
         else if($per_page > self::MAX_PER_PAGE)
-            throw new PaginationOutOfRangeException("The given count for the pagination was too big (max: 100).");
+            throw new PayloadTooLargeException("The given count for the pagination was too big (max: 100).");
         else
             $this->perPage = $per_page;
 
