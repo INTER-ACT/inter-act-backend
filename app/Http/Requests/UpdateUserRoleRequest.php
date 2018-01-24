@@ -4,20 +4,27 @@ namespace App\Http\Requests;
 
 
 use App\Exceptions\CustomExceptions\InvalidValueException;
+use App\Role;
+use Illuminate\Validation\Rule;
 use Illuminate\Http\Request;
 use Validator;
 
-class UpdateUserRequest extends AUserRequest
+class UpdateUserRoleRequest extends AUserRequest
 {
     public $request;
 
     /**
-     * UpdateUserRequest constructor.
+     * UpdateUserRoleRequest constructor.
      * @param Request $request
      */
     public function __construct(Request $request)
     {
         $this->request = $request;
+    }
+
+    public function getData()
+    {
+        return $this->request->all();
     }
 
     /**
@@ -29,31 +36,23 @@ class UpdateUserRequest extends AUserRequest
     public function validate()
     {
         $this->checkFields();
-        $this->checkPasswordValidity($this->request->input('password'));
     }
 
+
     /**
-     * Verifies that the values have the correct properties
-     *
+     * Verifies that the role exists
      */
     private function checkFields()
     {
         $validator = Validator::make($this->request->all(),[
-            'email' => 'sometimes|required|unique:users|max:256|email',
-            'password' => 'sometimes|required|min:8|string',// TODO implement more sophisticated password updates
-            'postal_code' => 'sometimes|required|size:4|numeric',     // TODO check whether place exists
-            'residence' => 'sometimes|required|string',
-            'job' => 'sometimes|required',
-            'highest_education' => 'sometimes|required'               // TODO check whether the education exists
+            'role' => [
+                'required',
+                Rule::in(Role::getAllRoleNames())
+            ]
         ]);
 
         if($validator->fails()){
             throw new InvalidValueException($validator->errors());      // TODO there might should be a MissingArgumentException instead
         }
-    }
-
-    public function getData()
-    {
-        return $this->request->all();
     }
 }

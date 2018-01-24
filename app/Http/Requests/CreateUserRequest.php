@@ -6,7 +6,7 @@ namespace App\Http\Requests;
 use App\Exceptions\CustomExceptions\InvalidValueException;
 use App\Rules\Gender;
 use Auth;
-use Request;
+use Illuminate\Http\Request;
 use Validator;
 
 class CreateUserRequest extends AUserRequest
@@ -55,10 +55,11 @@ class CreateUserRequest extends AUserRequest
             'first_name' => 'required|string',
             'last_name' => 'required|string',
             'sex' => ['required', 'string', 'size:1', new Gender],
-            'postal_code' => 'required|size:4|numeric',     // TODO check whether place exists
+            'postal_code' => 'required|min:1000|max:9999|numeric',     // TODO check whether place exists
             'residence' => 'required|string',
             'job' => 'required',
-            'highest_education' => 'required'               // TODO check whether the education exists
+            'highest_education' => 'required',               // TODO check whether the education exists
+            'year_of_birth' => 'required|numeric|min:1900|max:' . date('YYYY')
         ]);
 
         if($validator->fails()){
