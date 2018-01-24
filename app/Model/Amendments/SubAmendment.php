@@ -115,7 +115,7 @@ class SubAmendment extends Model implements ITaggable, IReportable, IRatable, IC
 
     public function tags()
     {
-        return $this->morphToMany(Tag::class, 'taggable');
+        return $this->morphToMany(Tag::class, 'taggable', 'taggables');
     }
 
     public function ratable_rating_aspects()

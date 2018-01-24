@@ -29,4 +29,8 @@ class SuccessfulCreationResource extends Resource
         return parent::response($request)->setStatusCode(201);
     }
 
+    public function withResponse($request, $response)
+    {
+        $response->setStatusCode(201);
+    }
 }

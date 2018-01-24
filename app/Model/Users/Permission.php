@@ -15,7 +15,7 @@ class Permission extends Model implements IModel
     const ADMINISTRATE_NAME = 'administrate';
     //endregion
 
-    protected $fillable = [];
+    protected $fillable = ['name'];
 
     //region static_entries
     public static function getRead()

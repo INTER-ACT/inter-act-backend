@@ -107,7 +107,7 @@ class Discussion extends Model implements ITaggable, ICommentable, IRestResource
 
     public function tags()
     {
-        return $this->morphToMany(Tag::class, 'taggable');
+        return $this->morphToMany(Tag::class, 'taggable', 'taggables');
     }
     //endregion
 

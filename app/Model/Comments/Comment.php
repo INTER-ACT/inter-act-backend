@@ -108,7 +108,7 @@ class Comment extends Model implements IReportable, ICommentable, IRestResource,
 
     public function tags()
     {
-        return $this->morphToMany(Tag::class, 'taggable');
+        return $this->morphToMany(Tag::class, 'taggable', 'taggables');
     }
 
     public function reports()

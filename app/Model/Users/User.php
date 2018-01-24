@@ -102,6 +102,11 @@ class User extends Authenticatable implements IRestResource
     }
     //endregion
 
+    public function hasRole(Role $role)
+    {
+        return $this->role->id == $role->id;
+    }
+
     //TODO: change in documentation (was planned as scope)
     public static function ofRole(Role $role)
     {

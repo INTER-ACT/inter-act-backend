@@ -25,8 +25,19 @@ class DiscussionCollection extends ResourceCollection
                 return [
                     'href' => url($discussion->getResourcePath()),
                     'id' => $discussion->id,
-                    'title' => $discussion->title                ];
+                    'title' => $discussion->title
+                ];
             })
         ];
+    }
+
+    /**
+     * @param \Illuminate\Http\Request $request
+     * @param \Illuminate\Http\JsonResponse $response
+     */
+    public function withResponse($request, $response)
+    {
+        $response->setStatusCode(200)
+            ->header('Content-Type', 'text/json');
     }
 }

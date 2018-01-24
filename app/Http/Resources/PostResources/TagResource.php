@@ -22,4 +22,14 @@ class TagResource extends Resource
             'description' => $this->description
         ];
     }
+
+    /**
+     * @param \Illuminate\Http\Request $request
+     * @param \Illuminate\Http\JsonResponse $response
+     */
+    public function withResponse($request, $response)
+    {
+        $response->setStatusCode(200)
+            ->header('Content-Type', 'text/json');
+    }
 }

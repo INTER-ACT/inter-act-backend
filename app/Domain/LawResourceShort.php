@@ -9,8 +9,10 @@
 namespace App\Domain;
 
 
-class LawResource
+class LawResourceShort
 {
+    /** @var string */
+    protected $id;
     /** @var string */
     protected $url;
     /** @var string */
@@ -20,34 +22,48 @@ class LawResource
     /** @var string */
     protected $proclamationOrgan;       //Kundmachungsorgan
     /** @var string */
-    protected $articleParagraphUnit;    //ArtikelParagraphAnlage //TODO: clarify this property
-    /** @var string */
-    protected $documentType;
+    protected $articleParagraphUnit;    //je nach typ
     /** @var string */
     protected $dateOfComingIntoEffect;
 
     /**
      * LawResource constructor.
+     * @param string $id
      * @param string $url
      * @param string $shortTitle
      * @param string $title
      * @param string $proclamationOrgan
      * @param string $articleParagraphUnit
-     * @param string $documentType
      * @param string $dateOfComingIntoEffect
      */
-    public function __construct(string $url, string $shortTitle, string $title, string $proclamationOrgan, string $articleParagraphUnit, string $documentType, string $dateOfComingIntoEffect)
+    public function __construct(string $id, string $url, string $shortTitle, string $title, string $proclamationOrgan, string $articleParagraphUnit, string $dateOfComingIntoEffect)
     {
         $this->url = $url;
         $this->shortTitle = $shortTitle;
         $this->title = $title;
         $this->proclamationOrgan = $proclamationOrgan;
         $this->articleParagraphUnit = $articleParagraphUnit;
-        $this->documentType = $documentType;
+        $this->id = $id;
         $this->dateOfComingIntoEffect = $dateOfComingIntoEffect;
     }
 
     //region Getters and Setters
+    /**
+     * @return string
+     */
+    public function getId(): string
+    {
+        return $this->id;
+    }
+
+    /**
+     * @param string $id
+     */
+    public function setId(string $id)
+    {
+        $this->id = $id;
+    }
+
     /**
      * @return string
      */
@@ -131,22 +147,6 @@ class LawResource
     /**
      * @return string
      */
-    public function getDocumentType(): string
-    {
-        return $this->documentType;
-    }
-
-    /**
-     * @param string $documentType
-     */
-    public function setDocumentType(string $documentType)
-    {
-        $this->documentType = $documentType;
-    }
-
-    /**
-     * @return string
-     */
     public function getDateOfComingIntoEffect(): string
     {
         return $this->dateOfComingIntoEffect;
@@ -164,13 +164,13 @@ class LawResource
     public function toArray()
     {
         return[
-            "url" => $this->url,
-            "short_title" => $this->shortTitle,
-            "title" => $this->title,
-            "proclamationOrgan" => $this->proclamationOrgan,
+            "id" => $this->id,
+            "href" => $this->url,
             "articleParagraphUnit" => $this->articleParagraphUnit,
-            "documentType" => $this->documentType,
-            "dateOfComingIntoEffect" => $this->dateOfComingIntoEffect,
+            "dateOfComingIntoEffect" => $this->dateOfComingIntoEffect
+            //"short_title" => $this->shortTitle,
+            //"title" => $this->title,
+            //"proclamationOrgan" => $this->proclamationOrgan,
         ];
     }
 }

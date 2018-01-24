@@ -16,31 +16,51 @@ class Role extends Model implements IModel
 
     protected $fillable = [];
 
-    //TODO: Seed Roles, Permissions, Tags, ... already at application boot?
+    protected static function boot()
+    {
+        parent::boot();
+        self::createBaseRoles();
+    }
+
     //region static entries
-    public static function getAdmin()
+    /**
+     * @return Role
+     */
+    public static function getAdmin() : Role
     {
-        return Role::CreateRoleIfNotExists(Role::ADMIN_NAME, [Permission::getAdministrate(), Permission::getCreateExpertExplanations(), Permission::getAnalyze(),Permission::getCreateDiscussions(), Permission::getCreateArticles(), Permission::getRead()]);
+        return Role::where('name', '=', self::ADMIN_NAME)->first();
     }
 
-    public static function getExpert()
+    /**
+     * @return Role
+     */
+    public static function getExpert() : Role
     {
-        return Role::CreateRoleIfNotExists(Role::EXPERT_NAME, [Permission::getCreateExpertExplanations(), Permission::getCreateArticles(), Permission::getRead()]);
+        return Role::where('name', '=', self::EXPERT_NAME)->first();
     }
 
-    public static function getScientist()
+    /**
+     * @return Role
+     */
+    public static function getScientist() : Role
     {
-        return Role::CreateRoleIfNotExists(Role::SCIENTIST_NAME, [Permission::getAnalyze(), Permission::getCreateArticles(), Permission::getRead()]);
+        return Role::where('name', '=', self::SCIENTIST_NAME)->first();
     }
 
-    public static function getStandardUser()
+    /**
+     * @return Role
+     */
+    public static function getStandardUser() : Role
     {
-        return Role::CreateRoleIfNotExists(Role::STANDARD_USER_NAME, [Permission::getCreateArticles(), Permission::getRead()]);
+        return Role::where('name', '=', self::STANDARD_USER_NAME)->first();
     }
 
-    public static function getGuest()
+    /**
+     * @return Role
+     */
+    public static function getGuest() : Role
     {
-        return Role::CreateRoleIfNotExists(Role::GUEST_NAME, [Permission::getRead()]);
+        return Role::where('name', '=', self::GUEST_NAME)->first();
     }
     //endregion
 
@@ -68,11 +88,30 @@ class Role extends Model implements IModel
     }
     //endregion
 
-    private static function CreateRoleIfNotExists(string $name, array $permissions)
+    /**
+     * return @void
+     */
+    public static function createBaseRoles()
+    {
+        Role::CreateRoleIfNotExists(Role::ADMIN_NAME, [Permission::getAdministrate(), Permission::getCreateExpertExplanations(), Permission::getAnalyze(),Permission::getCreateDiscussions(), Permission::getCreateArticles(), Permission::getRead()]);
+        Role::CreateRoleIfNotExists(Role::EXPERT_NAME, [Permission::getCreateExpertExplanations(), Permission::getCreateArticles(), Permission::getRead()]);
+        Role::CreateRoleIfNotExists(Role::SCIENTIST_NAME, [Permission::getAnalyze(), Permission::getCreateArticles(), Permission::getRead()]);
+        Role::CreateRoleIfNotExists(Role::STANDARD_USER_NAME, [Permission::getCreateArticles(), Permission::getRead()]);
+        Role::CreateRoleIfNotExists(Role::GUEST_NAME, [Permission::getRead()]);
+    }
+
+    /**
+     * @param string $name
+     * @param array $permissions
+     * @return Role
+     */
+    private static function CreateRoleIfNotExists(string $name, array $permissions) : Role
     {
         $role = Role::where('name', '=', $name)->first();
         if($role === null) {
-            $role = Role::create(['name' => $name]);
+            $role = new Role();
+            $role->name = $name;
+            $role->save();
             if($permissions) {
                 foreach ($permissions as $permission)
                     $role->permissions()->attach($permission->id);  //TODO: improve efficiency
@@ -81,7 +120,12 @@ class Role extends Model implements IModel
         return $role;
     }
 
-    public static function getRoleByName($roleName)
+    /**
+     * @param $roleName
+     * @return Role
+     * @throws Exception
+     */
+    public static function getRoleByName($roleName) : Role
     {
         if($roleName == self::ADMIN_NAME)
             return self::getAdmin();
