@@ -41,6 +41,9 @@ $factory->state(Comment::class, 'amendment', function (Faker $faker) {
     ];
 });
 
+/**
+ * Factory for a Comment on a new discussion
+ */
 $factory->state(Comment::class, 'discussion', function (Faker $faker){
     $discussion = factory(Discussion::class)->states('user')->create();
 

@@ -145,4 +145,20 @@ class Role extends Model implements IModel
         else
             throw new Exception("The Role $roleName does not exist.");
     }
+
+    /**
+     * Returns all possible Role names
+     *
+     * @return array
+     */
+    public static function getAllRoleNames()
+    {
+        return [
+            self::ADMIN_NAME,
+            self::SCIENTIST_NAME,
+            self::STANDARD_USER_NAME,
+            self::GUEST_NAME,
+            self::EXPERT_NAME
+        ];
+    }
 }

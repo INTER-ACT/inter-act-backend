@@ -9,6 +9,7 @@ use App\Exceptions\CustomExceptions\InternalServerError;
 use App\Exceptions\CustomExceptions\InvalidValueException;
 use App\Exceptions\CustomExceptions\NotFoundException;
 use App\Http\Requests\CreateUserRequest;
+use App\Http\Requests\UpdateUserRoleRequest;
 use App\Role;
 use App\User;
 use Hash;
@@ -24,7 +25,14 @@ class UserManipulator
     {
         $user = new User();
 
+        // TODO move this to a more appropriate place
+
         $user->fill($data);
+        $user->role_id = Role::getStandardUser()->id;
+        $user->is_male = $data['sex'] == 'm';
+        $user->city = $data['residence'];
+        $user->graduation = $data['highest_education'];
+
 
         if(!$user->save())
             throw new InternalServerError('The User could not be saved.');
@@ -53,11 +61,11 @@ class UserManipulator
             throw new InternalServerError("The User $id couldn't be deleted");
     }
 
-    public static function updateRole(int $id, string $roleName)
+    public static function updateRole(int $id, UpdateUserRoleRequest $roleName)
     {
         $user = UserRepository::getByIdOrThrowError($id);
 
-        $user->role = Role::getRoleByName($roleName);
+        $user->role_id = Role::getRoleByName($roleName->getData()['role'])->id;
 
         if(!$user->update())
             throw new InternalServerError("The Role of User $id could not be updated.");

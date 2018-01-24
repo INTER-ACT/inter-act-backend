@@ -9,6 +9,7 @@ use App\Exceptions\CustomExceptions\InternalServerError;
 use App\Exceptions\CustomExceptions\NotPermittedException;
 use App\Http\Requests\CreateUserRequest;
 use App\Http\Requests\UpdateUserRequest;
+use App\Http\Requests\UpdateUserRoleRequest;
 use App\Http\Resources\SuccessfulCreationResource;
 use App\Http\Resources\UserResources\UserCollection;
 use App\Permission;
@@ -139,17 +140,30 @@ class UserController extends Controller
         // TODO figure out what should be displayed on the dashboard
     }
 
+    public function updateRole(int $id, UpdateUserRoleRequest $request)
+    {
+        if( $this->isAdmin()){
+            UserManipulator::updateRole($id, $request);
+
+            return response('', 204);
+        }
+        throw new NotPermittedException('Only Admins are allowed to change User Roles.');
+    }
+
     // TODO move authorization to its own class
     /**
-     * Returns true, if the id belongs to the logged in user
+     * Returns true, if a user is logged in and the id belongs to the logged in user
      *
      * @param int $userId
      * @return bool
      */
     protected function isUser(int $userId)
     {
-        $authenticatedUser = Auth::user();
-        return $authenticatedUser->id == $userId;
+        if(Auth::check()) {
+            $authenticatedUser = Auth::user();
+            return $authenticatedUser->id == $userId;
+        }
+        return false;
     }
 
     /**
@@ -160,7 +174,7 @@ class UserController extends Controller
     protected function isAdmin()
     {
         $user = Auth::user();
-        return $user->can(Permission::getAdministrate());
+        return $user->checkPermission(Permission::getAdministrate());
     }
 
 }
