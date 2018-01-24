@@ -1,10 +1,12 @@
 <?php
 
 use App\Amendments\Amendment;
+use App\Comments\Comment;
+use App\Discussions\Discussion;
 use App\User;
 use Faker\Generator as Faker;
 
-$factory->define(\App\Comments\Comment::class, function (Faker $faker) {
+$factory->define(Comment::class, function (Faker $faker) {
     //$user = \App\User::First();
     //$parent = \App\Discussions\Discussion::First();
     return [
@@ -20,7 +22,7 @@ $factory->define(\App\Comments\Comment::class, function (Faker $faker) {
  * Factory for a Comment with a new user
  *
  */
-$factory->state(\App\Comments\Comment::class, 'user', function (Faker $faker) {
+$factory->state(Comment::class, 'user', function (Faker $faker) {
     $user = factory(User::class)->create();
     return [
         'user_id' => $user->id,
@@ -31,10 +33,19 @@ $factory->state(\App\Comments\Comment::class, 'user', function (Faker $faker) {
  * Factory for a Comment on a new amendment
  *
  */
-$factory->state(\App\Comments\Comment::class, 'amendment', function (Faker $faker) {
+$factory->state(Comment::class, 'amendment', function (Faker $faker) {
     $amendment =  factory(Amendment::class)->states('user', 'discussion')->create();
     return [
         'commentable_id' => $amendment->id,
         'commentable_type' => Amendment::class
+    ];
+});
+
+$factory->state(Comment::class, 'discussion', function (Faker $faker){
+    $discussion = factory(Discussion::class)->states('user')->create();
+
+    return [
+        'commentable_id' => $discussion->id,
+        'commentable_type' => Discussion::class
     ];
 });

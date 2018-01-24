@@ -1,5 +1,6 @@
 <?php
 
+use App\User;
 use Faker\Generator as Faker;
 
 /*
@@ -13,7 +14,7 @@ use Faker\Generator as Faker;
 |
 */
 
-$factory->define(\App\User::class, function (Faker $faker) {
+$factory->define(User::class, function (Faker $faker) {
     static $password;
     $gender = $faker->randomElements(['male', 'female']);
     $gender_boolean = $gender == 'male';
@@ -35,4 +36,10 @@ $factory->define(\App\User::class, function (Faker $faker) {
         'year_of_birth' => $faker->year,
         'remember_token' => str_random(10),
     ];
+});
+
+$factory->state(User::class, 'admin', function (Faker $faker){
+   return [
+       'role_id' => \App\Role::getAdmin()->id
+   ] ;
 });
