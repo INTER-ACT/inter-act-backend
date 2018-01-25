@@ -37,7 +37,7 @@ class Comment extends Model implements IReportable, ICommentable, IRestResource,
 
     public function getResourcePath()
     {
-        return '/comments/' . $this->id;
+        return $this->parent->getResourcePath() . '/comments/' . $this->id;
     }
     //endregion
 

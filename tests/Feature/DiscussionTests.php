@@ -12,6 +12,7 @@ namespace Tests\Feature;
 use App\Amendments\Amendment;
 use App\Discussions\Discussion;
 use App\Domain\PageRequest;
+use App\Exceptions\CustomExceptions\CannotResolveDependenciesException;
 use App\Exceptions\CustomExceptions\InvalidPaginationException;
 use App\Exceptions\CustomExceptions\InvalidValueException;
 use App\Exceptions\CustomExceptions\NotAuthorizedException;
@@ -37,22 +38,6 @@ class DiscussionTests extends TestCase
 
     //region Discussions
     /** @test */
-    public function testDiscussionRouteResponse()
-    {
-        Passport::actingAs(
-            factory(User::class)->create(), ['*']
-        );
-        $discussion = factory(Discussion::class)->create([
-            'user_id' => \Auth::id()
-        ]);
-
-        $resourcePath = $this->baseURI . $discussion->getResourcePath();
-        $response = $this->get($resourcePath);
-        $response->assertStatus(200)
-            ->assertExactJson(self::mapDiscussionToJson($discussion, $this->baseURI));
-    }   //TODO: remove? same as testOneDiscussionResponse?
-
-    /** @test */
     public function testDiscussionsRouteResponseNoParametersSet()
     {
         //default is count=100&start=1&sorted_by=popularity&sort_direction=desc
@@ -73,7 +58,6 @@ class DiscussionTests extends TestCase
             ->assertJson([
             "data" => [
                 'href' => $requestPath,
-                'total' => 2,
                 'discussions' => [
                     [
                         'href' => $this->baseURI . $discussion2->getResourcePath(),
@@ -132,7 +116,6 @@ class DiscussionTests extends TestCase
             ->assertJson([
             "data" => [
                 'href' => $requestPath,
-                'total' => 2,
                 'discussions' => [
                     [
                         'href' => $this->baseURI . $discussion1->getResourcePath(),
@@ -188,7 +171,6 @@ class DiscussionTests extends TestCase
             ->assertJson([
             "data" => [
                 'href' => $requestPath,
-                'total' => 3,
                 'discussions' => [
                     [
                         'href' => $this->baseURI . $discussion1->getResourcePath(),
@@ -298,9 +280,27 @@ class DiscussionTests extends TestCase
         $response = $this->get($requestPath);
         $response->assertStatus(InvalidPaginationException::HTTP_CODE)->assertJson(["code" => InvalidPaginationException::ERROR_CODE]);
     }
+
+    //TODO: invalid tag_id, ...
     //endregion
 
     //region Discussion
+    /** @test */
+    public function testDiscussionRouteResponse()
+    {
+        Passport::actingAs(
+            factory(User::class)->create(), ['*']
+        );
+        $discussion = factory(Discussion::class)->create([
+            'user_id' => \Auth::id()
+        ]);
+
+        $resourcePath = $this->baseURI . $discussion->getResourcePath();
+        $response = $this->get($resourcePath);
+        $response->assertStatus(200)
+            ->assertExactJson(self::mapDiscussionToJson($discussion, $this->baseURI));
+    }   //TODO: remove? same as testOneDiscussionResponse?
+
     /** @test */
     public function testOneDiscussionResponse()
     {
@@ -361,6 +361,19 @@ class DiscussionTests extends TestCase
         $response = $this->get($requestPath);
         $response->assertStatus(200);
     }
+
+    /** @test */
+    public function testOneDiscussionResponseSQLInjection()
+    {
+        $tags = [Tag::getSozialeMedien(), Tag::getUserGeneratedContent()];
+        Passport::actingAs(
+            factory(User::class)->create(), ['*']
+        );
+        $discussion = ModelFactory::CreateDiscussion(\Auth::user(), null, $tags, Carbon::createFromDate(2017, 1, 1, 2));
+        $requestPath = $this->baseURI . '/discussions/' . $discussion->id . "'; DROP TABLE DISCUSSIONS;'";
+        $response = $this->get($requestPath);
+        $response->assertStatus(InvalidValueException::HTTP_CODE)->assertJson(['code' => InvalidValueException::ERROR_CODE]);
+    }
     //endregion
 
     //region Create
@@ -388,6 +401,7 @@ class DiscussionTests extends TestCase
                 'href' => $this->baseURI . '/discussions/' . 1,
                 'id' => 1
             ]);
+        //TODO: test if data is really there (get)
     }
 
     /** @test */
@@ -454,6 +468,52 @@ class DiscussionTests extends TestCase
         $response = $this->json('POST', $requestPath, $inputData);
         $response->assertStatus(InvalidValueException::HTTP_CODE)
             ->assertJson(['code' => InvalidValueException::ERROR_CODE]);
+    }
+
+    /** @test */
+    public function testPostDiscussionSQLInjection()
+    {
+        $inputData = [
+            'title' => 'Titel',
+            'law_text' => 'this and that',
+            'law_explanation' => "new exp'; DROP TABLE DISCUSSIONS;'",
+            'tags' => [
+                1
+            ]
+        ];
+
+        Passport::actingAs(
+            ModelFactory::CreateUser(Role::getAdmin()), ['*']
+        );
+        $requestPath = $this->baseURI . '/discussions';
+        $response = $this->json('POST', $requestPath, $inputData);
+        $response->assertStatus(201);
+        $response = $this->json('GET', $requestPath . '/' . 1);
+        $response->assertStatus(200)->assertJson([
+            'title' => $inputData['title'],
+            'law_text' => $inputData['law_text'],
+            'law_explanation' => $inputData['law_explanation']
+        ]);
+    }
+
+    /** @test */
+    public function testPostDiscussionInvalidTags()
+    {
+        $inputData = [
+            'title' => 'Titel',
+            'law_text' => 'this and that',
+            'law_explanation' => "new exp",
+            'tags' => [
+                12
+            ]
+        ];
+
+        Passport::actingAs(
+            ModelFactory::CreateUser(Role::getAdmin()), ['*']
+        );
+        $requestPath = $this->baseURI . '/discussions';
+        $response = $this->json('POST', $requestPath, $inputData);
+        $response->assertStatus(CannotResolveDependenciesException::HTTP_CODE)->assertJson(['code' => CannotResolveDependenciesException::ERROR_CODE]);
     }
     //endregion
 
@@ -556,9 +616,55 @@ class DiscussionTests extends TestCase
         $response = $this->json('PATCH', $requestPath, $inputData);
         $response->assertStatus(ResourceNotFoundException::HTTP_CODE)->assertJson(['code' => ResourceNotFoundException::ERROR_CODE]);
     }
+
+    /** @test */
+    public function testPatchDiscussionSQLInjection()
+    {
+        $new_tag_ids = [1, 3];
+        $new_law_explanation = "new exp'; DROP TABLE DISCUSSIONS;'";
+
+        Passport::actingAs(
+            ModelFactory::CreateUser(Role::getAdmin()), ['*']
+        );
+        $discussion = ModelFactory::CreateDiscussion(\Auth::user(), null, []);
+        $old_explanation = $discussion->law_explanation;
+        $old_tags = $discussion->tags();
+        $inputData = [
+            'law_explanation' => $new_law_explanation,
+            'tags' => $new_tag_ids
+        ];
+        $requestPath = $this->baseURI . '/discussions/' . 1;
+        $response = $this->json('PATCH', $requestPath, $inputData);
+        $response->assertStatus(204);
+        $response = $this->json('GET', $requestPath);
+        $response->assertStatus(200)->assertJson([
+            'law_explanation' => $new_law_explanation
+        ]);
+    }   //TODO: select injected element --> safe?
+
+    /** @test */
+    public function testPatchDiscussionInvalidTags()
+    {
+        $new_tag_ids = [0, 12];
+        $new_law_explanation = "new exp";
+
+        Passport::actingAs(
+            ModelFactory::CreateUser(Role::getAdmin()), ['*']
+        );
+        $discussion = ModelFactory::CreateDiscussion(\Auth::user(), null, []);
+        $old_explanation = $discussion->law_explanation;
+        $old_tags = $discussion->tags();
+        $inputData = [
+            'law_explanation' => $new_law_explanation,
+            'tags' => $new_tag_ids
+        ];
+        $requestPath = $this->baseURI . '/discussions/' . 1;
+        $response = $this->json('PATCH', $requestPath, $inputData);
+        $response->assertStatus(CannotResolveDependenciesException::HTTP_CODE)->assertJson(['code' => CannotResolveDependenciesException::ERROR_CODE]);
+    }
     //endregion
 
-    //region delete
+    //region Delete
     /** @test */
     public function testArchiveAndFetchDiscussionAsAdminThenFetchAsExpert()
     {
@@ -615,8 +721,643 @@ class DiscussionTests extends TestCase
     }
     //endregion
 
+    //region get Comments
+    /** @test */
+    public function testCommentsRouteResponseNoParametersSet()
+    {
+        $comment_count = 2;
+        $tags = [Tag::getSozialeMedien(), Tag::getWirtschaftlicheInteressen()];
+
+        Passport::actingAs(
+            ModelFactory::CreateUser(Role::getStandardUser()), ['*']
+        );
+        $discussion = ModelFactory::CreateDiscussion(ModelFactory::CreateUser(Role::getAdmin()));
+        $comment1 = ModelFactory::CreateComment(\Auth::user(), $discussion, $tags, Carbon::createFromDate(2017, 12, 31, 2));
+        $comment2 = ModelFactory::CreateComment(\Auth::user(), $discussion, $tags);
+
+        $resourcePath = $this->baseURI . $discussion->getResourcePath() . '/comments';
+        $requestPath = $resourcePath;
+        $response = $this->get($requestPath);
+        $response->assertStatus(200)
+            ->assertJson([
+                "data" => [
+                    'href' => $requestPath,
+                    'comments' => [
+                        [
+                            'href' => $this->baseURI . $comment2->getResourcePath(),
+                            'id' => $comment2->id
+                        ],
+                        [
+                            'href' => $this->baseURI . $comment1->getResourcePath(),
+                            'id' => $comment1->id
+                        ]
+                    ]
+                ],
+                "links" => [
+                    "first" => $resourcePath . '?start=1',
+                    "last" => $resourcePath . '?start=1',
+                    "prev" => null,
+                    "next" => null
+                ],
+                "meta" => [
+                    "current_page" => PageRequest::DEFAULT_PAGE_NUMBER,
+                    "from" => 1,
+                    "last_page" => 1,
+                    "path" => $resourcePath,
+                    "per_page" => PageRequest::DEFAULT_PER_PAGE,
+                    "to" => 2,
+                    "total" => $comment_count
+                ]
+            ]);
+    }
+
+    /** @test */
+    public function testCommentsRouteResponseWithValidPagination()
+    {
+        $start = 0;
+        $count = 10;
+        $comment_count = 2;
+        $tags = [Tag::getSozialeMedien(), Tag::getWirtschaftlicheInteressen()];
+
+        Passport::actingAs(
+            ModelFactory::CreateUser(Role::getStandardUser()), ['*']
+        );
+        $discussion = ModelFactory::CreateDiscussion(ModelFactory::CreateUser(Role::getAdmin()));
+        $comment1 = ModelFactory::CreateComment(\Auth::user(), $discussion, $tags, Carbon::createFromDate(2017, 12, 31, 2));
+        $comment2 = ModelFactory::CreateComment(\Auth::user(), $discussion, $tags);
+
+        $params = 'count=' . $count;
+        $resourcePath = $this->baseURI . $discussion->getResourcePath() . '/comments';
+        $requestPath = $resourcePath . '?start=' . $start . '&' . $params;
+        $response = $this->get($requestPath);
+        if($start == 0) $start = 1;
+        $response->assertStatus(200)
+            ->assertJson([
+                "data" => [
+                    'href' => $requestPath,
+                    'comments' => [
+                        [
+                            'href' => $this->baseURI . $comment2->getResourcePath(),
+                            'id' => $comment2->id
+                        ],
+                        [
+                            'href' => $this->baseURI . $comment1->getResourcePath(),
+                            'id' => $comment1->id
+                        ]
+                    ]
+                ],
+                "links" => [
+                    "first" => $resourcePath . '?' . $params . '&start=1',
+                    "last" => $resourcePath . '?' . $params . '&start=1',
+                    "prev" => null,
+                    "next" => null
+                ],
+                "meta" => [
+                    "current_page" => $start,
+                    "from" => 1,
+                    "last_page" => 1,
+                    "path" => $resourcePath,
+                    "per_page" => $count,
+                    "to" => 2,
+                    "total" => $comment_count
+                ]
+            ]);
+    }
+
+    /** @test */
+    public function testCommentsRouteResponseWithInvalidPaginationMin()
+    {
+        $start = 0;
+        $count = 0;
+        $comment_count = 2;
+        $tags = [Tag::getSozialeMedien(), Tag::getWirtschaftlicheInteressen()];
+
+        Passport::actingAs(
+            ModelFactory::CreateUser(Role::getStandardUser()), ['*']
+        );
+        $discussion = ModelFactory::CreateDiscussion(ModelFactory::CreateUser(Role::getAdmin()));
+        $comment1 = ModelFactory::CreateComment(\Auth::user(), $discussion, $tags, Carbon::createFromDate(2017, 12, 31, 2));
+        $comment2 = ModelFactory::CreateComment(\Auth::user(), $discussion, $tags);
+
+        $params = 'count=' . $count;
+        $resourcePath = $this->baseURI . $discussion->getResourcePath() . '/comments';
+        $requestPath = $resourcePath . '?start=' . $start . '&' . $params;
+        $response = $this->get($requestPath);
+        if($start == 0) $start = 1;
+        $response->assertStatus(InvalidPaginationException::HTTP_CODE)->assertJson(['code' => InvalidPaginationException::ERROR_CODE]);
+    }
+
+    /** @test */
+    public function testCommentsRouteResponseWithInvalidPaginationMax()
+    {
+        $start = 0;
+        $count = PageRequest::MAX_PER_PAGE + 1;
+        $comment_count = 2;
+        $tags = [Tag::getSozialeMedien(), Tag::getWirtschaftlicheInteressen()];
+
+        Passport::actingAs(
+            ModelFactory::CreateUser(Role::getStandardUser()), ['*']
+        );
+        $discussion = ModelFactory::CreateDiscussion(ModelFactory::CreateUser(Role::getAdmin()));
+        $comment1 = ModelFactory::CreateComment(\Auth::user(), $discussion, $tags, Carbon::createFromDate(2017, 12, 31, 2));
+        $comment2 = ModelFactory::CreateComment(\Auth::user(), $discussion, $tags);
+
+        $params = 'count=' . $count;
+        $resourcePath = $this->baseURI . $discussion->getResourcePath() . '/comments';
+        $requestPath = $resourcePath . '?start=' . $start . '&' . $params;
+        $response = $this->get($requestPath);
+        if($start == 0) $start = 1;
+        $response->assertStatus(PayloadTooLargeException::HTTP_CODE)->assertJson(['code' => PayloadTooLargeException::ERROR_CODE]);
+    }
+
+    /** @test */
+    public function testCommentsRouteResponseWithInvalidPaginationCountWrong()
+    {
+        $start = 0;
+        $count = "lol";
+        $comment_count = 2;
+        $tags = [Tag::getSozialeMedien(), Tag::getWirtschaftlicheInteressen()];
+
+        Passport::actingAs(
+            ModelFactory::CreateUser(Role::getStandardUser()), ['*']
+        );
+        $discussion = ModelFactory::CreateDiscussion(ModelFactory::CreateUser(Role::getAdmin()));
+        $comment1 = ModelFactory::CreateComment(\Auth::user(), $discussion, $tags, Carbon::createFromDate(2017, 12, 31, 2));
+        $comment2 = ModelFactory::CreateComment(\Auth::user(), $discussion, $tags);
+
+        $params = 'count=' . $count;
+        $resourcePath = $this->baseURI . $discussion->getResourcePath() . '/comments';
+        $requestPath = $resourcePath . '?start=' . $start . '&' . $params;
+        $response = $this->get($requestPath);
+        if($start == 0) $start = 1;
+        $response->assertStatus(InvalidPaginationException::HTTP_CODE)->assertJson(['code' => InvalidPaginationException::ERROR_CODE]);
+    }
+
+    /** @test */
+    public function testCommentsRouteResponseWithInvalidPaginationStartWrong()
+    {
+        $start = "asd";
+        $count = 5;
+        $comment_count = 2;
+        $tags = [Tag::getSozialeMedien(), Tag::getWirtschaftlicheInteressen()];
+
+        Passport::actingAs(
+            ModelFactory::CreateUser(Role::getStandardUser()), ['*']
+        );
+        $discussion = ModelFactory::CreateDiscussion(ModelFactory::CreateUser(Role::getAdmin()));
+        $comment1 = ModelFactory::CreateComment(\Auth::user(), $discussion, $tags, Carbon::createFromDate(2017, 12, 31, 2));
+        $comment2 = ModelFactory::CreateComment(\Auth::user(), $discussion, $tags);
+
+        $params = 'count=' . $count;
+        $resourcePath = $this->baseURI . $discussion->getResourcePath() . '/comments';
+        $requestPath = $resourcePath . '?start=' . $start . '&' . $params;
+        $response = $this->get($requestPath);
+        if($start == 0) $start = 1;
+        $response->assertStatus(InvalidPaginationException::HTTP_CODE)->assertJson(['code' => InvalidPaginationException::ERROR_CODE]);
+    }
+    //endregion
+
+    //region post Comments
+    /** @test */
+    public function testPostCommentsValid()
+    {
+        $tags = collect([Tag::getSozialeMedien(), Tag::getWirtschaftlicheInteressen()]);
+        $content = 'newly created comment content';
+
+        Passport::actingAs(
+            ModelFactory::CreateUser(Role::getStandardUser()), ['*']
+        );
+        $discussion = ModelFactory::CreateDiscussion(ModelFactory::CreateUser(Role::getAdmin()));
+
+        $requestPath = $this->baseURI . $discussion->getResourcePath() . '/comments';
+        $inputData = [
+            'content' => $content,
+            'tags' => $tags->pluck('id')->toArray()
+        ];
+        $response = $this->json('POST', $requestPath, $inputData);
+        $response->assertStatus(201)
+            ->assertJson([
+                'href' => $requestPath . '/' . 1,
+                'id' => 1
+            ]);
+    }
+
+    /** @test */
+    public function testPostCommentsNotAuthorized()
+    {
+        $tags = collect([Tag::getSozialeMedien(), Tag::getWirtschaftlicheInteressen()]);
+        $content = 'newly created comment content';
+
+        $discussion = ModelFactory::CreateDiscussion(ModelFactory::CreateUser(Role::getAdmin()));
+
+        $requestPath = $this->baseURI . $discussion->getResourcePath() . '/comments';
+        $inputData = [
+            'content' => $content,
+            'tags' => $tags->pluck('id')->toArray()
+        ];
+        $response = $this->json('POST', $requestPath, $inputData);
+        $response->assertStatus(NotAuthorizedException::HTTP_CODE)->assertJson(['code' => NotAuthorizedException::ERROR_CODE]);
+    }
+
+    /** @test */
+    public function testPostCommentsInvalidTags()
+    {
+        $tag_ids = [12];
+        $content = 'newly created comment content';
+
+        Passport::actingAs(
+            ModelFactory::CreateUser(Role::getStandardUser()), ['*']
+        );
+        $discussion = ModelFactory::CreateDiscussion(ModelFactory::CreateUser(Role::getAdmin()));
+
+        $requestPath = $this->baseURI . $discussion->getResourcePath() . '/comments';
+        $inputData = [
+            'content' => $content,
+            'tags' => $tag_ids
+        ];
+        $response = $this->json('POST', $requestPath, $inputData);
+        $response->assertStatus(CannotResolveDependenciesException::HTTP_CODE)->assertJson(['code' => CannotResolveDependenciesException::ERROR_CODE]);
+    }
+    //endregion
+
+    //region get Amendments
+    /** @test */
+    public function testAmendmentsRouteResponseNoParametersSet()    //TODO: test popularity with rating as well
+    {
+        $amendment_count = 2;
+        $tags = [Tag::getSozialeMedien(), Tag::getWirtschaftlicheInteressen()];
+
+        Passport::actingAs(
+            ModelFactory::CreateUser(Role::getStandardUser()), ['*']
+        );
+        $discussion = ModelFactory::CreateDiscussion(ModelFactory::CreateUser(Role::getAdmin()));
+        $amendment1 = ModelFactory::CreateAmendment(\Auth::user(), $discussion, $tags, Carbon::createFromDate(2017, 12, 31, 2));
+        $amendment2 = ModelFactory::CreateAmendment(\Auth::user(), $discussion, $tags);
+        ModelFactory::CreateComment(\Auth::user(), $amendment2, $tags);
+        //$rating_aspect = ModelFactory::CreateRatingAspect('fair');
+        //ModelFactory::CreateRating(\Auth::user(), $amendment2, $rating_aspect);
+
+        $resourcePath = $this->baseURI . $discussion->getResourcePath() . '/amendments';
+        $requestPath = $resourcePath;
+        $response = $this->get($requestPath);
+        $response->assertStatus(200)
+            ->assertJson([
+                "data" => [
+                    'href' => $requestPath,
+                    'amendments' => [
+                        [
+                            'href' => $this->baseURI . $amendment2->getResourcePath(),
+                            'id' => $amendment2->id
+                        ],
+                        [
+                            'href' => $this->baseURI . $amendment1->getResourcePath(),
+                            'id' => $amendment1->id
+                        ]
+                    ]
+                ],
+                "links" => [
+                    "first" => $resourcePath . '?start=1',
+                    "last" => $resourcePath . '?start=1',
+                    "prev" => null,
+                    "next" => null
+                ],
+                "meta" => [
+                    "current_page" => PageRequest::DEFAULT_PAGE_NUMBER,
+                    "from" => 1,
+                    "last_page" => 1,
+                    "path" => $resourcePath,
+                    "per_page" => PageRequest::DEFAULT_PER_PAGE,
+                    "to" => 2,
+                    "total" => $amendment_count
+                ]
+            ]);
+    }
+
+    /** @test */
+    public function testAmendmentsRouteResponsePaginationValidSortDirectionAsc()
+    {
+        $start = 1;
+        $count = 10;
+        $sort_direction = 'asc';
+
+        $amendment_count = 2;
+        $tags = [Tag::getSozialeMedien(), Tag::getWirtschaftlicheInteressen()];
+
+        Passport::actingAs(
+            ModelFactory::CreateUser(Role::getStandardUser()), ['*']
+        );
+        $discussion = ModelFactory::CreateDiscussion(ModelFactory::CreateUser(Role::getAdmin()));
+        $amendment1 = ModelFactory::CreateAmendment(\Auth::user(), $discussion, $tags, Carbon::createFromDate(2017, 12, 31, 2));
+        $amendment2 = ModelFactory::CreateAmendment(\Auth::user(), $discussion, $tags);
+        ModelFactory::CreateComment(\Auth::user(), $amendment2, $tags);
+        //$rating_aspect = ModelFactory::CreateRatingAspect('fair');
+        //ModelFactory::CreateRating(\Auth::user(), $amendment2, $rating_aspect);
+
+        $params = 'count=' . $count . '&sort_direction=' . $sort_direction . '&start=' . $start;
+        $resourcePath = $this->baseURI . $discussion->getResourcePath() . '/amendments';
+        $requestPath = $resourcePath . '?' . $params;
+        $response = $this->get($requestPath);
+        $response->assertStatus(200)
+            ->assertJson([
+                "data" => [
+                    'href' => $requestPath,
+                    'amendments' => [
+                        [
+                            'href' => $this->baseURI . $amendment1->getResourcePath(),
+                            'id' => $amendment1->id
+                        ],
+                        [
+                            'href' => $this->baseURI . $amendment2->getResourcePath(),
+                            'id' => $amendment2->id
+                        ]
+                    ]
+                ],
+                "links" => [
+                    "first" => $requestPath,
+                    "last" => $requestPath,
+                    "prev" => null,
+                    "next" => null
+                ],
+                "meta" => [
+                    "current_page" => $start,
+                    "from" => 1,
+                    "last_page" => 1,
+                    "path" => $resourcePath,
+                    "per_page" => $count,
+                    "to" => 2,
+                    "total" => $amendment_count
+                ]
+            ]);
+    }
+
+    /** @test */
+    public function testAmendmentsRouteResponseSortedByChronological()
+    {
+        $sorted_by = 'chronological';
+
+        $amendment_count = 2;
+        $tags = [Tag::getSozialeMedien(), Tag::getWirtschaftlicheInteressen()];
+
+        Passport::actingAs(
+            ModelFactory::CreateUser(Role::getStandardUser()), ['*']
+        );
+        $discussion = ModelFactory::CreateDiscussion(ModelFactory::CreateUser(Role::getAdmin()));
+        $amendment1 = ModelFactory::CreateAmendment(\Auth::user(), $discussion, $tags, Carbon::createFromDate(2017, 12, 31, 2));
+        $amendment2 = ModelFactory::CreateAmendment(\Auth::user(), $discussion, $tags);
+
+        $params = 'sorted_by=' . $sorted_by;
+        $resourcePath = $this->baseURI . $discussion->getResourcePath() . '/amendments';
+        $requestPath = $resourcePath . '?' . $params;
+        $response = $this->get($requestPath);
+        $response->assertStatus(200)
+            ->assertJson([
+                "data" => [
+                    'href' => $requestPath,
+                    'amendments' => [
+                        [
+                            'href' => $this->baseURI . $amendment2->getResourcePath(),
+                            'id' => $amendment2->id
+                        ],
+                        [
+                            'href' => $this->baseURI . $amendment1->getResourcePath(),
+                            'id' => $amendment1->id
+                        ]
+                    ]
+                ],
+                "links" => [
+                    "first" => $requestPath . '&start=1',
+                    "last" => $requestPath . '&start=1',
+                    "prev" => null,
+                    "next" => null
+                ],
+                "meta" => [
+                    "current_page" => PageRequest::DEFAULT_PAGE_NUMBER,
+                    "from" => 1,
+                    "last_page" => 1,
+                    "path" => $resourcePath,
+                    "per_page" => PageRequest::DEFAULT_PER_PAGE,
+                    "to" => 2,
+                    "total" => $amendment_count
+                ]
+            ]);
+    }
+
+    /** @test */
+    public function testAmendmentsRouteResponseSortedByChronologicalAsc()
+    {
+        $sorted_by = 'chronological';
+        $sort_direction = 'asc';
+
+        $amendment_count = 2;
+        $tags = [Tag::getSozialeMedien(), Tag::getWirtschaftlicheInteressen()];
+
+        Passport::actingAs(
+            ModelFactory::CreateUser(Role::getStandardUser()), ['*']
+        );
+        $discussion = ModelFactory::CreateDiscussion(ModelFactory::CreateUser(Role::getAdmin()));
+        $amendment1 = ModelFactory::CreateAmendment(\Auth::user(), $discussion, $tags, Carbon::createFromDate(2017, 12, 31, 2));
+        $amendment2 = ModelFactory::CreateAmendment(\Auth::user(), $discussion, $tags);
+
+        $params = 'sorted_by=' . $sorted_by . '&sort_direction=' . $sort_direction;
+        $resourcePath = $this->baseURI . $discussion->getResourcePath() . '/amendments';
+        $requestPath = $resourcePath . '?' . $params;
+        $response = $this->get($requestPath);
+        $response->assertStatus(200)
+            ->assertJson([
+                "data" => [
+                    'href' => $requestPath,
+                    'amendments' => [
+                        [
+                            'href' => $this->baseURI . $amendment1->getResourcePath(),
+                            'id' => $amendment1->id
+                        ],
+                        [
+                            'href' => $this->baseURI . $amendment2->getResourcePath(),
+                            'id' => $amendment2->id
+                        ]
+                    ]
+                ],
+                "links" => [
+                    "first" => $requestPath . '&start=1',
+                    "last" => $requestPath . '&start=1',
+                    "prev" => null,
+                    "next" => null
+                ],
+                "meta" => [
+                    "current_page" => PageRequest::DEFAULT_PAGE_NUMBER,
+                    "from" => 1,
+                    "last_page" => 1,
+                    "path" => $resourcePath,
+                    "per_page" => PageRequest::DEFAULT_PER_PAGE,
+                    "to" => 2,
+                    "total" => $amendment_count
+                ]
+            ]);
+    }
+
+    /** @test */
+    public function testAmendmentsRouteResponseInvalidPaginationMin()
+    {
+        $start = 1;
+        $count = 0;
+
+        $amendment_count = 1;
+        $tags = [Tag::getSozialeMedien(), Tag::getWirtschaftlicheInteressen()];
+
+        Passport::actingAs(
+            ModelFactory::CreateUser(Role::getStandardUser()), ['*']
+        );
+        $discussion = ModelFactory::CreateDiscussion(ModelFactory::CreateUser(Role::getAdmin()));
+        $amendment1 = ModelFactory::CreateAmendment(\Auth::user(), $discussion, $tags, Carbon::createFromDate(2017, 12, 31, 2));
+
+        $params = 'count=' . $count . '&start=' . $start;
+        $resourcePath = $this->baseURI . $discussion->getResourcePath() . '/amendments';
+        $requestPath = $resourcePath . '?' . $params;
+        $response = $this->get($requestPath);
+        $response->assertStatus(InvalidPaginationException::HTTP_CODE)->assertJson(['code' => InvalidPaginationException::ERROR_CODE]);
+    }
+
+    /** @test */
+    public function testAmendmentsRouteResponseInvalidPaginationMax()
+    {
+        $start = 1;
+        $count = PageRequest::MAX_PER_PAGE + 1;
+
+        $amendment_count = 1;
+        $tags = [Tag::getSozialeMedien(), Tag::getWirtschaftlicheInteressen()];
+
+        Passport::actingAs(
+            ModelFactory::CreateUser(Role::getStandardUser()), ['*']
+        );
+        $discussion = ModelFactory::CreateDiscussion(ModelFactory::CreateUser(Role::getAdmin()));
+        $amendment1 = ModelFactory::CreateAmendment(\Auth::user(), $discussion, $tags, Carbon::createFromDate(2017, 12, 31, 2));
+
+        $params = 'count=' . $count . '&start=' . $start;
+        $resourcePath = $this->baseURI . $discussion->getResourcePath() . '/amendments';
+        $requestPath = $resourcePath . '?' . $params;
+        $response = $this->get($requestPath);
+        $response->assertStatus(PayloadTooLargeException::HTTP_CODE)->assertJson(['code' => PayloadTooLargeException::ERROR_CODE]);
+    }
+
+    /** @test */
+    public function testAmendmentsRouteResponseInvalidPaginationCountWrong()
+    {
+        $start = 1;
+        $count = "asd";
+
+        $amendment_count = 1;
+        $tags = [Tag::getSozialeMedien(), Tag::getWirtschaftlicheInteressen()];
+
+        Passport::actingAs(
+            ModelFactory::CreateUser(Role::getStandardUser()), ['*']
+        );
+        $discussion = ModelFactory::CreateDiscussion(ModelFactory::CreateUser(Role::getAdmin()));
+        $amendment1 = ModelFactory::CreateAmendment(\Auth::user(), $discussion, $tags, Carbon::createFromDate(2017, 12, 31, 2));
+
+        $params = 'count=' . $count . '&start=' . $start;
+        $resourcePath = $this->baseURI . $discussion->getResourcePath() . '/amendments';
+        $requestPath = $resourcePath . '?' . $params;
+        $response = $this->get($requestPath);
+        $response->assertStatus(InvalidPaginationException::HTTP_CODE)->assertJson(['code' => InvalidPaginationException::ERROR_CODE]);
+    }
+
+    /** @test */
+    public function testAmendmentsRouteResponseInvalidPaginationStartWrong()
+    {
+        $start = "asd";
+        $count = 10;
+
+        $amendment_count = 1;
+        $tags = [Tag::getSozialeMedien(), Tag::getWirtschaftlicheInteressen()];
+
+        Passport::actingAs(
+            ModelFactory::CreateUser(Role::getStandardUser()), ['*']
+        );
+        $discussion = ModelFactory::CreateDiscussion(ModelFactory::CreateUser(Role::getAdmin()));
+        $amendment1 = ModelFactory::CreateAmendment(\Auth::user(), $discussion, $tags, Carbon::createFromDate(2017, 12, 31, 2));
+
+        $params = 'count=' . $count . '&start=' . $start;
+        $resourcePath = $this->baseURI . $discussion->getResourcePath() . '/amendments';
+        $requestPath = $resourcePath . '?' . $params;
+        $response = $this->get($requestPath);
+        $response->assertStatus(InvalidPaginationException::HTTP_CODE)->assertJson(['code' => InvalidPaginationException::ERROR_CODE]);
+    }
+
+    //TODO? should an error be thrown for wrong sorted_by or sort_direction or just default (as it is currently)
+    //endregion
+
+    //region post Amendments
+    /** @test */
+    public function testPostAmendmentsValid()
+    {
+        $tags = collect([Tag::getSozialeMedien(), Tag::getWirtschaftlicheInteressen()]);
+        $explanation = 'newly created amendment explanation';
+        $updated_text = 'updated law_text';
+
+        Passport::actingAs(
+            ModelFactory::CreateUser(Role::getStandardUser()), ['*']
+        );
+        $discussion = ModelFactory::CreateDiscussion(ModelFactory::CreateUser(Role::getAdmin()));
+
+        $requestPath = $this->baseURI . $discussion->getResourcePath() . '/amendments';
+        $inputData = [
+            'explanation' => $explanation,
+            'updated_text' => $updated_text,
+            'tags' => $tags->pluck('id')->toArray()
+        ];
+        $response = $this->json('POST', $requestPath, $inputData);
+        $response->assertStatus(201)
+            ->assertJson([
+                'href' => $requestPath . '/' . 1,
+                'id' => 1
+            ]);
+    }
+
+    /** @test */
+    public function testPostAmendmentsNotAuthorized()
+    {
+        $tags = collect([Tag::getSozialeMedien(), Tag::getWirtschaftlicheInteressen()]);
+        $explanation = 'newly created amendment explanation';
+        $updated_text = 'updated law_text';
+
+        $discussion = ModelFactory::CreateDiscussion(ModelFactory::CreateUser(Role::getAdmin()));
+
+        $requestPath = $this->baseURI . $discussion->getResourcePath() . '/amendments';
+        $inputData = [
+            'explanation' => $explanation,
+            'updated_text' => $updated_text,
+            'tags' => $tags->pluck('id')->toArray()
+        ];
+        $response = $this->json('POST', $requestPath, $inputData);
+        $response->assertStatus(NotAuthorizedException::HTTP_CODE)->assertJson(['code' => NotAuthorizedException::ERROR_CODE]);
+    }
+
+    /** @test */
+    public function testPostAmendmentsInvalidTags()
+    {
+        $tag_ids = [12];
+        $explanation = 'newly created amendment explanation';
+        $updated_text = 'updated law_text';
+
+        Passport::actingAs(
+            ModelFactory::CreateUser(Role::getStandardUser()), ['*']
+        );
+        $discussion = ModelFactory::CreateDiscussion(ModelFactory::CreateUser(Role::getAdmin()));
+
+        $requestPath = $this->baseURI . $discussion->getResourcePath() . '/amendments';
+        $inputData = [
+            'explanation' => $explanation,
+            'updated_text' => $updated_text,
+            'tags' => $tag_ids
+        ];
+        $response = $this->json('POST', $requestPath, $inputData);
+        $response->assertStatus(CannotResolveDependenciesException::HTTP_CODE)->assertJson(['code' => CannotResolveDependenciesException::ERROR_CODE]);
+    }
+    //endregion
+
     /**
      * @param Discussion $discussion
+     * @param string $baseUri
      * @return array
      */
     private static function mapDiscussionToJson(Discussion $discussion, string $baseUri) : array

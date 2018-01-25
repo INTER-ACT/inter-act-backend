@@ -10,9 +10,14 @@ use App\Domain\OgdRisApiBridge;
 use App\Domain\PageGetRequest;
 use App\Domain\PageRequest;
 use App\Domain\SortablePageGetRequest;
+use App\Exceptions\CustomExceptions\InvalidValueException;
 use App\Exceptions\CustomExceptions\NotAuthorizedException;
+use App\Http\Requests\CreateAmendmentRequest;
+use App\Http\Requests\CreateCommentRequest;
 use App\Http\Requests\CreateDiscussionRequest;
 use App\Http\Requests\DeleteDiscussionRequest;
+use App\Http\Requests\ListLawTextsRequest;
+use App\Http\Requests\ShowLawTextRequest;
 use App\Http\Requests\UpdateDiscussionRequest;
 use App\Http\Requests\ViewDiscussionRequest;
 use App\Http\Resources\AmendmentResources\AmendmentCollection;
@@ -25,9 +30,11 @@ use App\Http\Resources\LawCollection;
 use App\Http\Resources\LawResource;
 use App\Http\Resources\NoResponseResource;
 use App\Http\Resources\SuccessfulCreationResource;
+use Exception;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Input;
+use Log;
 
 class DiscussionController extends Controller
 {
@@ -106,17 +113,17 @@ class DiscussionController extends Controller
      */
     public function listAmendments(Request $request, int $id) : AmendmentCollection
     {
-        return $this->repository->getAmendments($id, $request->sort_by, $request->sort_direction, new PageGetRequest($request));
+        return $this->repository->getAmendments($id, $request->sorted_by, $request->sort_direction, new PageGetRequest($request));
     }
 
     /**
      * @param int $id
-     * @param Request $request
-     * @return int
+     * @param CreateAmendmentRequest $request
+     * @return SuccessfulCreationResource
      */
-    public function createAmendment(int $id, Request $request) : int    //TODO: change to CreateAmendmentRequest
+    public function createAmendment(CreateAmendmentRequest $request, int $id) : SuccessfulCreationResource    //TODO: change to CreateAmendmentRequest
     {
-        return DiscussionManipulator::createAmendment($id, $request->all());
+        return DiscussionManipulator::createAmendment($id, $request->all(), \Auth::id());
     }
 
     /**
@@ -133,12 +140,12 @@ class DiscussionController extends Controller
 
     /**
      * @param int $id
-     * @param Request $request
-     * @return int
+     * @param CreateCommentRequest $request
+     * @return SuccessfulCreationResource
      */
-    public function createComment(int $id, Request $request) : int    //TODO: change to CreateCommentRequest
+    public function createComment(CreateCommentRequest $request, int $id) : SuccessfulCreationResource    //TODO: change to CreateCommentRequest
     {
-        return DiscussionManipulator::createComment($id, $request->all());
+        return DiscussionManipulator::createComment($id, $request->all(), \Auth::id());
     }
 
     /**
@@ -151,21 +158,22 @@ class DiscussionController extends Controller
     }
 
     /**
-     * @param Request $request
+     * @param ListLawTextsRequest $request
      * @param LawRepository $lawRepository
      * @return LawCollection
      */
-    public function listLawTexts(Request $request, LawRepository $lawRepository)// : LawCollection
+    public function listLawTexts(ListLawTextsRequest $request, LawRepository $lawRepository) : LawCollection
     {
         return $lawRepository->getAll(new PageGetRequest($request));
     }
 
     /**
+     * @param ShowLawTextRequest $request
      * @param LawRepository $lawRepository
      * @param string $id
      * @return LawResource
      */
-    public function showLawText(LawRepository $lawRepository, string $id) : LawResource
+    public function showLawText(ShowLawTextRequest $request, LawRepository $lawRepository, string $id) : LawResource
     {
         return $lawRepository->getOne($id);
     }

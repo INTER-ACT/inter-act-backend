@@ -119,14 +119,18 @@ class ModelFactory
      * @param User $user
      * @param Discussion $discussion
      * @param array|null $tags
+     * @param Carbon|null $created_at
      * @return Amendment
      */
-    public static function CreateAmendment(User $user, Discussion $discussion, array $tags = null)
+    public static function CreateAmendment(User $user, Discussion $discussion, array $tags = null, Carbon $created_at = null)
     {
+        if($created_at == null)
+            $created_at = now();
         /** @var Amendment $amendment */
         $amendment = factory(Amendment::class)->create([
             'user_id' => $user->id,
-            'discussion_id' => $discussion->id
+            'discussion_id' => $discussion->id,
+            'created_at' => $created_at
         ]);
         if(isset($tags))
             $amendment->tags()->attach(array_map(function($item){return $item->id;}, $tags));
@@ -192,15 +196,19 @@ class ModelFactory
      * @param User $user
      * @param \App\Comments\ICommentable $parent
      * @param array|null $tags
+     * @param Carbon|null $created_at
      * @return Comment
      */
-    public static function CreateComment(User $user, ICommentable $parent, array $tags = null)
+    public static function CreateComment(User $user, ICommentable $parent, array $tags = null, Carbon $created_at = null)
     {
+        if(!isset($created_at))
+            $created_at = now();
         /** @var Comment $comment */
         $comment = factory(Comment::class)->create([
             'user_id' => $user->id,
             'commentable_id' => $parent->getIdProperty(),
-            'commentable_type' => get_class($parent)
+            'commentable_type' => get_class($parent),
+            'created_at' => $created_at
         ]);
         if(isset($tags))
             $comment->tags()->attach(array_map(function($item){return $item->id;}, $tags));

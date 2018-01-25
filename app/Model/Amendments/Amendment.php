@@ -96,6 +96,7 @@ class Amendment extends Model implements ITaggable, IReportable, IRatable, IComm
         $rating_sum = $this->ratable_rating_aspects()->get()->sum(function($aspect) use($start_date, $end_date){
             return $aspect->getActivity($start_date, $end_date);
         });
+        \Log::info($this->ratable_rating_aspects);
         return (int)($comment_sum + $sub_amendment_sum + $rating_sum) + 1;
     }
     //endregion
@@ -148,8 +149,8 @@ class Amendment extends Model implements ITaggable, IReportable, IRatable, IComm
 
     public function rating_aspects()
     {
-        return $this->morphToMany(RatingAspect::class, 'ratable', 'ratable_rating_aspects');
-    }
+        return $this->morphToMany(RatingAspect::class, 'ratable', 'ratable_rating_aspects', 'ratingaspect_id', 'ratable_id');
+    }//TODO: not sure if it works if keys of pivot are not pk
 
     /*public function ratings()
     {
