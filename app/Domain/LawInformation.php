@@ -15,19 +15,23 @@ class LawInformation
     public $id;
     /** @var string */
     public $href;
-    /** @var array */
+    /** @var string */
+    public $title;
+    /** @var string */
     public $content;
 
     /**
      * LawInformation constructor.
-     * @param string $law_id
-     * @param string $law_href
-     * @param array $law
+     * @param string $id
+     * @param string $href
+     * @param $title
+     * @param string $content
      */
-    public function __construct(string $law_id, string $law_href, array $law)
+    public function __construct($id, $href, $title, $content)
     {
-        $this->id = $law_id;
-        $this->href = $law_href;
-        $this->content = $law;
+        $this->id = $id;
+        $this->href = $href;
+        $this->title = $title;
+        $this->content = $content;
     }
 }

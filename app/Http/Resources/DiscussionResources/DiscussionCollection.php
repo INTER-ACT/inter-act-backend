@@ -20,7 +20,7 @@ class DiscussionCollection extends ResourceCollection
         $thisURI = url($this->getResourcePathIfNotNull($request->getRequestUri())); //TODO: change for search or leave it?
         return[
             'href' => $thisURI,
-            'total' => $this->collection->count(),
+            //'total' => $this->collection->count(),
             'discussions' => $this->collection->transform(function ($discussion){
                 return [
                     'href' => url($discussion->getResourcePath()),

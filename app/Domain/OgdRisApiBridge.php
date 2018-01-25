@@ -53,8 +53,18 @@ class OgdRisApiBridge
         $xmlString = $res->getBody()->getContents();
         $doc = new SimpleXMLElement($xmlString);
         $doc->registerXPathNamespace('a', 'http://www.bka.gv.at');
-        $contentString = "";
-        $content = [];
+        $headerElements = $doc->xpath('//a:ueberschrift[@typ="para"]');
+        if(sizeof($headerElements) > 0)
+            $header = (string)$headerElements[0];
+        else
+            $header = '-';
+        $contentElements = $doc->xpath('//a:absatz[@typ="abs"]');
+        $content = '';
+        foreach ($contentElements as $element)
+        {
+            $content .= (string)$element . "\r\n ";
+        }
+        /*$content = [];
         $xmlElements = $doc->xpath('//a:*[@ct="text"]');
         foreach ($xmlElements as $element)
         {
@@ -64,8 +74,8 @@ class OgdRisApiBridge
                 $identifier = 'header';
             array_push($content, [$identifier => (string)$element]);
             //$content[$identifier] = (string)$element;
-        }
-        return new LawInformation($id, url('/law_texts/' . $id), $content);
+        }*/
+        return new LawInformation($id, url('/law_texts/' . $id), $header, $content);
     }
 
     /**
@@ -92,14 +102,11 @@ class OgdRisApiBridge
     {
         $metadata = $document["Data"]["Metadaten"]["Bundes-Landesnormen"];
         $id = $document["Data"]["Metadaten"]["Technisch"]["ID"];
-        //$url = $document["Data"]["Dokumentliste"]["ContentReference"]["Urls"]["ContentUrl"][1]["Url"];  //TODO: take xml/html/both?
+        //$url = $document["Data"]["Dokumentliste"]["ContentReference"]["Urls"]["ContentUrl"][1]["Url"];
         $url = url('/law_texts/' . $id);
-        $shortTitle = $metadata["Kurztitel"];
-        $title = (array_key_exists("Langtitel", $metadata)) ? $metadata["Langtitel"] : "";
-        $proclamationOrgan = $metadata["Kundmachungsorgan"];
         $articleParagraphUnit = $metadata["ArtikelParagraphAnlage"];
-        //$dateOfComingIntoEffect = $metadata["Inkrafttretedatum"];
+        $paragraph = self::getParagraphFromId($id);
 
-        return new LawResourceShort($id, $url, $shortTitle, $title, $proclamationOrgan, $articleParagraphUnit);
+        return new LawResourceShort($id, $url, $paragraph->title, $articleParagraphUnit);
     }
 }

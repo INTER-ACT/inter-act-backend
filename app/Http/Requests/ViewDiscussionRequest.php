@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use App\Domain\ApiRequest;
 use App\Domain\DiscussionRepository;
+use App\Exceptions\CustomExceptions\InvalidValueException;
 use App\Exceptions\CustomExceptions\NotPermittedException;
 
 class ViewDiscussionRequest extends ApiRequest
@@ -11,6 +12,7 @@ class ViewDiscussionRequest extends ApiRequest
     /**
      * Determine if the user is authorized to make this request.
      * @return bool
+     * @throws InvalidValueException
      * @throws NotPermittedException
      */
     public function authorize()

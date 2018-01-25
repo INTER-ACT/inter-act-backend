@@ -22,7 +22,7 @@ class SubAmendmentCollection extends ResourceCollection
             'href' => $thisUri,
             'subamendments' => $this->collection->transform(function($subamendment){
                 return [
-                    'href' => $subamendment->getResourcePath(),
+                    'href' => url($subamendment->getResourcePath()),
                     'id' => $subamendment->id
                 ];
             })

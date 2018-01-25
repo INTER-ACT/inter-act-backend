@@ -3,6 +3,7 @@
 namespace App\Amendments;
 
 use App\IModel;
+use App\RatingAspectRating;
 use Illuminate\Database\Eloquent\Model;
 
 class RatingAspect extends Model implements IModel
@@ -23,6 +24,11 @@ class RatingAspect extends Model implements IModel
 
     //region relations
     public function ratings()
+    {
+        return $this->morphToMany(RatingAspectRating::class, 'ratable', 'ratable_rating_aspects');
+    }
+
+    public function ratable_rating_aspects()
     {
         return $this->hasMany(RatableRatingAspect::class);
     }

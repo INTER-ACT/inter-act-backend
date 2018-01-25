@@ -16,13 +16,9 @@ use App\Domain\DiscussionRepository;
 use App\Exceptions\CustomExceptions\ApiException;
 use App\Exceptions\CustomExceptions\ApiExceptionMeta;
 use App\Exceptions\CustomExceptions\InternalServerError;
-use App\Http\Resources\CreatedResponseResource;
-use App\Http\Resources\NoResponseResource;
 use App\Http\Resources\SuccessfulCreationResource;
-use App\IRestResource;
 use App\User;
 use Log;
-use Mockery\Exception;
 
 class DiscussionManipulator //TODO: request not validated here. remove this if done elsewhere
 {
@@ -40,9 +36,7 @@ class DiscussionManipulator //TODO: request not validated here. remove this if d
         $discussion->user_id = $user->id;
         if(!$discussion->save())
             throw new InternalServerError("Could not create a discussion with the given data.");
-        //$created = $user->discussions()->save($discussion);
-        //if(!isset($created))
-        //    throw new InternalServerError("Could not create a discussion with the given data.");
+        $discussion->tags()->attach($data['tags']);
         return new SuccessfulCreationResource($discussion);
     }
 
@@ -76,32 +70,38 @@ class DiscussionManipulator //TODO: request not validated here. remove this if d
     /**
      * @param int $id
      * @param array $data
-     * @return int
+     * @param int $user_id
+     * @return SuccessfulCreationResource
+     * @throws InternalServerError
      */
-    public static function createAmendment(int $id, array $data) : int  //TODO: remove user_id in docs or should it be taken from auth in controller already?
+    public static function createAmendment(int $id, array $data, int $user_id) : SuccessfulCreationResource
     {
-        $user = \Auth::user();
         $discussion = DiscussionRepository::getDiscussionByIdOrThrowError($id);
         $amendment = new Amendment();
-        $amendment->fill([$data]);
-        $amendment->user_id = $user->id;
-        $discussion->amendments()->save($amendment);
-        return $amendment->id;
+        $amendment->fill($data);
+        $amendment->user_id = $user_id;
+        if(!$discussion->amendments()->save($amendment))
+            throw new InternalServerError("Could not create an amendment with the given data.");
+        $amendment->tags()->attach($data['tags']);
+        return new SuccessfulCreationResource($amendment);
     }
 
     /**
      * @param int $id
      * @param array $data
-     * @return int
+     * @param int $user_id
+     * @return SuccessfulCreationResource
+     * @throws InternalServerError
      */
-    public static function createComment(int $id, array $data) : int  //TODO: remove user_id in docs
+    public static function createComment(int $id, array $data, int $user_id) : SuccessfulCreationResource
     {
-        $user = \Auth::user();
         $discussion = DiscussionRepository::getDiscussionByIdOrThrowError($id);
         $comment = new Comment();
-        $comment->fill([$data]);
-        $comment->user_id = $user->id;
-        $discussion->comments()->save($comment);
-        return $comment->id;
+        $comment->fill($data);
+        $comment->user_id = $user_id;
+        if(!$discussion->comments()->save($comment))
+            throw new InternalServerError("Could not create a comment with the given data.");
+        $comment->tags()->attach($data['tags']);
+        return new SuccessfulCreationResource($comment);
     }
 }

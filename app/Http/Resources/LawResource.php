@@ -17,7 +17,8 @@ class LawResource extends Resource
         return [
             'href' => $this->href,
             'id' => $this->id,
-            'text' => $this->content
+            'title' => $this->title,
+            'content' => $this->content
         ];
     }
 }

@@ -23,7 +23,7 @@ class AmendmentCollection extends ResourceCollection
             'href' => $thisUri,
             'amendments' => $this->collection->transform(function($amendment){
                 return [
-                    'href' => $amendment->getResourcePath(),
+                    'href' => url($amendment->getResourcePath()),
                     'id' => $amendment->id
                 ];
             })

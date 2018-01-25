@@ -16,129 +16,28 @@ class LawResourceShort
     /** @var string */
     protected $url;
     /** @var string */
-    protected $shortTitle;
-    /** @var string */
     protected $title;
-    /** @var string */
-    protected $proclamationOrgan;       //Kundmachungsorgan
     /** @var string */
     protected $articleParagraphUnit;    //je nach typ
 
     /**
-     * LawResource constructor.
+     * LawResourceShort constructor.
      * @param string $id
      * @param string $url
-     * @param string $shortTitle
      * @param string $title
-     * @param string $proclamationOrgan
      * @param string $articleParagraphUnit
      */
-    public function __construct(string $id, string $url, string $shortTitle, string $title, string $proclamationOrgan, string $articleParagraphUnit)
+    public function __construct(string $id, string $url, string $title, string $articleParagraphUnit)
     {
-        $this->url = $url;
-        $this->shortTitle = $shortTitle;
-        $this->title = $title;
-        $this->proclamationOrgan = $proclamationOrgan;
-        $this->articleParagraphUnit = $articleParagraphUnit;
         $this->id = $id;
+        $this->url = $url;
+        $this->title = $title;
+        $this->articleParagraphUnit = $articleParagraphUnit;
     }
+
 
     //region Getters and Setters
-    /**
-     * @return string
-     */
-    public function getId(): string
-    {
-        return $this->id;
-    }
 
-    /**
-     * @param string $id
-     */
-    public function setId(string $id)
-    {
-        $this->id = $id;
-    }
-
-    /**
-     * @return string
-     */
-    public function getUrl(): string
-    {
-        return $this->url;
-    }
-
-    /**
-     * @param string $url
-     */
-    public function setUrl(string $url)
-    {
-        $this->url = $url;
-    }
-
-    /**
-     * @return string
-     */
-    public function getShortTitle(): string
-    {
-        return $this->shortTitle;
-    }
-
-    /**
-     * @param string $shortTitle
-     */
-    public function setShortTitle(string $shortTitle)
-    {
-        $this->shortTitle = $shortTitle;
-    }
-
-    /**
-     * @return string
-     */
-    public function getTitle(): string
-    {
-        return $this->title;
-    }
-
-    /**
-     * @param string $title
-     */
-    public function setTitle(string $title)
-    {
-        $this->title = $title;
-    }
-
-    /**
-     * @return string
-     */
-    public function getProclamationOrgan(): string
-    {
-        return $this->proclamationOrgan;
-    }
-
-    /**
-     * @param string $proclamationOrgan
-     */
-    public function setProclamationOrgan(string $proclamationOrgan)
-    {
-        $this->proclamationOrgan = $proclamationOrgan;
-    }
-
-    /**
-     * @return string
-     */
-    public function getArticleParagraphUnit(): string
-    {
-        return $this->articleParagraphUnit;
-    }
-
-    /**
-     * @param string $articleParagraphUnit
-     */
-    public function setArticleParagraphUnit(string $articleParagraphUnit)
-    {
-        $this->articleParagraphUnit = $articleParagraphUnit;
-    }
     //endregion
 
     public function toArray()
@@ -146,7 +45,8 @@ class LawResourceShort
         return[
             "id" => $this->id,
             "href" => $this->url,
-            "articleParagraphUnit" => $this->articleParagraphUnit,
+            "articleOrParagraph" => $this->articleParagraphUnit,
+            "title" => $this->title
         ];
     }
 }

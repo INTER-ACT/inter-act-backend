@@ -12,6 +12,8 @@ namespace App\Domain;
 use App\Discussions\Discussion;
 use App\Exceptions\CustomExceptions\ApiException;
 use App\Exceptions\CustomExceptions\ApiExceptionMeta;
+use App\Exceptions\CustomExceptions\InvalidValueException;
+use App\Exceptions\CustomExceptions\ResourceNotFoundException;
 use App\Http\Resources\AmendmentResources\AmendmentCollection;
 use App\Http\Resources\CommentResources\CommentCollection;
 use App\Http\Resources\DiscussionResources\DiscussionCollection;
@@ -71,7 +73,6 @@ class DiscussionRepository implements IRestRepository   //TODO: Exceptions missi
             });
         $query->with('amendments:id', 'comments:id' );
 
-        //TODO: following code could be in method?
         $discussions = $this->queryToPaginatedCollection($query, $pageRequest, $sort_by, $sort_dir);
         return new DiscussionCollection($discussions);
     }
@@ -95,8 +96,10 @@ class DiscussionRepository implements IRestRepository   //TODO: Exceptions missi
      * @return AmendmentCollection
      * @throws ApiException
      */
-    public function getAmendments(int $id, string $sort_by = self::DEFAULT_SORT_FIELD, string $sort_dir = self::DEFAULT_SORT_DIRECTION, PageRequest $pageRequest) : AmendmentCollection
+    public function getAmendments(int $id, string $sort_by = null, string $sort_dir = null, PageRequest $pageRequest) : AmendmentCollection
     {
+        if(!isset($sort_by)) $sort_by = self::DEFAULT_SORT_FIELD;
+        if(!isset($sort_dir)) $sort_dir = self::DEFAULT_SORT_DIRECTION;
         $discussion = $this->getDiscussionByIdOrThrowError($id);
         $relation = $discussion->amendments();
         $amendments = $this->queryToPaginatedCollection($relation->getQuery(), $pageRequest, $sort_by, $sort_dir);
@@ -111,7 +114,7 @@ class DiscussionRepository implements IRestRepository   //TODO: Exceptions missi
     public function getComments(int $id, PageRequest $pageRequest) : CommentCollection
     {
         $discussion = $this->getDiscussionByIdOrThrowError($id);
-        $comments = $discussion->comments();
+        $comments = $discussion->comments()->orderBy('created_at', 'desc');
         $comments = $this->updatePagination($comments->paginate($pageRequest->perPage, ['*'], 'start', $pageRequest->pageNumber));
         return new CommentCollection($comments);
     }
@@ -133,7 +136,7 @@ class DiscussionRepository implements IRestRepository   //TODO: Exceptions missi
      * @return IPaginator
      */
     protected function queryToPaginatedCollection(Builder $query, PageRequest $pageRequest, string $sort_by, string $sort_dir) : IPaginator
-    {
+    {\Log::info($sort_by);
         $sort_dir = (strtoupper($sort_dir) == 'ASC') ? $sort_dir : self::DEFAULT_SORT_DIRECTION;
         $sort_by = (strtolower($sort_by) == 'chronological') ? 'created_at' : self::DEFAULT_SORT_FIELD;
 
@@ -147,15 +150,18 @@ class DiscussionRepository implements IRestRepository   //TODO: Exceptions missi
     }
 
     /**
-     * @param int $id
+     * @param $id
      * @return Discussion
      * @throws ApiException
      */
-    public static function getDiscussionByIdOrThrowError(int $id) : Discussion
+    public static function getDiscussionByIdOrThrowError($id) : Discussion
     {
+        if(!isset($id) or !is_numeric($id))
+            throw new InvalidValueException("The given id was invalid.");
+        $id = (int)$id;
         $discussion = Discussion::find($id);
         if($discussion === null)
-            throw new ApiException(ApiExceptionMeta::getRequestResourceNotFound(), 'Discussion with id ' . $id . ' not found.');
+            throw new ResourceNotFoundException('Discussion with id ' . $id . ' not found.');
         return $discussion;
     }
 }
