@@ -10,5 +10,5 @@ trait ResourceTestTrait
 {
     use WithoutMiddleware;
     use DatabaseMigrations;
-    protected $baseURI = 'http://localhost';
+    protected $baseURI = 'http://localhost/test';
 }
