@@ -4,7 +4,7 @@ namespace App\Domain\Manipulators;
 
 
 use App\Discussions\Discussion;
-use App\Domain\User\UserRepository;
+use App\Domain\UserRepository;
 use App\Exceptions\CustomExceptions\InternalServerError;
 use App\Exceptions\CustomExceptions\InvalidValueException;
 use App\Exceptions\CustomExceptions\NotFoundException;

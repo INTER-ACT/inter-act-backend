@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Domain\Manipulators\UserManipulator;
 use App\Domain\PageGetRequest;
 use App\Domain\SortablePageGetRequest;
-use App\Domain\User\UserRepository;
+use App\Domain\UserRepository;
 use App\Exceptions\CustomExceptions\InternalServerError;
 use App\Exceptions\CustomExceptions\NotPermittedException;
 use App\Http\Requests\CreateUserRequest;
