@@ -71,7 +71,9 @@ class CommentTests extends TestCase
                 'href' => $this->baseURI . $parent->getResourcePath(),
                 'id' => $parent->id
             ],
-            'rating' => 2
+            'positive_ratings' => 3,
+            'negative_ratings' => 1,
+            'user_rating' => 1
         ]);
     }
 

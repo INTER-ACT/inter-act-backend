@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Domain\ActionRepository;
+use App\Domain\PageGetRequest;
 use App\Domain\PageRequest;
 use App\Http\Resources\StatisticsResources\StatisticsResource;
 use App\Http\Resources\StatisticsResources\UserActivityStatisticsResource;
@@ -28,9 +29,7 @@ class ActionController extends Controller
         $search_term = $request->search_term;
         $type = $request->type;
         $post_type = $request->post_type;
-        $count = $request->count;
-        $start = $request->start;
-        return $this->repository->searchArticlesByText($search_term, new PageRequest($count, $start), $type, $post_type);
+        return $this->repository->searchArticlesByText($search_term, new PageGetRequest($request), $type, $post_type);
     }
 
     /**

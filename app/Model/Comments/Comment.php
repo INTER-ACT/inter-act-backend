@@ -22,7 +22,7 @@ class Comment extends Model implements IReportable, ICommentable, IRestResource,
     use TPost;
 
     protected $fillable = ['content'];
-    protected $appends = ['rating_sum', 'user_rating'];
+    //protected $appends = ['rating_sum', 'user_rating'];
 
     //region IRestResource
     public function getIdProperty()
@@ -37,7 +37,7 @@ class Comment extends Model implements IReportable, ICommentable, IRestResource,
 
     public function getResourcePath()
     {
-        return $this->parent->getResourcePath() . '/comments/' . $this->id;
+        return '/comments/' . $this->id;
     }
     //endregion
 
@@ -72,16 +72,45 @@ class Comment extends Model implements IReportable, ICommentable, IRestResource,
         return (int)($comment_sum) + $this->rating_sum() + 1;
     }
 
+//    /**
+//     * @return int|null
+//     */
+//    public function getUserRatingAttribute() : ?int
+//    {
+//        $user_id = \Auth::id();
+//        return (isset($user_id)) ? $this->getUserRating($user_id) : null;
+//    }
+//
+//    /**
+//     * @param int $user_id
+//     * @return int|null
+//     */
+//    public function getUserRating(int $user_id) : ?int
+//    {
+//        $selected_rating = DB::selectOne('SELECT cr.rating_score as rating FROM comments c JOIN comment_ratings cr on c.id = cr.comment_id JOIN users u on cr.user_id = u.id WHERE c.id = :this_id AND u.id = :user_id', ['this_id' => $this->id, 'user_id' => $user_id]);
+//        return ($selected_rating == null) ? null : $selected_rating->rating;
+//    }
+
+    /**
+     * @return int|null
+     */
+    public function getPositiveRatingCountAttribute() : ?int
+    {
+        return $this->positive_rating_count();
+    }
+
+    public function getNegativeRatingCountAttribute() : ?int
+    {
+        return $this->negative_rating_count();
+    }
+
     public function getUserRatingAttribute() : ?int
     {
         $user_id = \Auth::id();
-        return (isset($user_id)) ? $this->getUserRating($user_id) : null;
-    }
-
-    public function getUserRating(int $user_id) : ?int
-    {
-        $selected_rating = DB::selectOne('SELECT cr.rating_score as rating FROM comments c JOIN comment_ratings cr on c.id = cr.comment_id JOIN users u on cr.user_id = u.id WHERE c.id = :this_id AND u.id = :user_id', ['this_id' => $this->id, 'user_id' => $user_id]);
-        return ($selected_rating == null) ? null : $selected_rating->rating;
+        if(!isset($user_id))
+            return null;
+        $rating = $this->ratings()->where('user_id', '=', \Auth::id())->first();
+        return (isset($rating)) ? $rating->rating_score : null;
     }
     //endregion
 
@@ -124,6 +153,16 @@ class Comment extends Model implements IReportable, ICommentable, IRestResource,
     public function rating_users()  //TODO: change foreignPivotKey and relatedPivotKey for other Models as well if needed
     {
         return $this->belongsToMany(User::class, 'comment_ratings', 'comment_id', 'user_id')->withTimestamps()->withPivot(['rating_score']);
+    }
+
+    public function positive_rating_count()
+    {
+        return $this->ratings()->where('rating_score', '>=', 1)->count();
+    }
+
+    public function negative_rating_count()
+    {
+        return $this->ratings()->where('rating_score', '<=', -1)->count();
     }
 
     //returns the sum of all rating_scores related to this comment

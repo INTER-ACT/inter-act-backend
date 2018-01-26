@@ -5,10 +5,18 @@ namespace App\Http\Controllers;
 use App\CommentRating;
 use App\Domain\CommentRepository;
 use App\Domain\Manipulators\CommentManipulator;
+use App\Domain\PageGetRequest;
 use App\Domain\PageRequest;
+use App\Exceptions\CustomExceptions\InvalidValueException;
+use App\Http\Requests\CreateCommentRequest;
+use App\Http\Requests\DeleteCommentRequest;
+use App\Http\Requests\TagRecommendationsRequest;
 use App\Http\Resources\CommentResources\CommentCollection;
 use App\Http\Resources\CommentResources\CommentResource;
+use App\Http\Resources\NoContentResource;
 use App\Http\Resources\PostResources\ReportCollection;
+use App\Http\Resources\PostResources\TagCollection;
+use App\Http\Resources\SuccessfulCreationResource;
 use App\User;
 use Auth;
 use Illuminate\Http\Request;
@@ -25,24 +33,22 @@ class CommentController extends Controller
     }
 
     /**
+     * @param Request $request
      * @return CommentCollection
      */
-    public function index() : CommentCollection
+    public function index(Request $request) : CommentCollection
     {
-        $perPage = Input::get('count', 20);
-        $pageNumber = Input::get('start', 1);
-        //$tag_id = Input::get('tag_id', null);
-        //$sorted_by = Input::get('sorted_by', '');
-        //$sort_dir = Input::get('sort_direction', '');
-        return $this->repository->getAll(new PageRequest($perPage, $pageNumber));
+        return $this->repository->getAll(new PageGetRequest($request));
     }
 
     /**
      * @param Request $request
-     * @return int
+     * @return SuccessfulCreationResource
+     * @throws \Exception
      */
-    public function store(Request $request) : int   //TODO: implement or remove CommentController->store()
+    public function store(Request $request) : SuccessfulCreationResource   //TODO: implement or remove CommentController->store()
     {
+        throw new \Exception("function store not implemented in CommentController.");
         //CommentManipulator::create($request);
     }
 
@@ -50,45 +56,49 @@ class CommentController extends Controller
      * @param Request $request
      * @param int $id
      * @return CommentResource
+     * @throws InvalidValueException
      */
-    public function show(Request $request, int $id)// : CommentResource
+    public function show(Request $request, $id) : CommentResource
     {
-        if($request->has('fields'))
-            return $this->repository->getById($id, explode(',', $request->query('fields')));
+        if(!is_numeric($id))
+            throw new InvalidValueException("The given id was not valid");
         return $this->repository->getById($id);
     }
 
     /**
+     * @param DeleteCommentRequest $request
      * @param int $id
-     * @return void
+     * @return NoContentResource
      */
-    public function destroy(int $id)
+    public function destroy(DeleteCommentRequest $request, int $id)
     {
         CommentManipulator::delete($id);
-    }
-
-    /**
-     * @param int $id
-     * @return CommentCollection
-     */
-    public function listComments(int $id) : CommentCollection
-    {
-        return $this->repository->getComments($id);
+        return new NoContentResource($request);
     }
 
     /**
      * @param Request $request
      * @param int $id
-     * @return int
+     * @return CommentCollection
      */
-    public function createComment(Request $request, int $id) : int  //TODO: update to CreateCommentRequest (???)
+    public function listComments(Request $request, int $id) : CommentCollection
+    {
+        return $this->repository->getComments($id, new PageGetRequest($request));
+    }
+
+    /**
+     * @param CreateCommentRequest $request
+     * @param int $id
+     * @return SuccessfulCreationResource
+     */
+    public function createComment(CreateCommentRequest $request, int $id) : SuccessfulCreationResource
     {
         return CommentManipulator::createComment($id, $request->all());
     }
 
     public function showRating(Request $request, int $id)
     {
-        return $this->repository->getRating($id, 1)->toArray($request, User::find(1));    //TODO: change '1' to Auth::id()
+        return $this->repository->getRating($id, 1)->toArray($request, User::find(1));
     }
 
     //TODO: change UpdateMARatingRequest to UpdateCommentRatingRequest in docs
@@ -105,5 +115,15 @@ class CommentController extends Controller
     public function createReport(int $id, Request $request) //TODO: change Request to CreateReportRequest
     {
         CommentManipulator::createReport($id, $request->all(), Auth::id());
+    }
+
+    /**
+     * @param TagRecommendationsRequest $request
+     * @return TagCollection
+     */
+    public function getTagsForText(TagRecommendationsRequest $request) : TagCollection
+    {
+        $text = $request->input('text');
+        return $this->repository->getTagRecommendations($text);
     }
 }

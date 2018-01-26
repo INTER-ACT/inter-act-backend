@@ -14,5 +14,9 @@ use Illuminate\Foundation\Testing\DatabaseMigrations;
 trait ApiTestTrait
 {
     use DatabaseMigrations;
-    protected $baseURI = 'http://localhost';
+
+    public function getUrl(string $path = '')
+    {
+        return env('APP_URL') . $path;
+    }
 }

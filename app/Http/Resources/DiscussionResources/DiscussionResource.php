@@ -20,7 +20,6 @@ class DiscussionResource extends Resource
      */
     public function toArray($request)
     {
-        $thisUrl = url($this->getResourcePathIfNotNull($this->getResourcePath()));
         $thisUrl = $this->getUrl($this->getResourcePath());
         return [
             'href' => $thisUrl,

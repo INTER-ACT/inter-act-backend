@@ -29,14 +29,15 @@ use Illuminate\Http\Request;
 use Laravel\Passport\Passport;
 use Mockery\Exception;
 use Tests\ApiTestTrait;
+use Tests\FeatureTestCase;
 use Tests\TestCase;
 use Tests\Unit\ResourceTests\ResourceTestTrait;
 
-class DiscussionTests extends TestCase
+class DiscussionTests extends FeatureTestCase
 {
     use ApiTestTrait;
 
-    //region Discussions
+    //region /discussions
     /** @test */
     public function testDiscussionsRouteResponseNoParametersSet()
     {
@@ -51,7 +52,7 @@ class DiscussionTests extends TestCase
         $discussion3 = ModelFactory::CreateDiscussion(\Auth::user(), Carbon::createFromDate(2017, 10, 10));
         factory(Amendment::class)->states('user')->create(['discussion_id' => $discussion2->id]);
 
-        $resourcePath = $this->baseURI . '/discussions';
+        $resourcePath = url('/discussions');
         $requestPath = $resourcePath;
         $response = $this->get($requestPath);
         $response->assertStatus(200)
@@ -60,12 +61,12 @@ class DiscussionTests extends TestCase
                 'href' => $requestPath,
                 'discussions' => [
                     [
-                        'href' => $this->baseURI . $discussion2->getResourcePath(),
+                        'href' => url($discussion2->getResourcePath()),
                         'id' => $discussion2->id,
                         'title' => $discussion2->title
                     ],
                     [
-                        'href' => $this->baseURI . $discussion1->getResourcePath(),
+                        'href' => url($discussion1->getResourcePath()),
                         'id' => $discussion1->id,
                         'title' => $discussion1->title
                     ]
@@ -107,7 +108,7 @@ class DiscussionTests extends TestCase
         $discussion2 = ModelFactory::CreateDiscussion(\Auth::user(), null, [$tag], Carbon::createFromDate(2017, 1, 1, 2));
         $discussion3 = ModelFactory::CreateDiscussion(\Auth::user(), null, [$tag], Carbon::createFromDate(2017, 1, 1, 2));
         $discussion4 = ModelFactory::CreateDiscussion(\Auth::user(), null, [Tag::getUserGeneratedContent()]);
-        $resourcePath = $this->baseURI . '/discussions';
+        $resourcePath = url('/discussions');
         $pathParams = 'count=' . $perPage . '&sorted_by=' . $sorted_by . '&sort_direction=' . $sort_direction . '&tag_id=' . $tag->id;
         $requestPath = $resourcePath . '?start=' . $start . '&' . $pathParams;
         $response = $this->get($requestPath);
@@ -118,12 +119,12 @@ class DiscussionTests extends TestCase
                 'href' => $requestPath,
                 'discussions' => [
                     [
-                        'href' => $this->baseURI . $discussion1->getResourcePath(),
+                        'href' => url($discussion1->getResourcePath()),
                         'id' => $discussion1->id,
                         'title' => $discussion1->title
                     ],
                     [
-                        'href' => $this->baseURI . $discussion2->getResourcePath(),
+                        'href' => url($discussion2->getResourcePath()),
                         'id' => $discussion2->id,
                         'title' => $discussion2->title
                     ]
@@ -162,7 +163,7 @@ class DiscussionTests extends TestCase
         $discussion1 = ModelFactory::CreateDiscussion(\Auth::user(), null, [], Carbon::createFromDate(2017, 1, 1, 2));
         $discussion2 = ModelFactory::CreateDiscussion(\Auth::user(), null, [], Carbon::createFromDate(2017, 1, 3, 2));
         $discussion3 = ModelFactory::CreateDiscussion(\Auth::user(), null, [], Carbon::createFromDate(2017, 1, 2, 2));
-        $resourcePath = $this->baseURI . '/discussions';
+        $resourcePath = url('/discussions');
         $pathParams = 'count=' . $perPage . '&sorted_by=' . $sorted_by . '&sort_direction=' . $sort_direction;
         $requestPath = $resourcePath . '?start=' . $start . '&' . $pathParams;
         $response = $this->get($requestPath);
@@ -173,17 +174,17 @@ class DiscussionTests extends TestCase
                 'href' => $requestPath,
                 'discussions' => [
                     [
-                        'href' => $this->baseURI . $discussion1->getResourcePath(),
+                        'href' => url($discussion1->getResourcePath()),
                         'id' => $discussion1->id,
                         'title' => $discussion1->title
                     ],
                     [
-                        'href' => $this->baseURI . $discussion3->getResourcePath(),
+                        'href' => url($discussion3->getResourcePath()),
                         'id' => $discussion3->id,
                         'title' => $discussion3->title
                     ],
                     [
-                        'href' => $this->baseURI . $discussion2->getResourcePath(),
+                        'href' => url($discussion2->getResourcePath()),
                         'id' => $discussion2->id,
                         'title' => $discussion2->title
                     ]
@@ -220,7 +221,7 @@ class DiscussionTests extends TestCase
 
         $discussion1 = ModelFactory::CreateDiscussion(\Auth::user(), null, [], Carbon::createFromDate(2017, 1, 1, 2));
         $discussion2 = ModelFactory::CreateDiscussion(\Auth::user(), null, [], Carbon::createFromDate(2017, 1, 1, 2));
-        $resourcePath = $this->baseURI . '/discussions';
+        $resourcePath = $this->getUrl('/discussions');
         $pathParams = 'count=' . $perPage;
         $requestPath = $resourcePath . '?start=' . $start . '&' . $pathParams;
         $response = $this->get($requestPath);
@@ -240,7 +241,7 @@ class DiscussionTests extends TestCase
 
         $discussion1 = ModelFactory::CreateDiscussion(\Auth::user(), null, [], Carbon::createFromDate(2017, 1, 1, 2));
         $discussion2 = ModelFactory::CreateDiscussion(\Auth::user(), null, [], Carbon::createFromDate(2017, 1, 1, 2));
-        $resourcePath = $this->baseURI . '/discussions';
+        $resourcePath = $this->getUrl('/discussions');
         $pathParams = 'count=' . $perPage;
         $requestPath = $resourcePath . '?start=' . $start . '&' . $pathParams;
         $response = $this->get($requestPath);
@@ -257,7 +258,7 @@ class DiscussionTests extends TestCase
         $perPage = "asd";
         $start = 0;
 
-        $resourcePath = $this->baseURI . '/discussions';
+        $resourcePath = $this->getUrl('/discussions');
         $pathParams = 'count=' . $perPage;
         $requestPath = $resourcePath . '?start=' . $start . '&' . $pathParams;
         $response = $this->get($requestPath);
@@ -274,7 +275,7 @@ class DiscussionTests extends TestCase
         $perPage = 1;
         $start = "asd";
 
-        $resourcePath = $this->baseURI . '/discussions';
+        $resourcePath = $this->getUrl('/discussions');
         $pathParams = 'count=' . $perPage;
         $requestPath = $resourcePath . '?start=' . $start . '&' . $pathParams;
         $response = $this->get($requestPath);
@@ -284,106 +285,14 @@ class DiscussionTests extends TestCase
     //TODO: invalid tag_id, ...
     //endregion
 
-    //region Discussion
-    /** @test */
-    public function testDiscussionRouteResponse()
-    {
-        Passport::actingAs(
-            factory(User::class)->create(), ['*']
-        );
-        $discussion = factory(Discussion::class)->create([
-            'user_id' => \Auth::id()
-        ]);
-
-        $resourcePath = $this->baseURI . $discussion->getResourcePath();
-        $response = $this->get($resourcePath);
-        $response->assertStatus(200)
-            ->assertExactJson(self::mapDiscussionToJson($discussion, $this->baseURI));
-    }   //TODO: remove? same as testOneDiscussionResponse?
-
-    /** @test */
-    public function testOneDiscussionResponse()
-    {
-        $tags = [Tag::getSozialeMedien(), Tag::getUserGeneratedContent()];
-        Passport::actingAs(
-            factory(User::class)->create(), ['*']
-        );
-        $discussion = ModelFactory::CreateDiscussion(\Auth::user(), null, $tags, Carbon::createFromDate(2017, 1, 1, 2));
-        $tagCollection = collect($tags);
-        $requestPath = $this->baseURI . '/discussions/' . $discussion->id;
-        $response = $this->get($requestPath);
-        $response->assertStatus(200)
-            ->assertJson(
-            [
-                'href' => $this->baseURI . $discussion->getResourcePath(),
-                'id' => $discussion->id,
-                'title' => $discussion->title,
-                'created_at' => $discussion->created_at->toAtomString(),
-                'updated_at' => $discussion->updated_at->toAtomString(),
-                'law_text' => $discussion->law_text,
-                'law_explanation' => $discussion->law_explanation,
-                'author' => [
-                    'href' => $this->baseURI . '/users/' . $discussion->id,
-                    'id' => $discussion->id
-                ],
-                'amendments' => [
-                    'href' => $requestPath . '/amendments'
-                ],
-                'comments' => [
-                    'href' => $requestPath . '/comments'
-                ],
-                'tags' => (new TagCollection($tagCollection))->toSubResourceArray()
-            ]
-        );
-    }
-
-    /** @test */
-    public function testOneNonexistentDiscussionResponse()
-    {
-        Passport::actingAs(
-            factory(User::class)->create(), ['*']
-        );
-        $requestPath = $this->baseURI . '/discussions/' . 1;
-        $response = $this->get($requestPath);
-        $response->assertStatus(404)
-        ->assertJson([
-            "code" => "Request_01"
-        ]);
-    }
-
-    /** @test */
-    public function testOneDiscussionWhenNotAuthenticatedResponse()
-    {
-        $tags = [Tag::getUserGeneratedContent(), Tag::getSozialeMedien()];
-        $discussion = ModelFactory::CreateDiscussion(factory(User::class)->create(), null, $tags, Carbon::createFromDate(2017, 1, 1, 2));
-        $tagCollection = collect($tags);
-        $requestPath = $this->baseURI . '/discussions/' . $discussion->id;
-        $response = $this->get($requestPath);
-        $response->assertStatus(200);
-    }
-
-    /** @test */
-    public function testOneDiscussionResponseSQLInjection()
-    {
-        $tags = [Tag::getSozialeMedien(), Tag::getUserGeneratedContent()];
-        Passport::actingAs(
-            factory(User::class)->create(), ['*']
-        );
-        $discussion = ModelFactory::CreateDiscussion(\Auth::user(), null, $tags, Carbon::createFromDate(2017, 1, 1, 2));
-        $requestPath = $this->baseURI . '/discussions/' . $discussion->id . "'; DROP TABLE DISCUSSIONS;'";
-        $response = $this->get($requestPath);
-        $response->assertStatus(InvalidValueException::HTTP_CODE)->assertJson(['code' => InvalidValueException::ERROR_CODE]);
-    }
-    //endregion
-
-    //region Create
+    //region post /discussions
     /** @test */
     public function testPostDiscussionsWithValidValuesAndAuthenticated()
     {
         Passport::actingAs(
             ModelFactory::CreateUser(Role::getAdmin()), ['*']
         );
-        $requestPath = $this->baseURI . '/discussions';
+        $requestPath = $this->getUrl('/discussions');
         $tag1 = Tag::getSozialeMedien();
         $tag2 = Tag::getUserGeneratedContent();
         $inputData = [
@@ -398,7 +307,7 @@ class DiscussionTests extends TestCase
         $response = $this->json('POST', $requestPath, $inputData);
         $response->assertStatus(201)
             ->assertJson([
-                'href' => $this->baseURI . '/discussions/' . 1,
+                'href' => $this->getUrl(('/discussions/' . 1)),
                 'id' => 1
             ]);
         //TODO: test if data is really there (get)
@@ -410,7 +319,7 @@ class DiscussionTests extends TestCase
         Passport::actingAs(
             ModelFactory::CreateUser(Role::getStandardUser()), ['*']
         );
-        $requestPath = $this->baseURI . '/discussions';
+        $requestPath = $this->getUrl('/discussions');
         $tag1 = Tag::getSozialeMedien();
         $tag2 = Tag::getUserGeneratedContent();
         $inputData = [
@@ -430,7 +339,7 @@ class DiscussionTests extends TestCase
     /** @test */
     public function testPostDiscussionsWithValidValuesNotAuthenticated()
     {
-        $requestPath = $this->baseURI . '/discussions';
+        $requestPath = $this->getUrl('/discussions');
         $tag1 = Tag::getSozialeMedien();
         $tag2 = Tag::getUserGeneratedContent();
         $inputData = [
@@ -453,7 +362,7 @@ class DiscussionTests extends TestCase
         Passport::actingAs(
             ModelFactory::CreateUser(Role::getAdmin()), ['*']
         );
-        $requestPath = $this->baseURI . '/discussions';
+        $requestPath = $this->getUrl('/discussions');
         $tag1 = Tag::getSozialeMedien();
         $tag2 = Tag::getUserGeneratedContent();
         $inputData = [
@@ -485,7 +394,7 @@ class DiscussionTests extends TestCase
         Passport::actingAs(
             ModelFactory::CreateUser(Role::getAdmin()), ['*']
         );
-        $requestPath = $this->baseURI . '/discussions';
+        $requestPath = $this->getUrl('/discussions');
         $response = $this->json('POST', $requestPath, $inputData);
         $response->assertStatus(201);
         $response = $this->json('GET', $requestPath . '/' . 1);
@@ -511,13 +420,105 @@ class DiscussionTests extends TestCase
         Passport::actingAs(
             ModelFactory::CreateUser(Role::getAdmin()), ['*']
         );
-        $requestPath = $this->baseURI . '/discussions';
+        $requestPath = $this->getUrl('/discussions');
         $response = $this->json('POST', $requestPath, $inputData);
         $response->assertStatus(CannotResolveDependenciesException::HTTP_CODE)->assertJson(['code' => CannotResolveDependenciesException::ERROR_CODE]);
     }
     //endregion
 
-    //region Update
+    //region get /discussions/{id}
+    /** @test */
+    public function testDiscussionRouteResponse()
+    {
+        Passport::actingAs(
+            factory(User::class)->create(), ['*']
+        );
+        $discussion = factory(Discussion::class)->create([
+            'user_id' => \Auth::id()
+        ]);
+
+        $resourcePath = $this->getUrl($discussion->getResourcePath());
+        $response = $this->get($resourcePath);
+        $response->assertStatus(200)
+            ->assertExactJson(self::mapDiscussionToJson($discussion, $this->getUrl()));
+    }   //TODO: remove? same as testOneDiscussionResponse?
+
+    /** @test */
+    public function testOneDiscussionResponse()
+    {
+        $tags = [Tag::getSozialeMedien(), Tag::getUserGeneratedContent()];
+        Passport::actingAs(
+            factory(User::class)->create(), ['*']
+        );
+        $discussion = ModelFactory::CreateDiscussion(\Auth::user(), null, $tags, Carbon::createFromDate(2017, 1, 1, 2));
+        $tagCollection = collect($tags);
+        $requestPath = $this->getUrl('/discussions/' . $discussion->id);
+        $response = $this->get($requestPath);
+        $response->assertStatus(200)
+            ->assertJson(
+                [
+                    'href' => $this->getUrl($discussion->getResourcePath()),
+                    'id' => $discussion->id,
+                    'title' => $discussion->title,
+                    'created_at' => $discussion->created_at->toAtomString(),
+                    'updated_at' => $discussion->updated_at->toAtomString(),
+                    'law_text' => $discussion->law_text,
+                    'law_explanation' => $discussion->law_explanation,
+                    'author' => [
+                        'href' => $this->getUrl(\Auth::user()->getResourcePath()),
+                        'id' => \Auth::id()
+                    ],
+                    'amendments' => [
+                        'href' => $requestPath . '/amendments'
+                    ],
+                    'comments' => [
+                        'href' => $requestPath . '/comments'
+                    ],
+                    'tags' => (new TagCollection($tagCollection))->toSubResourceArray()
+                ]
+            );
+    }
+
+    /** @test */
+    public function testOneNonexistentDiscussionResponse()
+    {
+        Passport::actingAs(
+            factory(User::class)->create(), ['*']
+        );
+        $requestPath = $this->getUrl('/discussions/' . 1);
+        $response = $this->get($requestPath);
+        $response->assertStatus(404)
+            ->assertJson([
+                "code" => "Request_01"
+            ]);
+    }
+
+    /** @test */
+    public function testOneDiscussionWhenNotAuthenticatedResponse()
+    {
+        $tags = [Tag::getUserGeneratedContent(), Tag::getSozialeMedien()];
+        $discussion = ModelFactory::CreateDiscussion(factory(User::class)->create(), null, $tags, Carbon::createFromDate(2017, 1, 1, 2));
+        $tagCollection = collect($tags);
+        $requestPath = $this->getUrl('/discussions/' . $discussion->id);
+        $response = $this->get($requestPath);
+        $response->assertStatus(200);
+    }
+
+    /** @test */
+    public function testOneDiscussionResponseSQLInjection()
+    {
+        $tags = [Tag::getSozialeMedien(), Tag::getUserGeneratedContent()];
+        Passport::actingAs(
+            factory(User::class)->create(), ['*']
+        );
+        $discussion = ModelFactory::CreateDiscussion(\Auth::user(), null, $tags, Carbon::createFromDate(2017, 1, 1, 2));
+        $requestPath = $this->getUrl('/discussions/' . $discussion->id . "'; DROP TABLE DISCUSSIONS;'");
+        $response = $this->get($requestPath);
+        $response->assertStatus(InvalidValueException::HTTP_CODE)->assertJson(['code' => InvalidValueException::ERROR_CODE]);
+    }
+    //endregion
+
+    //region update /discussions/{id}
     /** @test */
     public function testPatchDiscussionWithValidValuesAndAuthenticated()
     {
@@ -528,7 +529,7 @@ class DiscussionTests extends TestCase
             ModelFactory::CreateUser(Role::getAdmin()), ['*']
         );
         $discussion = ModelFactory::CreateDiscussion(\Auth::user(), null, []);
-        $requestPath = $this->baseURI . '/discussions/' . $discussion->id;
+        $requestPath = $this->getUrl('/discussions/' . $discussion->id);
         $inputData = [
             'law_explanation' => $new_law_explanation,
             'tags' => $new_tag_ids
@@ -554,7 +555,7 @@ class DiscussionTests extends TestCase
             ModelFactory::CreateUser(Role::getAdmin()), ['*']
         );
         $discussion = ModelFactory::CreateDiscussion(\Auth::user(), null, []);
-        $requestPath = $this->baseURI . '/discussions/' . $discussion->id;
+        $requestPath = $this->getUrl('/discussions/' . $discussion->id);
         $inputData = [
             'law_explanation' => $new_law_explanation,
             'tags' => $new_tag_ids
@@ -570,7 +571,7 @@ class DiscussionTests extends TestCase
         $new_law_explanation = "new explanation";
 
         $discussion = ModelFactory::CreateDiscussion(ModelFactory::CreateUser(Role::getExpert()), null, []);
-        $requestPath = $this->baseURI . '/discussions/' . $discussion->id;
+        $requestPath = $this->getUrl('/discussions/' . $discussion->id);
         $inputData = [
             'law_explanation' => $new_law_explanation,
             'tags' => $new_tag_ids
@@ -589,7 +590,7 @@ class DiscussionTests extends TestCase
             ModelFactory::CreateUser(Role::getScientist()), ['*']
         );
         $discussion = ModelFactory::CreateDiscussion(\Auth::user(), null, []);
-        $requestPath = $this->baseURI . '/discussions/' . $discussion->id;
+        $requestPath = $this->getUrl('/discussions/' . $discussion->id);
         $inputData = [
             'law_explanation' => $new_law_explanation,
             'tags' => $new_tag_ids
@@ -612,7 +613,7 @@ class DiscussionTests extends TestCase
             'law_explanation' => $new_law_explanation,
             'tags' => $new_tag_ids
         ];
-        $requestPath = $this->baseURI . '/discussions/' . 1000;
+        $requestPath = $this->getUrl('/discussions/' . 1000);
         $response = $this->json('PATCH', $requestPath, $inputData);
         $response->assertStatus(ResourceNotFoundException::HTTP_CODE)->assertJson(['code' => ResourceNotFoundException::ERROR_CODE]);
     }
@@ -633,7 +634,7 @@ class DiscussionTests extends TestCase
             'law_explanation' => $new_law_explanation,
             'tags' => $new_tag_ids
         ];
-        $requestPath = $this->baseURI . '/discussions/' . 1;
+        $requestPath = $this->getUrl('/discussions/' . 1);
         $response = $this->json('PATCH', $requestPath, $inputData);
         $response->assertStatus(204);
         $response = $this->json('GET', $requestPath);
@@ -658,13 +659,13 @@ class DiscussionTests extends TestCase
             'law_explanation' => $new_law_explanation,
             'tags' => $new_tag_ids
         ];
-        $requestPath = $this->baseURI . '/discussions/' . 1;
+        $requestPath = $this->getUrl('/discussions/' . 1);
         $response = $this->json('PATCH', $requestPath, $inputData);
         $response->assertStatus(CannotResolveDependenciesException::HTTP_CODE)->assertJson(['code' => CannotResolveDependenciesException::ERROR_CODE]);
     }
     //endregion
 
-    //region Delete
+    //region delete /discussions/{id}
     /** @test */
     public function testArchiveAndFetchDiscussionAsAdminThenFetchAsExpert()
     {
@@ -672,11 +673,11 @@ class DiscussionTests extends TestCase
             ModelFactory::CreateUser(Role::getAdmin()), ['*']
         );
         $discussion = ModelFactory::CreateDiscussion(\Auth::user(), null, []);
-        $requestPath = $this->baseURI . '/discussions/' . $discussion->id;
+        $requestPath = $this->getUrl('/discussions/' . $discussion->id);
         $response = $this->json('DELETE', $requestPath);
         $response->assertStatus(204);
         $getData = $this->json('GET', $requestPath);
-        $getData->assertStatus(200)->assertJson(self::mapDiscussionToJson($discussion, $this->baseURI));
+        $getData->assertStatus(200)->assertJson(self::mapDiscussionToJson($discussion, $this->getUrl()));
         Passport::actingAs(
             ModelFactory::CreateUser(Role::getExpert()), ['*']
         );
@@ -694,7 +695,7 @@ class DiscussionTests extends TestCase
         Passport::actingAs(
             ModelFactory::CreateUser(Role::getExpert()), ['*']
         );
-        $requestPath = $this->baseURI . '/discussions/' . $discussion->id;
+        $requestPath = $this->getUrl('/discussions/' . $discussion->id);
         $response = $this->json('DELETE', $requestPath);
         $response->assertStatus(NotPermittedException::HTTP_CODE)->assertJson(['code' => NotPermittedException::ERROR_CODE]);
     }
@@ -703,7 +704,7 @@ class DiscussionTests extends TestCase
     public function testArchiveDiscussionNotAuthenticated()
     {
         $discussion = ModelFactory::CreateDiscussion(ModelFactory::CreateUser(Role::getAdmin()), null, []);
-        $requestPath = $this->baseURI . '/discussions/' . $discussion->id;
+        $requestPath = $this->getUrl('/discussions/' . $discussion->id);
         $response = $this->json('DELETE', $requestPath);
         $response->assertStatus(NotAuthorizedException::HTTP_CODE)->assertJson(['code' => NotAuthorizedException::ERROR_CODE]);
     }
@@ -715,13 +716,13 @@ class DiscussionTests extends TestCase
             ModelFactory::CreateUser(Role::getAdmin()), ['*']
         );
         $discussion = ModelFactory::CreateDiscussion(\Auth::user(), null, []);
-        $requestPath = $this->baseURI . '/discussions/' . 1000;
+        $requestPath = $this->getUrl('/discussions/' . 1000);
         $response = $this->json('DELETE', $requestPath);
         $response->assertStatus(ResourceNotFoundException::HTTP_CODE)->assertJson(['code' => ResourceNotFoundException::ERROR_CODE]);
     }
     //endregion
 
-    //region get Comments
+    //region get /discussions/{id}/comments
     /** @test */
     public function testCommentsRouteResponseNoParametersSet()
     {
@@ -735,7 +736,7 @@ class DiscussionTests extends TestCase
         $comment1 = ModelFactory::CreateComment(\Auth::user(), $discussion, $tags, Carbon::createFromDate(2017, 12, 31, 2));
         $comment2 = ModelFactory::CreateComment(\Auth::user(), $discussion, $tags);
 
-        $resourcePath = $this->baseURI . $discussion->getResourcePath() . '/comments';
+        $resourcePath = $this->getUrl($discussion->getResourcePath() . '/comments');
         $requestPath = $resourcePath;
         $response = $this->get($requestPath);
         $response->assertStatus(200)
@@ -744,11 +745,11 @@ class DiscussionTests extends TestCase
                     'href' => $requestPath,
                     'comments' => [
                         [
-                            'href' => $this->baseURI . $comment2->getResourcePath(),
+                            'href' => $this->getUrl($comment2->getResourcePath()),
                             'id' => $comment2->id
                         ],
                         [
-                            'href' => $this->baseURI . $comment1->getResourcePath(),
+                            'href' => $this->getUrl($comment1->getResourcePath()),
                             'id' => $comment1->id
                         ]
                     ]
@@ -787,7 +788,7 @@ class DiscussionTests extends TestCase
         $comment2 = ModelFactory::CreateComment(\Auth::user(), $discussion, $tags);
 
         $params = 'count=' . $count;
-        $resourcePath = $this->baseURI . $discussion->getResourcePath() . '/comments';
+        $resourcePath = $this->getUrl($discussion->getResourcePath() . '/comments');
         $requestPath = $resourcePath . '?start=' . $start . '&' . $params;
         $response = $this->get($requestPath);
         if($start == 0) $start = 1;
@@ -797,11 +798,11 @@ class DiscussionTests extends TestCase
                     'href' => $requestPath,
                     'comments' => [
                         [
-                            'href' => $this->baseURI . $comment2->getResourcePath(),
+                            'href' => $this->getUrl($comment2->getResourcePath()),
                             'id' => $comment2->id
                         ],
                         [
-                            'href' => $this->baseURI . $comment1->getResourcePath(),
+                            'href' => $this->getUrl($comment1->getResourcePath()),
                             'id' => $comment1->id
                         ]
                     ]
@@ -840,7 +841,7 @@ class DiscussionTests extends TestCase
         $comment2 = ModelFactory::CreateComment(\Auth::user(), $discussion, $tags);
 
         $params = 'count=' . $count;
-        $resourcePath = $this->baseURI . $discussion->getResourcePath() . '/comments';
+        $resourcePath = $this->getUrl($discussion->getResourcePath() . '/comments');
         $requestPath = $resourcePath . '?start=' . $start . '&' . $params;
         $response = $this->get($requestPath);
         if($start == 0) $start = 1;
@@ -863,7 +864,7 @@ class DiscussionTests extends TestCase
         $comment2 = ModelFactory::CreateComment(\Auth::user(), $discussion, $tags);
 
         $params = 'count=' . $count;
-        $resourcePath = $this->baseURI . $discussion->getResourcePath() . '/comments';
+        $resourcePath = $this->getUrl($discussion->getResourcePath() . '/comments');
         $requestPath = $resourcePath . '?start=' . $start . '&' . $params;
         $response = $this->get($requestPath);
         if($start == 0) $start = 1;
@@ -886,7 +887,7 @@ class DiscussionTests extends TestCase
         $comment2 = ModelFactory::CreateComment(\Auth::user(), $discussion, $tags);
 
         $params = 'count=' . $count;
-        $resourcePath = $this->baseURI . $discussion->getResourcePath() . '/comments';
+        $resourcePath = $this->getUrl($discussion->getResourcePath() . '/comments');
         $requestPath = $resourcePath . '?start=' . $start . '&' . $params;
         $response = $this->get($requestPath);
         if($start == 0) $start = 1;
@@ -909,7 +910,7 @@ class DiscussionTests extends TestCase
         $comment2 = ModelFactory::CreateComment(\Auth::user(), $discussion, $tags);
 
         $params = 'count=' . $count;
-        $resourcePath = $this->baseURI . $discussion->getResourcePath() . '/comments';
+        $resourcePath = $this->getUrl($discussion->getResourcePath() . '/comments');
         $requestPath = $resourcePath . '?start=' . $start . '&' . $params;
         $response = $this->get($requestPath);
         if($start == 0) $start = 1;
@@ -917,7 +918,7 @@ class DiscussionTests extends TestCase
     }
     //endregion
 
-    //region post Comments
+    //region post /discussions/{id}/comments
     /** @test */
     public function testPostCommentsValid()
     {
@@ -929,7 +930,7 @@ class DiscussionTests extends TestCase
         );
         $discussion = ModelFactory::CreateDiscussion(ModelFactory::CreateUser(Role::getAdmin()));
 
-        $requestPath = $this->baseURI . $discussion->getResourcePath() . '/comments';
+        $requestPath = $this->getUrl($discussion->getResourcePath() . '/comments');
         $inputData = [
             'content' => $content,
             'tags' => $tags->pluck('id')->toArray()
@@ -937,7 +938,7 @@ class DiscussionTests extends TestCase
         $response = $this->json('POST', $requestPath, $inputData);
         $response->assertStatus(201)
             ->assertJson([
-                'href' => $requestPath . '/' . 1,
+                'href' => url('/comments/' . 1),
                 'id' => 1
             ]);
     }
@@ -950,7 +951,7 @@ class DiscussionTests extends TestCase
 
         $discussion = ModelFactory::CreateDiscussion(ModelFactory::CreateUser(Role::getAdmin()));
 
-        $requestPath = $this->baseURI . $discussion->getResourcePath() . '/comments';
+        $requestPath = $this->getUrl($discussion->getResourcePath() . '/comments');
         $inputData = [
             'content' => $content,
             'tags' => $tags->pluck('id')->toArray()
@@ -970,7 +971,7 @@ class DiscussionTests extends TestCase
         );
         $discussion = ModelFactory::CreateDiscussion(ModelFactory::CreateUser(Role::getAdmin()));
 
-        $requestPath = $this->baseURI . $discussion->getResourcePath() . '/comments';
+        $requestPath = $this->getUrl($discussion->getResourcePath() . '/comments');
         $inputData = [
             'content' => $content,
             'tags' => $tag_ids
@@ -980,7 +981,7 @@ class DiscussionTests extends TestCase
     }
     //endregion
 
-    //region get Amendments
+    //region get /discussions/{id}/amendments
     /** @test */
     public function testAmendmentsRouteResponseNoParametersSet()    //TODO: test popularity with rating as well
     {
@@ -997,7 +998,7 @@ class DiscussionTests extends TestCase
         //$rating_aspect = ModelFactory::CreateRatingAspect('fair');
         //ModelFactory::CreateRating(\Auth::user(), $amendment2, $rating_aspect);
 
-        $resourcePath = $this->baseURI . $discussion->getResourcePath() . '/amendments';
+        $resourcePath = $this->getUrl($discussion->getResourcePath() . '/amendments');
         $requestPath = $resourcePath;
         $response = $this->get($requestPath);
         $response->assertStatus(200)
@@ -1006,11 +1007,11 @@ class DiscussionTests extends TestCase
                     'href' => $requestPath,
                     'amendments' => [
                         [
-                            'href' => $this->baseURI . $amendment2->getResourcePath(),
+                            'href' => $this->getUrl($amendment2->getResourcePath()),
                             'id' => $amendment2->id
                         ],
                         [
-                            'href' => $this->baseURI . $amendment1->getResourcePath(),
+                            'href' => $this->getUrl($amendment1->getResourcePath()),
                             'id' => $amendment1->id
                         ]
                     ]
@@ -1054,7 +1055,7 @@ class DiscussionTests extends TestCase
         //ModelFactory::CreateRating(\Auth::user(), $amendment2, $rating_aspect);
 
         $params = 'count=' . $count . '&sort_direction=' . $sort_direction . '&start=' . $start;
-        $resourcePath = $this->baseURI . $discussion->getResourcePath() . '/amendments';
+        $resourcePath = $this->getUrl($discussion->getResourcePath() . '/amendments');
         $requestPath = $resourcePath . '?' . $params;
         $response = $this->get($requestPath);
         $response->assertStatus(200)
@@ -1063,11 +1064,11 @@ class DiscussionTests extends TestCase
                     'href' => $requestPath,
                     'amendments' => [
                         [
-                            'href' => $this->baseURI . $amendment1->getResourcePath(),
+                            'href' => $this->getUrl($amendment1->getResourcePath()),
                             'id' => $amendment1->id
                         ],
                         [
-                            'href' => $this->baseURI . $amendment2->getResourcePath(),
+                            'href' => $this->getUrl($amendment2->getResourcePath()),
                             'id' => $amendment2->id
                         ]
                     ]
@@ -1106,7 +1107,7 @@ class DiscussionTests extends TestCase
         $amendment2 = ModelFactory::CreateAmendment(\Auth::user(), $discussion, $tags);
 
         $params = 'sorted_by=' . $sorted_by;
-        $resourcePath = $this->baseURI . $discussion->getResourcePath() . '/amendments';
+        $resourcePath = $this->getUrl($discussion->getResourcePath() . '/amendments');
         $requestPath = $resourcePath . '?' . $params;
         $response = $this->get($requestPath);
         $response->assertStatus(200)
@@ -1115,11 +1116,11 @@ class DiscussionTests extends TestCase
                     'href' => $requestPath,
                     'amendments' => [
                         [
-                            'href' => $this->baseURI . $amendment2->getResourcePath(),
+                            'href' => $this->getUrl($amendment2->getResourcePath()),
                             'id' => $amendment2->id
                         ],
                         [
-                            'href' => $this->baseURI . $amendment1->getResourcePath(),
+                            'href' => $this->getUrl($amendment1->getResourcePath()),
                             'id' => $amendment1->id
                         ]
                     ]
@@ -1159,7 +1160,7 @@ class DiscussionTests extends TestCase
         $amendment2 = ModelFactory::CreateAmendment(\Auth::user(), $discussion, $tags);
 
         $params = 'sorted_by=' . $sorted_by . '&sort_direction=' . $sort_direction;
-        $resourcePath = $this->baseURI . $discussion->getResourcePath() . '/amendments';
+        $resourcePath = $this->getUrl($discussion->getResourcePath() . '/amendments');
         $requestPath = $resourcePath . '?' . $params;
         $response = $this->get($requestPath);
         $response->assertStatus(200)
@@ -1168,11 +1169,11 @@ class DiscussionTests extends TestCase
                     'href' => $requestPath,
                     'amendments' => [
                         [
-                            'href' => $this->baseURI . $amendment1->getResourcePath(),
+                            'href' => $this->getUrl($amendment1->getResourcePath()),
                             'id' => $amendment1->id
                         ],
                         [
-                            'href' => $this->baseURI . $amendment2->getResourcePath(),
+                            'href' => $this->getUrl($amendment2->getResourcePath()),
                             'id' => $amendment2->id
                         ]
                     ]
@@ -1211,7 +1212,7 @@ class DiscussionTests extends TestCase
         $amendment1 = ModelFactory::CreateAmendment(\Auth::user(), $discussion, $tags, Carbon::createFromDate(2017, 12, 31, 2));
 
         $params = 'count=' . $count . '&start=' . $start;
-        $resourcePath = $this->baseURI . $discussion->getResourcePath() . '/amendments';
+        $resourcePath = $this->getUrl($discussion->getResourcePath() . '/amendments');
         $requestPath = $resourcePath . '?' . $params;
         $response = $this->get($requestPath);
         $response->assertStatus(InvalidPaginationException::HTTP_CODE)->assertJson(['code' => InvalidPaginationException::ERROR_CODE]);
@@ -1233,7 +1234,7 @@ class DiscussionTests extends TestCase
         $amendment1 = ModelFactory::CreateAmendment(\Auth::user(), $discussion, $tags, Carbon::createFromDate(2017, 12, 31, 2));
 
         $params = 'count=' . $count . '&start=' . $start;
-        $resourcePath = $this->baseURI . $discussion->getResourcePath() . '/amendments';
+        $resourcePath = $this->getUrl($discussion->getResourcePath() . '/amendments');
         $requestPath = $resourcePath . '?' . $params;
         $response = $this->get($requestPath);
         $response->assertStatus(PayloadTooLargeException::HTTP_CODE)->assertJson(['code' => PayloadTooLargeException::ERROR_CODE]);
@@ -1255,7 +1256,7 @@ class DiscussionTests extends TestCase
         $amendment1 = ModelFactory::CreateAmendment(\Auth::user(), $discussion, $tags, Carbon::createFromDate(2017, 12, 31, 2));
 
         $params = 'count=' . $count . '&start=' . $start;
-        $resourcePath = $this->baseURI . $discussion->getResourcePath() . '/amendments';
+        $resourcePath = $this->getUrl($discussion->getResourcePath() . '/amendments');
         $requestPath = $resourcePath . '?' . $params;
         $response = $this->get($requestPath);
         $response->assertStatus(InvalidPaginationException::HTTP_CODE)->assertJson(['code' => InvalidPaginationException::ERROR_CODE]);
@@ -1277,7 +1278,7 @@ class DiscussionTests extends TestCase
         $amendment1 = ModelFactory::CreateAmendment(\Auth::user(), $discussion, $tags, Carbon::createFromDate(2017, 12, 31, 2));
 
         $params = 'count=' . $count . '&start=' . $start;
-        $resourcePath = $this->baseURI . $discussion->getResourcePath() . '/amendments';
+        $resourcePath = $this->getUrl($discussion->getResourcePath() . '/amendments');
         $requestPath = $resourcePath . '?' . $params;
         $response = $this->get($requestPath);
         $response->assertStatus(InvalidPaginationException::HTTP_CODE)->assertJson(['code' => InvalidPaginationException::ERROR_CODE]);
@@ -1286,7 +1287,7 @@ class DiscussionTests extends TestCase
     //TODO? should an error be thrown for wrong sorted_by or sort_direction or just default (as it is currently)
     //endregion
 
-    //region post Amendments
+    //region post /discussions/{id}/amendments
     /** @test */
     public function testPostAmendmentsValid()
     {
@@ -1299,7 +1300,7 @@ class DiscussionTests extends TestCase
         );
         $discussion = ModelFactory::CreateDiscussion(ModelFactory::CreateUser(Role::getAdmin()));
 
-        $requestPath = $this->baseURI . $discussion->getResourcePath() . '/amendments';
+        $requestPath = $this->getUrl($discussion->getResourcePath() . '/amendments');
         $inputData = [
             'explanation' => $explanation,
             'updated_text' => $updated_text,
@@ -1322,7 +1323,7 @@ class DiscussionTests extends TestCase
 
         $discussion = ModelFactory::CreateDiscussion(ModelFactory::CreateUser(Role::getAdmin()));
 
-        $requestPath = $this->baseURI . $discussion->getResourcePath() . '/amendments';
+        $requestPath = $this->getUrl($discussion->getResourcePath() . '/amendments');
         $inputData = [
             'explanation' => $explanation,
             'updated_text' => $updated_text,
@@ -1344,7 +1345,7 @@ class DiscussionTests extends TestCase
         );
         $discussion = ModelFactory::CreateDiscussion(ModelFactory::CreateUser(Role::getAdmin()));
 
-        $requestPath = $this->baseURI . $discussion->getResourcePath() . '/amendments';
+        $requestPath = $this->getUrl($discussion->getResourcePath() . '/amendments');
         $inputData = [
             'explanation' => $explanation,
             'updated_text' => $updated_text,

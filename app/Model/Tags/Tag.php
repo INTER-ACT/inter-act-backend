@@ -163,15 +163,15 @@ class Tag extends Model implements IRestResource
      */
     private static function createBaseTags() : void
     {
-        Tag::create(['name' => Tag::NUTZUNG_FREMDER_INHALTE_NAME, 'description' => 'Alles rund um die Nutzung fremder Inhalte']);
-        Tag::create(['name' => Tag::SOZIALE_MEDIEN_NAME, 'description' => 'Alles rund um Soziale Medien']);
-        Tag::create(['name' => Tag::KULTURELLES_ERBE_NAME, 'description' => 'Alles rund um kulturelles Erbe']);
-        Tag::create(['name' => Tag::BILDUNG_UND_WISSENSCHAFT_NAME, 'description' => 'Alles rund um Bildung und Wissenschaft']);
-        Tag::create(['name' => Tag::FREIHEITEN_DER_NUTZER_NAME, 'description' => 'Alles rund um Freiheiten der Nutzer']);
-        Tag::create(['name' => Tag::RESPEKT_UND_ANERKENNUNG_NAME, 'description' => 'Alles rund um Respekt und Anerkennung']);
-        Tag::create(['name' => Tag::RECHTEINHABERSCHAFT_NAME, 'description' => 'Alles rund um Rechteinhaberschaft']);
-        Tag::create(['name' => Tag::DOWNLOAD_UND_STREAMING_NAME, 'description' => 'Alles rund um Downloads und Streaming']);
-        Tag::create(['name' => Tag::WIRTSCHAFTLICHE_INTERESSEN_NAME, 'description' => 'Alles rund um wirtschaftliche Interessen']);
-        Tag::create(['name' => Tag::USER_GENERATED_CONTENT_NAME, 'description' => 'Alles rund um User Generated Content']);
+        Tag::firstOrCreate(['name' => Tag::NUTZUNG_FREMDER_INHALTE_NAME, 'description' => 'Alles rund um die Nutzung fremder Inhalte']);
+        Tag::firstOrCreate(['name' => Tag::SOZIALE_MEDIEN_NAME, 'description' => 'Alles rund um Soziale Medien']);
+        Tag::firstOrCreate(['name' => Tag::KULTURELLES_ERBE_NAME, 'description' => 'Alles rund um kulturelles Erbe']);
+        Tag::firstOrCreate(['name' => Tag::BILDUNG_UND_WISSENSCHAFT_NAME, 'description' => 'Alles rund um Bildung und Wissenschaft']);
+        Tag::firstOrCreate(['name' => Tag::FREIHEITEN_DER_NUTZER_NAME, 'description' => 'Alles rund um Freiheiten der Nutzer']);
+        Tag::firstOrCreate(['name' => Tag::RESPEKT_UND_ANERKENNUNG_NAME, 'description' => 'Alles rund um Respekt und Anerkennung']);
+        Tag::firstOrCreate(['name' => Tag::RECHTEINHABERSCHAFT_NAME, 'description' => 'Alles rund um Rechteinhaberschaft']);
+        Tag::firstOrCreate(['name' => Tag::DOWNLOAD_UND_STREAMING_NAME, 'description' => 'Alles rund um Downloads und Streaming']);
+        Tag::firstOrCreate(['name' => Tag::WIRTSCHAFTLICHE_INTERESSEN_NAME, 'description' => 'Alles rund um wirtschaftliche Interessen']);
+        Tag::firstOrCreate(['name' => Tag::USER_GENERATED_CONTENT_NAME, 'description' => 'Alles rund um User Generated Content']);
     }
 }

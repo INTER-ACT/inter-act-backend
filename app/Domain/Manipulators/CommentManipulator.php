@@ -13,34 +13,43 @@ use App\Comments\Comment;
 use App\Domain\CommentRepository;
 use App\Exceptions\CustomExceptions\ApiException;
 use App\Exceptions\CustomExceptions\ApiExceptionMeta;
+use App\Exceptions\CustomExceptions\InternalServerError;
+use App\Http\Resources\SuccessfulCreationResource;
 
 class CommentManipulator
 {
+    const DELETED_COMMENT_CONTENT = '[entfernt]';
+
     /**
      * @param int $id
+     * @return void
      * @throws ApiException
      */
     public static function delete(int $id) : void
     {
         $comment = CommentRepository::getCommentByIdOrThrowError($id);
-        if(!$comment->delete())
-            throw new ApiException(ApiExceptionMeta::getAInternalServerError(), 'Comment with id ' . $id . ' could not be deleted.');
+        $comment->content = self::DELETED_COMMENT_CONTENT;
+        if(!$comment->save())
+            throw new InternalServerError('Comment with id ' . $id . ' could not be deleted.');
     }
 
     /**
      * @param int $id
      * @param array $data
-     * @return int
+     * @return SuccessfulCreationResource
+     * @throws InternalServerError
      */
-    public static function createComment(int $id, array $data) : int  //TODO: remove user_id in docs?
+    public static function createComment(int $id, array $data) : SuccessfulCreationResource
     {
         $user = \Auth::user();
         $comment = CommentRepository::getCommentByIdOrThrowError($id);
         $sub_comment = new Comment();
-        $sub_comment->fill([$data]);
+        $sub_comment->fill($data);
         $sub_comment->user_id = $user->id;
-        $comment->comments()->save($sub_comment);
-        return $sub_comment->id;
+        if(!$comment->comments()->save($sub_comment))
+            throw new InternalServerError("Could not create a comment with the given data.");
+        $sub_comment->tags()->attach($data['tags']);
+        return new SuccessfulCreationResource($sub_comment);
     }
 
     /**

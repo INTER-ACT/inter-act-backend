@@ -28,7 +28,7 @@ use App\Http\Resources\DiscussionResources\DiscussionResource;
 use App\Http\Resources\DiscussionResources\DiscussionStatisticsResource;
 use App\Http\Resources\LawCollection;
 use App\Http\Resources\LawResource;
-use App\Http\Resources\NoResponseResource;
+use App\Http\Resources\NoContentResource;
 use App\Http\Resources\SuccessfulCreationResource;
 use Exception;
 use Illuminate\Auth\AuthenticationException;
@@ -98,12 +98,12 @@ class DiscussionController extends Controller
     /**
      * @param DeleteDiscussionRequest $request
      * @param int $id
-     * @return NoResponseResource
+     * @return NoContentResource
      */
     public function destroy(DeleteDiscussionRequest $request, int $id)
     {
         DiscussionManipulator::delete($id);
-        return new NoResponseResource($request);
+        return new NoContentResource($request);
     }
 
     /**

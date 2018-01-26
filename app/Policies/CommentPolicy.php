@@ -43,7 +43,7 @@ class CommentPolicy
      */
     public function update(User $user, Comment $comment)
     {
-        return $comment->user_id == $user->id;  //TODO admins should be able to delete or update
+        return $comment->user_id == $user->id;
     }
 
     /**
@@ -56,5 +56,10 @@ class CommentPolicy
     public function delete(User $user, Comment $comment)
     {
         return false;
+    }
+
+    public function before(User $user, $ability)
+    {
+        return $user->hasRole(Role::getAdmin());
     }
 }

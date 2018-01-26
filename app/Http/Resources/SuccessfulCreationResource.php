@@ -16,10 +16,9 @@ class SuccessfulCreationResource extends Resource
      */
     public function toArray($request)
     {
-        $thisUri = url($this->getResourcePathIfNotNull($this->getResourcePath()));
-
+        $thisUrl = $this->getUrl($this->getResourcePath());
         return [
-            'href' => $thisUri,
+            'href' => $thisUrl,
             'id' => $this->id
         ];
     }

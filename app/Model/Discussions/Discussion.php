@@ -36,7 +36,7 @@ class Discussion extends Model implements ITaggable, ICommentable, IRestResource
 
     public function getResourcePath()
     {
-        return '/discussions/' . $this->id; //TODO: Invalid if id is not selected
+        return '/discussions/' . $this->id;
     }
     //endregion
 

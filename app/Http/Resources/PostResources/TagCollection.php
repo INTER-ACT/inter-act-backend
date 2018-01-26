@@ -19,7 +19,7 @@ class TagCollection extends ResourceCollection
      */
     public function toArray($request)
     {
-        $thisURI = $this->getUrl($this->getResourcePath());
+        $thisURI = url($request->getRequestUri());
 
         return [
             'href' => $thisURI,

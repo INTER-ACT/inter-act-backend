@@ -9,6 +9,7 @@
 namespace App\Domain;
 
 
+use App\Tags\Tag;
 use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Request;
 
@@ -20,10 +21,22 @@ class IlaiApi
      */
     public static function getTagsForText(string $text) : array
     {
+        return [Tag::getDownloadUndStreaming(), Tag::getSozialeMedien()];
+        $id = 1;
         $client = new Client();
-        $res = $client->get('https://ilai.inter-act.at/getTags?text=' . $text);
+        $inputData = [
+            "auth_token" => env('ILAI_TOKEN'),
+            "texts" => [
+                [
+                    'text_id' => $id,
+                    'text' => $text
+                ]
+            ],
+            "threshold" => 60
+        ];
+        $res = $client->request('POST', 'https://ilai.inter-act.at/tagging/predict', $inputData);
         $responseData = \GuzzleHttp\json_decode($res->getBody(), true);
-        return $responseData;
+        return $responseData[0]['tags'];    //TODO: convert tag-strings to Tags
     }
 
     /**
@@ -33,9 +46,19 @@ class IlaiApi
      */
     public static function sendTags(string $text, array $tags) : void
     {
-        $request = new Request('POST', 'https://ilai.inter-act.at/postTags');
+        $request = new Request('POST', 'https://ilai.inter-act.at/datasets');
+        $data = [
+            'name' => 'tagging_dataset',
+            'service' => 'tagging',
+            'data' => [
+                [
+                    'text' => $text,
+                    'tags' => collect($tags)->pluck('name')
+                ]
+            ]
+        ];
         $client = new Client();
-        $client->send($request, ['text' => $text, 'tags' => $tags]);
+        $client->send($request, $data);
     }
 
     /**
@@ -44,8 +67,21 @@ class IlaiApi
      */
     public static function getSentimentForText(string $text) : int
     {
+        return 1;
+        $id = 1;
         $client = new Client();
-        $res = $client->get('https://ilai.inter-act.at/getSentiment?text=' . $text);
-        return \GuzzleHttp\json_decode($res->getBody(), true)['sentiment'];
+        $inputData = [
+            "auth_token" => env('ILAI_TOKEN'),
+            "texts" => [
+                [
+                    'text_id' => $id,
+                    'text' => $text
+                ]
+            ],
+            "threshold" => 60
+        ];
+        $res = $client->request('POST', 'https://ilai.inter-act.at/sentiment/predict', $inputData);
+        $responseData = \GuzzleHttp\json_decode($res->getBody(), true);
+        return $responseData[0]['tags'][0]; //TODO: convert string to int
     }
 }

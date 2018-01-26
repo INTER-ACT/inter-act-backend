@@ -14,7 +14,9 @@ use App\Exceptions\CustomExceptions\ApiExceptionMeta;
 use App\Http\Resources\CommentResources\CommentCollection;
 use App\Http\Resources\CommentResources\CommentResource;
 use App\Http\Resources\PostResources\ReportCollection;
+use App\Http\Resources\PostResources\TagCollection;
 use App\Http\Resources\RatingResources\CommentRatingResource;
+use App\Tags\Tag;
 use Mockery\Exception;
 
 class CommentRepository implements IRestRepository   //TODO: Exceptions missing?
@@ -56,39 +58,31 @@ class CommentRepository implements IRestRepository   //TODO: Exceptions missing?
      */
     public function getAll(PageRequest $pageRequest)
     {
-        $comments = Comment::orderBy('created_at')->paginate($pageRequest->getPerPage(), ['*'], 'start', $pageRequest->getPageNumber());
+        $comments = Comment::orderBy('created_at', 'desc')->paginate($pageRequest->perPage, ['*'], 'start', $pageRequest->pageNumber);
         $this->updatePagination($comments);
         return new CommentCollection($comments);
     }
 
     /**
      * @param int $id
-     * @param array $fields
-     * @return mixed
+     * @return CommentResource
      */
-    public function getById(int $id, array $fields = null)    //TODO: remove pageRequest in docs
+    public function getById(int $id) : CommentResource
     {
-        if(!isset($fields) or $fields = []) //no filters
-            return new CommentResource(Comment::with(['parent', 'tags'])->find($id));
-        array_push($fields, 'id');
-        array_push($fields, 'commentable_id');
-        array_push($fields, 'commentable_type');
-
-        $change_values = ['author' => 'user_id', 'rating' => null, 'parent' => 'commentable'];
-        $possible_relations = ['tags', 'rating', 'comments', 'commentable'];
-        $relations = [];
-        $select_fields = $this->mapFilters($fields, $change_values, $possible_relations, $relations);
-        //throw new Exception(implode($relations));
-        return (new CommentResource(Comment::select($select_fields)->with($relations)->find($id)))->addToFieldList($fields);
+        return new CommentResource(self::getCommentByIdOrThrowError($id));
+        //return new CommentResource(Comment::with(['parent', 'tags'])->find($id));
     }
 
     /**
      * @param int $id
+     * @param PageRequest $pageRequest
      * @return CommentCollection
      */
-    public function getComments(int $id) : CommentCollection
+    public function getComments(int $id, PageRequest $pageRequest) : CommentCollection
     {
-        return new CommentCollection(Comment::select('id')->orderBy(self::SUB_COMMENT_SORT_FIELD, self::SUB_COMMENT_SORT_DIRECTION)->find($id)->comments);
+        $parent = Comment::select('id', 'created_at')->with('comments')->find($id);
+        $comments = $parent->comments()->orderBy(self::SUB_COMMENT_SORT_FIELD, self::SUB_COMMENT_SORT_DIRECTION)->paginate($pageRequest->perPage, ['*'], 'start', $pageRequest->pageNumber);
+        return new CommentCollection($this->updatePagination($comments));
     }
 
     /**
@@ -108,6 +102,15 @@ class CommentRepository implements IRestRepository   //TODO: Exceptions missing?
     public function getReports(int $id) : ReportCollection
     {
         return new ReportCollection(Comment::find($id)->reports);
+    }
+
+    /**
+     * @param string $text
+     * @return TagCollection
+     */
+    public function getTagRecommendations(string $text) : TagCollection
+    {
+        return new TagCollection(collect(IlaiApi::getTagsForText($text)));
     }
 
     /**

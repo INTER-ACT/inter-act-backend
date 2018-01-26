@@ -149,7 +149,7 @@ class Amendment extends Model implements ITaggable, IReportable, IRatable, IComm
 
     public function rating_aspects()
     {
-        return $this->morphToMany(RatingAspect::class, 'ratable', 'ratable_rating_aspects', 'ratingaspect_id', 'ratable_id');
+        return $this->morphToMany(RatingAspect::class, 'ratable', 'ratable_rating_aspects', 'rating_aspect_id', 'ratable_id');
     }//TODO: not sure if it works if keys of pivot are not pk
 
     /*public function ratings()
