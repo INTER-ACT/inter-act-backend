@@ -7,6 +7,7 @@ use App\Amendments\SubAmendment;
 use App\Discussions\Discussion;
 use App\Domain\CustomPaginationTrait;
 use App\Domain\IRestRepository;
+use App\Domain\PageGetRequest;
 use App\Domain\SortablePageGetRequest;
 use App\Domain\PageRequest;
 use App\Exceptions\CustomExceptions\NotFoundException;
@@ -53,10 +54,10 @@ class UserRepository implements IRestRepository
     }
 
     /**
-     * @param SortablePageGetRequest $pageRequest
+     * @param PageGetRequest $pageRequest
      * @return UserCollection
      */
-    public function getAll(SortablePageGetRequest $pageRequest)
+    public function getAll(PageGetRequest $pageRequest)
     {
         $users = new UserCollection($this->paginate(User::all(), $pageRequest->perPage, $pageRequest->pageNumber, 'users'));
 

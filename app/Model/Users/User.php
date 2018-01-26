@@ -51,6 +51,7 @@ class User extends Authenticatable implements IRestResource
         return get_class($this);
     }
 
+
     public function getResourcePath()
     {
         return '/users/' . $this->id;

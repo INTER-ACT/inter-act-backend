@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Domain\Manipulators\UserManipulator;
+use App\Domain\PageGetRequest;
 use App\Domain\SortablePageGetRequest;
 use App\Domain\User\UserRepository;
 use App\Exceptions\CustomExceptions\InternalServerError;
@@ -32,12 +33,11 @@ class UserController extends Controller
     }
 
     /**
+     * @param PageGetRequest $getRequest
      * @return UserCollection
      */
-    public function index()
+    public function index(PageGetRequest $getRequest)
     {
-        $getRequest = new SortablePageGetRequest();
-
         return $this->repository->getAll($getRequest);
     }
 
@@ -59,10 +59,15 @@ class UserController extends Controller
 
     public function show(int $id)
     {
+        return $this->repository->getByIdShort($id);
+    }
+
+    public function showDetails(int $id)
+    {
         if($this->isUser($id))
             return $this->repository->getById($id);
         else
-            return $this->repository->getByIdShort($id);
+            throw new NotPermittedException('Only the User himself is allowed to see his details.');
     }
 
     public function update(int $id, UpdateUserRequest $request)

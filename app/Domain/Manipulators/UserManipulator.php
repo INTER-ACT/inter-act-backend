@@ -32,7 +32,7 @@ class UserManipulator
         $user->is_male = $data['sex'] == 'm';
         $user->city = $data['residence'];
         $user->graduation = $data['highest_education'];
-
+        $user->password = Hash::make($data['password']);
 
         if(!$user->save())
             throw new InternalServerError('The User could not be saved.');

@@ -31,6 +31,7 @@ Route::patch('/users/{user_id}', 'UserController@update')->middleware('auth:api'
 Route::delete('/users/{user_id}', 'UserController@destroy')->middleware('auth:api');
 
 Route::put('/users/{user_id}/role', 'UserController@updateRole')->middleware('auth:api');
+Route::get('/users/{user_id}/details', 'UserController@showDetails')->middleware('auth:api');
 
 Route::get('/users/{user_id}/amendments', 'UserController@listAmendments');
 Route::get('/users/{user_id}/subamendments', 'UserController@listSubAmendments');
