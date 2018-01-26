@@ -21,6 +21,7 @@ class DiscussionResource extends Resource
     public function toArray($request)
     {
         $thisUrl = url($this->getResourcePathIfNotNull($this->getResourcePath()));
+        $thisUrl = $this->getUrl($this->getResourcePath());
         return [
             'href' => $thisUrl,
             'id' => $this->id,
@@ -31,7 +32,7 @@ class DiscussionResource extends Resource
             'law_explanation' => $this->law_explanation,
 
             'author' => [
-                'href' => url('/users/' . $this->user_id),
+                'href' => $this->getUrl('/users/' . $this->user_id),
                 'id' => $this->user_id
                 ],
             'amendments' => ['href' => $thisUrl . '/amendments'],

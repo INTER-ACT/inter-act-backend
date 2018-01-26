@@ -2,6 +2,7 @@
 
 namespace Tests\Unit;
 
+use App\Http\Resources\RestResourceTrait;
 use App\Tags\Tag;
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\WithFaker;

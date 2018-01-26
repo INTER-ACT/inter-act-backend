@@ -2,10 +2,12 @@
 
 namespace App\Http\Resources\PostResources;
 
+use App\Http\Resources\RestResourceTrait;
 use Illuminate\Http\Resources\Json\Resource;
 
 class TagResource extends Resource
 {
+    use RestResourceTrait;
     /**
      * Transform the resource into an array.
      *
@@ -14,7 +16,7 @@ class TagResource extends Resource
      */
     public function toArray($request)
     {
-        $thisURI = url($this->getResourcePath());
+        $thisURI = $this->getUrl($this->getResourcePath());
         return [
             'href' => $thisURI,
             'id' => $this->id,

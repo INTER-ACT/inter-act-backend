@@ -37,19 +37,19 @@ class SearchTests extends TestCase
                 'total' => 2,
                 'discussions' => $discussions->transform(function ($discussion){
                     return [
-                        'href' => url($discussion->getResourcePath()),
+                        'href' => $this->baseURI . $discussion->getResourcePath(),
                         'id' => $discussion->id,
                         'title' => $discussion->title
                     ];})->toArray()
             ],
             'amendments' => $amendments->transform(function ($amendment){
                 return [
-                    'href' => url($amendment->getResourcePath()),
+                    'href' => $this->baseURI .$amendment->getResourcePath(),
                     'id' => $amendment->id
                 ];})->toArray(),
             'subamendments' => $subamendments->transform(function ($subamendment){
                 return [
-                    'href' => url($subamendment->getResourcePath()),
+                    'href' => $this->baseURI .$subamendment->getResourcePath(),
                     'id' => $subamendment->id
                 ];})->toArray(),
             'comments' => [
@@ -57,7 +57,7 @@ class SearchTests extends TestCase
                 //'total' => 2,
                 'comments' => $comments->transform(function ($comment){
                     return [
-                        'href' => url($comment->getResourcePath()),
+                        'href' => $this->baseURI . $comment->getResourcePath(),
                         'id' => $comment->id
                     ];})->toArray()
             ]

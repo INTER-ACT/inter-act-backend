@@ -20,6 +20,7 @@ class ChangeResource extends Resource
     public function toArray($request)
     {
         $thisUri = url($this->getResourcePathIfNotNull($this->getChangesPath()));
+        $thisUri = $this->getUrl($this->getChangesPath());
 
         return [
             'href' => $thisUri,

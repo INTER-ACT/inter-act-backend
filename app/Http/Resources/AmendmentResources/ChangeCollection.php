@@ -23,15 +23,16 @@ class ChangeCollection extends Resource
     {
 
         $thisUri = url($this->getResourcePathIfNotNull($this->getChangesPath()));
+        $thisUri = $this->getUrl($this->getChangesPath());
 
         return [
             'href' => $thisUri,
             'changes' => $this->changes->transform(function($change){
                 return [
-                    'href' => url($change->getChangesPath()),
+                    'href' => $this->getUrl($change->getChangesPath()),
                     'id' => $change->id,
                     'subamendment' => [
-                        'href' => url($change->getResourcePath()),
+                        'href' => $this->getUrl($change->getResourcePath()),
                     ]
                 ];
             })

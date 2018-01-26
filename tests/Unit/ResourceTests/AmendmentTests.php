@@ -100,7 +100,6 @@ class AmendmentTests extends TestCase
         $ratingsUri = $resourcePath. "/ratings";
         $userRating = $resourcePath . "/user_rating";
 
-
         $response = $this->get($resourcePath);
 
 

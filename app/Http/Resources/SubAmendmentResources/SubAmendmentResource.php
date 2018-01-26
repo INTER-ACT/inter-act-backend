@@ -18,6 +18,7 @@ class SubAmendmentResource extends Resource
     public function toArray($request)
     {
         $thisUrl = url($this->getResourcePathIfNotNull($this->getResourcePath()));
+        $thisUrl = $this->getUrl($this->getResourcePath());
 
         $handled_at = $this->handled_at === Null ? Null : $this->handled_at->toIso8601String();
 

@@ -18,9 +18,10 @@ class UserResource extends Resource
      */
     public function toArray($request)
     {
-        $thisURI = url($this->getResourcePathIfNotNull($this->getResourcePath()));
+        //$thisURI = url($this->getResourcePathIfNotNull($this->getResourcePath()));
+        //$thisURI .= '/users/' . $this->id;
         $role = Role::find($this->role_id);
-
+        $thisURI = $this->customResourcePath . $this->getResourcePath();
         return [
             'href' => $thisURI,
             'id' => $this->id,
@@ -36,5 +37,4 @@ class UserResource extends Resource
             'highest_education' => $this->graduation
         ];
     }
-
 }

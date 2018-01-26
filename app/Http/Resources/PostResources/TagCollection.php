@@ -19,7 +19,8 @@ class TagCollection extends ResourceCollection
      */
     public function toArray($request)
     {
-        $thisURI = url($this->getResourcePathIfNotNull($request->getRequestUri()));
+        $thisURI = $this->getUrl($this->getResourcePath());
+
         return [
             'href' => $thisURI,
             'tags' => $this->getTagCollection()

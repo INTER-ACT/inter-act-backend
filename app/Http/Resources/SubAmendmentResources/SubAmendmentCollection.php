@@ -16,13 +16,13 @@ class SubAmendmentCollection extends ResourceCollection
      */
     public function toArray($request)
     {
-        $thisUri = url($this->getResourcePathIfNotNull($request->getRequestUri()));
-
+        //$thisUri = url($this->getResourcePathIfNotNull($request->getRequestUri()));
+        $thisUri = url($request->getRequestUri());
         return [
             'href' => $thisUri,
             'subamendments' => $this->collection->transform(function($subamendment){
                 return [
-                    'href' => url($subamendment->getResourcePath()),
+                    'href' => $this->getUrl($subamendment->getResourcePath()),
                     'id' => $subamendment->id
                 ];
             })

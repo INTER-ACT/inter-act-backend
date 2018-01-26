@@ -17,7 +17,7 @@ class AmendmentCollection extends ResourceCollection
      */
     public function toArray($request)
     {
-        $thisUri = url($this->getResourcePathIfNotNull($request->getRequestUri()));
+        $thisUri = url($request->getRequestUri());
 
         return [
             'href' => $thisUri,

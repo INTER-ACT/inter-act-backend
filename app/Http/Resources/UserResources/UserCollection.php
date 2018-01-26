@@ -16,14 +16,14 @@ class UserCollection extends ResourceCollection
      */
     public function toArray($request)
     {
-        $thisURI = url($this->getResourcePathIfNotNull($request->getRequestUri()));
+        $thisURI = url($request->getRequestUri());
 
         return [
             'href' => $thisURI,
             'total' => $this->collection->count(),
             'users' => $this->collection->transform(function ($user){
                 return [
-                    'href' => url($user->getResourcePath()),
+                    'href' => $this->getUrl($user->getResourcePath()),
                     'id' => $user->id,
                     'username' => $user->username,
                 ];

@@ -17,16 +17,17 @@ class ReportResource extends Resource
      */
     public function toArray($request)
     {
-        $thisURI = url($this->getResourcePathIfNotNull($this->getResourcePath()));
+        $thisURI = $this->getUrl($this->getResourcePath());
+
         return [
             'href' => $thisURI,
             'id' => $this->id,
             'user' => [
-                'href' => url($this->user->getResourcePath()),
+                'href' => $this->getUrl($this->user->getResourcePath()),
                 'id' => $this->user->id
             ],
             'reported_item' => [
-                'href' => url($this->reportable->getResourcePath()),
+                'href' => $this->getUrl($this->reportable->getResourcePath()),
                 'id' => $this->reportable->id,
                 'type' => $this->reportable->getType()
             ],

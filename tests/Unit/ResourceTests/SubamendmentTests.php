@@ -78,7 +78,7 @@ class SubamendmentTests extends TestCase
             'href' => $resourcePath,
             'subamendments' => $subamendments->transform(function($subamendment){
                 return [
-                    'href' => $subamendment->getResourcePath(),
+                    'href' => $this->baseURI . $subamendment->getResourcePath(),
                     'id' => $subamendment->id
                 ];
             })->toArray()

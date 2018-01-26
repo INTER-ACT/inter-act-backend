@@ -22,6 +22,8 @@ class SearchResource extends Resource
     public function toArray($request)
     {
         $thisURI = url($this->getResourcePathIfNotNull($request->getRequestUri()));
+        $thisURI = url($request->getRequestUri());
+
         return [
             'href' => $thisURI, //TODO: Only the element-array should be contained (href unnecessary)
             'discussions' => new DiscussionCollection($this->getDiscussions()),
