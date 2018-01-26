@@ -1,17 +1,11 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: danube
- * Date: 28.12.17
- * Time: 10:00
- */
 
 namespace App\Http\Resources;
 
 
 trait RestResourceTrait
 {
-    protected $customResourcePath;
+    public $customResourcePath = 'http://localhost/test';
 
     /**
      * @return mixed
@@ -22,6 +16,8 @@ trait RestResourceTrait
     }
 
     /**
+     * Deprecated Method for setting custom base urls
+     *
      * @param mixed $resourcePath
      */
     public function setCustomResourcePath($resourcePath)
@@ -29,8 +25,26 @@ trait RestResourceTrait
         $this->customResourcePath = $resourcePath;
     }
 
+    /**
+     * Deprecated Method for generating Urls from Uris
+     *
+     * @param string $value_if_null
+     * @return string
+     */
     protected function getResourcePathIfNotNull(string $value_if_null)
     {
-        return (!isset($this->customResourcePath) || trim($this->customResourcePath) === '') ? $value_if_null : $this->customResourcePath;
+        //return (!isset($this->customResourcePath) || trim($this->customResourcePath) === '') ? $value_if_null : $this->customResourcePath;
+        return $this->customResourcePath . $value_if_null;
+    }
+
+    /**
+     * Method for appending the base Url (as defined in the .env file) to an uri
+     *
+     * @param string $uri
+     * @return string
+     */
+    public function getUrl(string $uri)
+    {
+        return env('APP_URL', '') . $uri;
     }
 }
