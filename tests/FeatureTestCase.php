@@ -13,6 +13,8 @@ use Illuminate\Contracts\Console\Kernel;
 
 abstract class FeatureTestCase extends BaseTestCase
 {
+    use ApiTestTrait;
+
     /**
      * Creates the application.
      *

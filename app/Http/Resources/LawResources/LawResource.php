@@ -2,9 +2,7 @@
 
 namespace App\Http\Resources;
 
-use Illuminate\Http\Resources\Json\Resource;
-
-class LawResource extends Resource
+class LawResource extends ApiResource
 {
     /**
      * Transform the resource into an array.

@@ -27,6 +27,7 @@ use App\Role;
 use App\Tags\Tag;
 use App\User;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Laravel\Passport\Passport;
 use Mockery\Exception;
@@ -38,8 +39,6 @@ use Tests\Unit\ResourceTests\ResourceTestTrait;
 
 class DiscussionTests extends FeatureTestCase
 {
-    use ApiTestTrait;
-
     //region /discussions
     /** @test */
     public function testDiscussionsRouteResponseNoParametersSet()
@@ -285,35 +284,95 @@ class DiscussionTests extends FeatureTestCase
         $response->assertStatus(InvalidPaginationException::HTTP_CODE)->assertJson(["code" => InvalidPaginationException::ERROR_CODE]);
     }
 
-    //TODO: invalid tag_id, ...
+    /** @test */
+    public function testDiscussionsRouteResponseNonexistentTagId()
+    {
+        Passport::actingAs(
+            factory(User::class)->create(), ['*']
+        );
+
+        $perPage = 2;
+        $start = 1;
+        $sorted_by = 'popularity';
+        $sort_direction = 'asc';
+        $tag_id = 11;
+
+        $tag = Tag::getSozialeMedien();
+        $discussion1 = ModelFactory::CreateDiscussion(\Auth::user(), null, [$tag], Carbon::createFromDate(2017, 1, 1, 2));
+        $discussion2 = ModelFactory::CreateDiscussion(\Auth::user(), null, [$tag], Carbon::createFromDate(2017, 1, 1, 2));
+        $discussion3 = ModelFactory::CreateDiscussion(\Auth::user(), null, [$tag], Carbon::createFromDate(2017, 1, 1, 2));
+        $discussion4 = ModelFactory::CreateDiscussion(\Auth::user(), null, [Tag::getUserGeneratedContent()]);
+        $resourcePath = url('/discussions');
+        $pathParams = 'count=' . $perPage . '&sorted_by=' . $sorted_by . '&sort_direction=' . $sort_direction . '&tag_id=' . $tag_id;
+        $requestPath = $resourcePath . '?start=' . $start . '&' . $pathParams;
+        $response = $this->get($requestPath);
+        if($start == 0) $start = 1;
+        $response->assertStatus(200)
+            ->assertJson([
+                "data" => [
+                    'href' => $requestPath,
+                    'discussions' => []
+                ],
+                "links" => [
+                    "first" => $resourcePath . '?' . $pathParams . '&start=' . $start,
+                    "last" => $resourcePath . '?' . $pathParams . '&start=' . 1,
+                    "prev" => null,
+                    "next" => null
+                ],
+                "meta" => [
+                    "current_page" => $start,
+                    "from" => null,
+                    "last_page" => 1,
+                    "path" => $resourcePath,
+                    "per_page" => $perPage,
+                    "to" => null,
+                    "total" => 0
+                ]
+            ]);
+    }
     //endregion
 
     //region post /discussions
     /** @test */
     public function testPostDiscussionsWithValidValuesAndAuthenticated()
     {
+        $tag1 = Tag::getSozialeMedien();
+        $tag2 = Tag::getUserGeneratedContent();
+
+        $title = 'Titel';
+        $law_text = 'this and that';
+        $law_explanation = 'Law Explanation';
+        $tag_ids = [
+            $tag1->id,
+            $tag2->id
+        ];
+
         Passport::actingAs(
             ModelFactory::CreateUser(Role::getAdmin()), ['*']
         );
         $requestPath = $this->getUrl('/discussions');
-        $tag1 = Tag::getSozialeMedien();
-        $tag2 = Tag::getUserGeneratedContent();
+
         $inputData = [
-            'title' => 'Titel',
-            'law_text' => 'this and that',
-            'law_explanation' => 'Law Explanation',
-            'tags' => [
-                    $tag1->id,
-                    $tag2->id
-                ]
+            'title' => $title,
+            'law_text' => $law_text,
+            'law_explanation' => $law_explanation,
+            'tags' => $tag_ids
         ];
         $response = $this->json('POST', $requestPath, $inputData);
+        $newUrl = $this->getUrl(('/discussions/' . 1));
         $response->assertStatus(201)
             ->assertJson([
-                'href' => $this->getUrl(('/discussions/' . 1)),
+                'href' => $newUrl,
                 'id' => 1
             ]);
-        //TODO: test if data is really there (get)
+        $getData = $this->get($newUrl);
+        $getData->assertJson([
+            'href' => $newUrl,
+            'id' => 1,
+            'title' => $title,
+            'law_text' => $law_text,
+            'law_explanation' => $law_explanation,
+        ]);
     }
 
     /** @test */
@@ -430,21 +489,6 @@ class DiscussionTests extends FeatureTestCase
     //endregion
 
     //region get /discussions/{id}
-    /** @test */
-    public function testDiscussionRouteResponse()
-    {
-        Passport::actingAs(
-            factory(User::class)->create(), ['*']
-        );
-        $discussion = factory(Discussion::class)->create([
-            'user_id' => \Auth::id()
-        ]);
-
-        $resourcePath = $this->getUrl($discussion->getResourcePath());
-        $response = $this->get($resourcePath);
-        $response->assertStatus(200)
-            ->assertJson(self::mapDiscussionToJson($discussion, $this->getUrl()));
-    }   //TODO: remove? same as testOneDiscussionResponse?
 
     /** @test */
     public function testOneDiscussionResponse()
@@ -645,7 +689,7 @@ class DiscussionTests extends FeatureTestCase
         $response->assertStatus(200)->assertJson([
             'law_explanation' => $new_law_explanation
         ]);
-    }   //TODO: select injected element --> safe?
+    }
 
     /** @test */
     public function testPatchDiscussionInvalidTags()
@@ -987,7 +1031,7 @@ class DiscussionTests extends FeatureTestCase
 
     //region get /discussions/{id}/amendments
     /** @test */
-    public function testAmendmentsRouteResponseNoParametersSet()    //TODO: test popularity with rating as well
+    public function testAmendmentsRouteResponseNoParametersSet()
     {
         $amendment_count = 2;
         $tags = [Tag::getSozialeMedien(), Tag::getWirtschaftlicheInteressen()];
@@ -1287,8 +1331,6 @@ class DiscussionTests extends FeatureTestCase
         $response = $this->get($requestPath);
         $response->assertStatus(InvalidPaginationException::HTTP_CODE)->assertJson(['code' => InvalidPaginationException::ERROR_CODE]);
     }
-
-    //TODO? should an error be thrown for wrong sorted_by or sort_direction or just default (as it is currently)
     //endregion
 
     //region post /discussions/{id}/amendments
@@ -1439,7 +1481,142 @@ class DiscussionTests extends FeatureTestCase
     //endregion
 
     //region put /discussions/{id}/rating
+    /** @test */
+    public function createMultiAspectRatingValid()
+    {
+        Passport::actingAs(ModelFactory::CreateUser(Role::getStandardUser()), ['*']);
+        $discussion = ModelFactory::CreateDiscussion(\Auth::user());
+        $inputData = [
+            MultiAspectRating::ASPECT1 => true,
+            MultiAspectRating::ASPECT2 => false,
+            MultiAspectRating::ASPECT3 => true,
+            MultiAspectRating::ASPECT4 => true,
+            MultiAspectRating::ASPECT5 => false,
+            MultiAspectRating::ASPECT6 => false,
+            MultiAspectRating::ASPECT7 => true,
+            MultiAspectRating::ASPECT8 => true,
+            MultiAspectRating::ASPECT9 => true,
+            MultiAspectRating::ASPECT10 => false
+        ];
+        $requestPath = $discussion->getRatingPath();
+        $response = $this->json('PUT', $requestPath, $inputData);
+        $response->assertStatus(201)
+            ->assertJson([
+                'href' => $this->getUrl($discussion->getRatingPath())
+            ]);
+        $getData = $this->get($requestPath);
+        $getData->assertStatus(200)
+            ->assertJson([
+                'user_rating' => $inputData
+            ]);
+    }
 
+    /** @test */
+    public function createMultiAspectRatingValidRatingAlreadyExisting()
+    {
+        Passport::actingAs(ModelFactory::CreateUser(Role::getStandardUser()), ['*']);
+        $discussion = ModelFactory::CreateDiscussion(\Auth::user());
+        $old_rating = ModelFactory::CreateMultiAspectRating(\Auth::user(), $discussion);
+        $inputData = [
+            MultiAspectRating::ASPECT1 => true,
+            MultiAspectRating::ASPECT2 => false,
+            MultiAspectRating::ASPECT3 => true,
+            MultiAspectRating::ASPECT4 => true,
+            MultiAspectRating::ASPECT5 => false,
+            MultiAspectRating::ASPECT6 => false,
+            MultiAspectRating::ASPECT7 => true,
+            MultiAspectRating::ASPECT8 => true,
+            MultiAspectRating::ASPECT9 => true,
+            MultiAspectRating::ASPECT10 => false
+        ];
+        $requestPath = $discussion->getRatingPath();
+        $response = $this->json('PUT', $requestPath, $inputData);
+        $response->assertStatus(201)
+            ->assertJson([
+                'href' => $this->getUrl($discussion->getRatingPath())
+            ]);
+        $getData = $this->get($requestPath);
+        $getData->assertStatus(200)
+            ->assertJson([
+                'user_rating' => $inputData
+            ]);
+    }
+
+    /** @test */
+    public function createMultiAspectRatingNotAuthenticated()
+    {
+        $discussion = ModelFactory::CreateDiscussion(ModelFactory::CreateUser(Role::getStandardUser()));
+        $inputData = [
+            MultiAspectRating::ASPECT1 => true,
+            MultiAspectRating::ASPECT2 => false,
+            MultiAspectRating::ASPECT3 => true,
+            MultiAspectRating::ASPECT4 => true,
+            MultiAspectRating::ASPECT5 => false,
+            MultiAspectRating::ASPECT6 => false,
+            MultiAspectRating::ASPECT7 => true,
+            MultiAspectRating::ASPECT8 => true,
+            MultiAspectRating::ASPECT9 => true,
+            MultiAspectRating::ASPECT10 => false
+        ];
+        $requestPath = $discussion->getRatingPath();
+        $response = $this->json('PUT', $requestPath, $inputData);
+        $response->assertStatus(NotAuthorizedException::HTTP_CODE)->assertJson(['code' => NotAuthorizedException::ERROR_CODE]);
+    }
+
+    /** @test */
+    public function createMultiAspectRatingOneInputMissing()
+    {
+        Passport::actingAs(ModelFactory::CreateUser(Role::getStandardUser()), ['*']);
+        $discussion = ModelFactory::CreateDiscussion(\Auth::user());
+        $inputData = [
+            MultiAspectRating::ASPECT1 => true,
+            MultiAspectRating::ASPECT2 => false,
+            MultiAspectRating::ASPECT3 => true,
+            MultiAspectRating::ASPECT4 => true,
+            MultiAspectRating::ASPECT5 => false,
+            MultiAspectRating::ASPECT6 => false,
+            MultiAspectRating::ASPECT7 => true,
+            MultiAspectRating::ASPECT8 => true,
+            MultiAspectRating::ASPECT9 => true
+        ];
+        $requestPath = $discussion->getRatingPath();
+        $response = $this->json('PUT', $requestPath, $inputData);
+        $response->assertStatus(InvalidValueException::HTTP_CODE)->assertJson(['code' => InvalidValueException::ERROR_CODE]);
+    }
+
+    /** @test */
+    public function createMultiAspectRatingInputMissing()
+    {
+        Passport::actingAs(ModelFactory::CreateUser(Role::getStandardUser()), ['*']);
+        $discussion = ModelFactory::CreateDiscussion(\Auth::user());
+        $inputData = [
+        ];
+        $requestPath = $discussion->getRatingPath();
+        $response = $this->json('PUT', $requestPath, $inputData);
+        $response->assertStatus(InvalidValueException::HTTP_CODE)->assertJson(['code' => InvalidValueException::ERROR_CODE]);
+    }
+
+    /** @test */
+    public function createMultiAspectRatingInputWrongType()
+    {
+        Passport::actingAs(ModelFactory::CreateUser(Role::getStandardUser()), ['*']);
+        $discussion = ModelFactory::CreateDiscussion(\Auth::user());
+        $inputData = [
+            MultiAspectRating::ASPECT1 => true,
+            MultiAspectRating::ASPECT2 => false,
+            MultiAspectRating::ASPECT3 => true,
+            MultiAspectRating::ASPECT4 => true,
+            MultiAspectRating::ASPECT5 => false,
+            MultiAspectRating::ASPECT6 => false,
+            MultiAspectRating::ASPECT7 => true,
+            MultiAspectRating::ASPECT8 => true,
+            MultiAspectRating::ASPECT9 => true,
+            MultiAspectRating::ASPECT10 => "true"
+        ];
+        $requestPath = $discussion->getRatingPath();
+        $response = $this->json('PUT', $requestPath, $inputData);
+        $response->assertStatus(InvalidValueException::HTTP_CODE)->assertJson(['code' => InvalidValueException::ERROR_CODE]);
+    }
     //endregion
 
     /**

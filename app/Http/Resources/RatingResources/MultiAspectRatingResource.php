@@ -6,10 +6,8 @@ use App\Discussions\Discussion;
 use App\MultiAspectRating;
 use Illuminate\Http\Resources\Json\Resource;
 
-class MultiAspectRatingResource extends Resource
+class MultiAspectRatingResource extends ApiResource
 {
-    use RestResourceTrait;
-
     protected $discussion;
 
     /**

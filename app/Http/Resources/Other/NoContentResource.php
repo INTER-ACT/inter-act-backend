@@ -4,7 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\Resource;
 
-class NoContentResource extends Resource
+class NoContentResource extends ApiResource
 {
     /**
      * Transform the resource into an array.

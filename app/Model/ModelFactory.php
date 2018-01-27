@@ -76,30 +76,6 @@ class ModelFactory
     }
 
     /**
-     * @param array $aspect_names
-     *
-     * @return array
-     */
-    public static function CreateRatingAspects(array $aspect_names)
-    {
-        $aspects = [];
-        foreach ($aspect_names as $aspect_name)
-        {
-            array_push($aspects, self::CreateRatingAspect($aspect_name));
-        }
-        return $aspects;
-    }
-
-    /**
-     * @param string $name
-     * @return RatingAspect
-     */
-    public static function CreateRatingAspect(string $name)
-    {
-        return RatingAspect::create(['name' => $name]);
-    }
-
-    /**
      * @param int $amendmentCount
      * @param User $user
      * @param Discussion $discussion
@@ -240,22 +216,6 @@ class ModelFactory
     public static function CreateCommentRating(User $user, Comment $comment, int $rating)
     {
         $comment->rating_users()->attach($user->id, ['rating_score' => $rating]);
-    }
-
-    /**
-     * @param User $user
-     * @param IRatable $ratable
-     * @param RatingAspect $ratingAspect
-     * @return RatableRatingAspect|null
-     */
-    public static function CreateRating(User $user, IRatable $ratable, RatingAspect $ratingAspect)
-    {
-        /** @var RatableRatingAspect $rating */
-        $rating = RatableRatingAspect::where([['ratable_id', '=', $ratable->getIdProperty()], ['ratable_type', '=', get_class($ratable)], ['rating_aspect_id', '=', $ratingAspect->id]])->first();
-        if($rating === null)
-            return null;
-        $rating->user_ratings()->attach($user->id);
-        return $rating;
     }
 
     /**

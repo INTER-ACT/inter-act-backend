@@ -2,13 +2,10 @@
 
 namespace App\Http\Resources\CommentResources;
 
-use App\Http\Resources\RestResourceTrait;
-use Illuminate\Http\Resources\Json\ResourceCollection;
+use App\Http\Resources\ApiCollectionResource;
 
-class CommentCollection extends ResourceCollection
+class CommentCollection extends ApiCollectionResource
 {
-    use RestResourceTrait;
-
     /**
      * Transform the resource collection into an array.
      *

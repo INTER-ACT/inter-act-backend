@@ -2,20 +2,17 @@
 
 namespace App\Http\Resources\DiscussionResources;
 
-use App\Http\Resources\RestResourceTrait;
-use Illuminate\Http\Resources\Json\ResourceCollection;
+use App\Http\Resources\ApiCollectionResource;
 
-class DiscussionCollection extends ResourceCollection
+class DiscussionCollection extends ApiCollectionResource
 {
-    use RestResourceTrait;
-
     /**
      * Transform the resource collection into an array.
      *
      * @param  \Illuminate\Http\Request  $request
      * @return array
      */
-    public function toArray($request)
+    public function toArray($request = null)
     {
         $thisURI = url($request->getRequestUri());
 

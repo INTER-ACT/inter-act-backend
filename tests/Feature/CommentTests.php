@@ -30,8 +30,6 @@ use Tests\FeatureTestCase;
 
 class CommentTests extends FeatureTestCase
 {
-    use ApiTestTrait;
-
     //region get /comments
     /** @test */
     public function testCommentsRouteResponseNoParametersSet()
@@ -378,7 +376,6 @@ class CommentTests extends FeatureTestCase
         $requestPath = $this->getUrl('/comments/' . $comment->id . "'; DROP TABLE DISCUSSIONS;'");
         $response = $this->get($requestPath);
         $response->assertStatus(InvalidValueException::HTTP_CODE)->assertJson(['code' => InvalidValueException::ERROR_CODE]);
-        //TODO: either change this to InvalidValueException or the same for Discussion to InternalServerError
     }
     //endregion
 

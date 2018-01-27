@@ -2,15 +2,12 @@
 
 namespace App\Http\Resources\CommentResources;
 
+use App\Http\Resources\ApiResource;
 use App\Http\Resources\PostResources\TagCollection;
 use App\Http\Resources\ResourceFieldFilterTrait;
-use App\Http\Resources\RestResourceTrait;
-use Illuminate\Http\Resources\Json\Resource;
-use Mockery\Exception;
 
-class CommentResource extends Resource
+class CommentResource extends ApiResource
 {
-    use RestResourceTrait;
     use ResourceFieldFilterTrait;
 
     /**

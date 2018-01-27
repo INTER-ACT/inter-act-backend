@@ -3,16 +3,13 @@
 namespace App\Http\Resources\GeneralResources;
 
 use App\Http\Resources\AmendmentResources\AmendmentCollection;
+use App\Http\Resources\ApiResource;
 use App\Http\Resources\CommentResources\CommentCollection;
 use App\Http\Resources\DiscussionResources\DiscussionCollection;
-use App\Http\Resources\RestResourceTrait;
 use App\Http\Resources\SubAmendmentResources\SubAmendmentCollection;
-use Illuminate\Http\Resources\Json\Resource;
 
-class SearchResource extends Resource
+class SearchResource extends ApiResource
 {
-    use RestResourceTrait;
-
     /**
      * Transform the resource into an array. (resource has to be SearchResourceData)
      *

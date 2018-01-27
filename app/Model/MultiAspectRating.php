@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class MultiAspectRating extends Model
 {
     //protected $primaryKey = ['user_id', 'ratable_id', 'ratable_type'];
+    //protected $incrementing = false;
 
     const TABLE_NAME = 'multi_aspect_ratings';
 

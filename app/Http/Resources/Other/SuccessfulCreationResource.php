@@ -2,12 +2,8 @@
 
 namespace App\Http\Resources;
 
-use Illuminate\Http\Resources\Json\Resource;
-
-class SuccessfulCreationResource extends Resource
+class SuccessfulCreationResource extends ApiResource
 {
-    use RestResourceTrait;
-
     /**
      * Transform the resource into an array.
      *
