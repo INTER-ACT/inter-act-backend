@@ -8,6 +8,7 @@ use App\Discussions\Discussion;
 use App\IHasActivity;
 use App\IModel;
 use App\IRestResource;
+use App\Model\RestModel;
 use App\MultiAspectRating;
 use App\Reports\IReportable;
 use App\Reports\Report;
@@ -21,7 +22,7 @@ use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 use Mockery\Exception;
 
-class Amendment extends Model implements ITaggable, IReportable, IRatable, ICommentable, IRestResource, IHasActivity
+class Amendment extends RestModel implements ITaggable, IReportable, IRatable, ICommentable, IHasActivity
 {
     use TTaggablePost;
 
@@ -29,15 +30,9 @@ class Amendment extends Model implements ITaggable, IReportable, IRatable, IComm
     protected $appends = ['activity'];
 
     //region IRestResource
-    public function getIdProperty()
+    public function getApiFriendlyType() : string
     {
-        $this->getType();
-        return $this->id;
-    }
-
-    public function getType()
-    {
-        return get_class($this);
+        return "amendment";
     }
 
     public function getResourcePath()

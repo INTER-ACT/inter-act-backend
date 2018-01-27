@@ -6,18 +6,23 @@
  * Time: 18:51
  */
 
-namespace App;
+namespace App\Model;
 
 
-interface IModel
+interface IRestResource
 {
     /**
      * @return int
      */
-    function getIdProperty();   //TODO: maybe change name if accessor is not desired
+    function getId() : int;
 
     /**
      * @return string
      */
-    function getType();
+    function getType() : string;
+
+    /**
+     * @return string
+     */
+    function getApiFriendlyType() : string;
 }

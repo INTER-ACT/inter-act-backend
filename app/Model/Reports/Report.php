@@ -4,29 +4,23 @@ namespace App\Reports;
 
 use App\IModel;
 use App\IRestResource;
+use App\Model\RestModel;
 use App\User;
 use Illuminate\Database\Eloquent\Model;
 
-class Report extends Model implements IRestResource
+class Report extends RestModel
 {
     protected $fillable = ['explanation'];
 
-    //region IRestResource
-    public function getIdProperty()
+    public function getApiFriendlyType() : string
     {
-        return $this->id;
-    }
-
-    public function getType()
-    {
-        return get_class($this);
+        return "report";
     }
 
     public function getResourcePath()
     {
         return '/reports/' . $this->id;
     }
-    //endregion
 
     //region relations
     public function reportable()

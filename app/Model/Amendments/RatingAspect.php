@@ -3,24 +3,18 @@
 namespace App\Amendments;
 
 use App\IModel;
+use App\Model\RestModel;
 use App\RatingAspectRating;
 use Illuminate\Database\Eloquent\Model;
 
-class RatingAspect extends Model implements IModel
+class RatingAspect extends RestModel
 {
     protected $fillable = ['name'];
 
-    //region IModel
-    function getIdProperty()
+    public function getApiFriendlyType(): string
     {
-        return $this->id;
+        return 'rating_aspect';
     }
-
-    public  function getType()
-    {
-        return get_class($this);
-    }
-    //endregion
 
     //region relations
     public function ratings()

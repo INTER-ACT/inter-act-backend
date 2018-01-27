@@ -9,6 +9,7 @@ use App\Comments\ICommentable;
 use App\IHasActivity;
 use App\IModel;
 use App\IRestResource;
+use App\Model\RestModel;
 use App\MultiAspectRating;
 use App\Tags\ITaggable;
 use App\Tags\Tag;
@@ -19,28 +20,21 @@ use DB;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Builder;
 
-class Discussion extends Model implements ITaggable, ICommentable, IRestResource, IHasActivity, IRatable
+class Discussion extends RestModel implements ITaggable, ICommentable, IHasActivity, IRatable
 {
     use TTaggablePost;
 
     protected $fillable = ['title', 'law_text', 'law_explanation'];
 
-    //region IRestResource
-    public function getIdProperty()
+    public function getApiFriendlyType() : string
     {
-        return $this->id;
-    }
-
-    public function getType()
-    {
-        return get_class($this);
+        return "discussion";
     }
 
     public function getResourcePath()
     {
         return '/discussions/' . $this->id;
     }
-    //endregion
 
     //region Getters and Setters
     /*public function getCreatedAtAttribute($date)

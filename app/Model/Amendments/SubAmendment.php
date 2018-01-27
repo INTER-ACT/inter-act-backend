@@ -8,6 +8,7 @@ use App\Exceptions\CustomExceptions\NotAcceptedException;
 use App\IHasActivity;
 use App\IModel;
 use App\IRestResource;
+use App\Model\RestModel;
 use App\MultiAspectRating;
 use App\Reports\IReportable;
 use App\Reports\Report;
@@ -19,7 +20,7 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Builder;
 
-class SubAmendment extends Model implements ITaggable, IReportable, IRatable, ICommentable, IRestResource, IHasActivity
+class SubAmendment extends RestModel implements ITaggable, IReportable, IRatable, ICommentable, IHasActivity
 {
     use TTaggablePost;
 
@@ -29,24 +30,16 @@ class SubAmendment extends Model implements ITaggable, IReportable, IRatable, IC
 
     protected $fillable = ['updated_text', 'explanation'];
 
-    //region IRestResource
-    public function getIdProperty()
+    public function getApiFriendlyType() : string
     {
-        return $this->id;
-    }
-
-    public function getType()
-    {
-        return get_class($this);
+        return "subamendment";
     }
 
     public function getResourcePath()
     {
-        //return (string)$this->amendment_id;
         $amendment = ($this->amendment === null) ? Amendment::find($this->amendment_id)->first(['id', 'discussion_id']) : $this->amendment;
         return $amendment->getResourcePath() . '/subamendments/' . $this->id;
     }
-    //endregion
 
     //region Getters and Setters
     public function getChangesPath(){

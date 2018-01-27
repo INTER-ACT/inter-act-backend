@@ -3,9 +3,10 @@
 namespace App;
 
 use App\Comments\Comment;
+use App\Model\RestModel;
 use Illuminate\Database\Eloquent\Model;
 
-class CommentRating extends Model implements IRestResource
+class CommentRating extends RestModel
 {
     //protected $primaryKey = ['user_id', 'comment_id'];    //TODO: update to composite primary key? (causes problems in collections)
 
@@ -13,28 +14,19 @@ class CommentRating extends Model implements IRestResource
 
     protected $fillable = ['rating_score'];
 
-    /**
-     * @return int
-     */
-    function getIdProperty()
+    public function getId(): int
     {
-        return 0; //TODO: remove or implement
+        return null;
     }
 
-    /**
-     * @return string
-     */
-    function getType()
-    {
-        return get_class($this);
-    }
-
-    /**
-     * @return string
-     */
     function getResourcePath()
     {
-        return '-';
+        return '/comments/' . $this->comment_id;
+    }
+
+    public function getApiFriendlyType(): string
+    {
+        return 'comment_rating';
     }
 
     function user()

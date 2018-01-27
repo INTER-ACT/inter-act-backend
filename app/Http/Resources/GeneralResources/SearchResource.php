@@ -11,6 +11,15 @@ use App\Http\Resources\SubAmendmentResources\SubAmendmentCollection;
 class SearchResource extends ApiResource
 {
     /**
+     * SearchResource constructor.
+     * @param array $resource
+     */
+    public function __construct(array $resource)
+    {
+        parent::__construct($resource);
+    }
+
+    /**
      * Transform the resource into an array. (resource has to be SearchResourceData)
      *
      * @param  \Illuminate\Http\Request  $request
@@ -18,15 +27,11 @@ class SearchResource extends ApiResource
      */
     public function toArray($request)
     {
-        $thisURI = url($this->getResourcePathIfNotNull($request->getRequestUri()));
         $thisURI = url($request->getRequestUri());
 
         return [
-            'href' => $thisURI, //TODO: Only the element-array should be contained (href unnecessary)
-            'discussions' => new DiscussionCollection($this->getDiscussions()),
-            'amendments' => new AmendmentCollection($this->getAmendments()),
-            'subamendments' => new SubAmendmentCollection($this->getSubAmendments()),
-            'comments' => new CommentCollection($this->getComments()),
+            'href' => $thisURI,
+            'search_result' => $this->search_result
         ];
     }
 }

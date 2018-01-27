@@ -32,10 +32,19 @@ use App\Tags\Tag;
 use App\User;
 use Carbon\Carbon;
 use DB;
+use Illuminate\Database\Query\Builder;
 
 class ActionRepository implements IRestRepository   //TODO: Exceptions missing?
 {
     use CustomPaginationTrait;
+
+    const SEARCH_TYPE_TAG = 'tag';
+    const SEARCH_TYPE_CONTENT = 'content';
+
+    const SEARCH_CONTENT_TYPE_DISCUSSIONS = 'discussions';
+    const SEARCH_CONTENT_TYPE_AMENDMENTS = 'amendments';
+    const SEARCH_CONTENT_TYPE_SUBAMENDMENTS = 'subamendments';
+    const SEARCH_CONTENT_TYPE_COMMENTS = 'comments';
 
     /**
      * @return string
@@ -70,17 +79,16 @@ class ActionRepository implements IRestRepository   //TODO: Exceptions missing?
      */
     public function searchArticlesByText(string $text, PageRequest $pageRequest, string $type = null, string $content_type = null) : SearchResource
     {
-        $discussions = Discussion::where('title', 'LIKE', '%' . $text . '%')
-            ->orWhere('law_text', 'LIKE', '%' . $text . '%')
-            ->orWhere('law_explanation', 'LIKE', '%' . $text . '%')->get();
-        $amendments = Amendment::where('updated_text', 'LIKE', '%' . $text . '%')
-            ->orWhere('explanation', 'LIKE', '%' . $text . '%')->get();
-        $sub_amendments = SubAmendment::where('updated_text', 'LIKE', '%' . $text . '%')
-            ->orWhere('explanation', 'LIKE', '%' . $text . '%')->get();
-        $comments = Comment::where('content', 'LIKE', '%' . $text . '%')->get();
-
-        $data = new SearchResourceData($discussions, $amendments, $sub_amendments, $comments);
-        return new SearchResource($data);   //TODO: implement pagination, type and post_type
+        $search_discussions = $content_type === null or $content_type == self::SEARCH_CONTENT_TYPE_DISCUSSIONS;
+        $search_amendments = $content_type === null or $content_type == self::SEARCH_CONTENT_TYPE_AMENDMENTS;
+        $search_subamendments = $content_type === null or $content_type == self::SEARCH_CONTENT_TYPE_SUBAMENDMENTS;
+        $search_comments = $content_type === null or $content_type == self::SEARCH_CONTENT_TYPE_COMMENTS;
+        $search_results = [];
+        if($type != self::SEARCH_TYPE_CONTENT)
+            array_push($search_results, $this->getTagSearchResult($text, $search_discussions, $search_amendments, $search_subamendments, $search_comments));
+        if($type != self::SEARCH_TYPE_TAG)
+            array_push($search_results, $this->getContentSearchResult($text, $search_discussions, $search_amendments, $search_subamendments, $search_comments));
+        return new SearchResource($search_results); //TODO: paginate
     }
 
     public function getGeneralActivityStatistics(Carbon $start_date = null, Carbon $end_date = null) : GeneralActivityStatisticsResource
@@ -213,5 +221,125 @@ class ActionRepository implements IRestRepository   //TODO: Exceptions missing?
         $action_resource_data = array_merge($discussions, $tags);
 
         return new ActionStatisticsResource($header, $action_resource_data);
+    }
+
+    /**
+     * @param string $search_term
+     * @param bool $search_discussions
+     * @param bool $search_amendments
+     * @param bool $search_subamendments
+     * @param bool $search_comments
+     * @return array
+     */
+    protected function getContentSearchResult(string $search_term, bool $search_discussions = true, bool $search_amendments = true, bool $search_subamendments = true, bool $search_comments = true) : array
+    {
+        $search_result = [];
+        if($search_discussions) array_push($search_result, $this->searchDiscussionsByContent($search_term));
+        if($search_amendments) array_push($search_result, $this->searchAmendmentsByContent($search_term));
+        if($search_subamendments) array_push($search_result, $this->searchSubAmendmentsByContent($search_term));
+        if($search_comments) array_push($search_result, $this->searchCommentsByContent($search_term));
+        return $search_result;
+    }
+
+    /**
+     * @param string $search_term
+     * @param bool $search_discussions
+     * @param bool $search_amendments
+     * @param bool $search_subamendments
+     * @param bool $search_comments
+     * @return array
+     */
+    protected function getTagSearchResult(string $search_term, bool $search_discussions = true, bool $search_amendments = true, bool $search_subamendments = true, bool $search_comments = true) : array
+    {
+        $search_result = [];
+        if($search_discussions) array_push($search_result, $this->searchDiscussionsByTag($search_term));
+        if($search_amendments) array_push($search_result, $this->searchAmendmentsByTag($search_term));
+        if($search_subamendments) array_push($search_result, $this->searchSubAmendmentsByTag($search_term));
+        if($search_comments) array_push($search_result, $this->searchCommentsByTag($search_term));
+        return $search_result;
+    }
+
+    /**
+     * @param string $search_term
+     * @return array
+     */
+    protected function searchDiscussionsByContent(string $search_term) : array
+    {
+        return Discussion::where('title', 'LIKE', '%' . $search_term . '%')
+            ->orWhere('law_text', 'LIKE', '%' . $search_term . '%')
+            ->orWhere('law_explanation', 'LIKE', '%' . $search_term . '%')->get()->toArray();
+    }
+
+    /**
+     * @param string $search_term
+     * @return array
+     */
+    protected function searchDiscussionsByTag(string $search_term) : array
+    {
+        return Discussion::whereHas('tags', function(Builder $query) use($search_term){
+            $query->where('name', 'LIKE', '%' . $search_term . '%');
+        })->get()->toArray();
+    }
+
+    /**
+     * @param string $search_term
+     * @return array
+     */
+    protected function searchAmendmentByContent(string $search_term) : array
+    {
+        return Amendment::where('updated_text', 'LIKE', '%' . $search_term . '%')
+            ->orWhere('explanation', 'LIKE', '%' . $search_term . '%')->get()->toArray();
+    }
+
+    /**
+     * @param string $search_term
+     * @return array
+     */
+    protected function searchAmendmentsByTag(string $search_term) : array
+    {
+        return Amendment::whereHas('tags', function(Builder $query) use($search_term){
+            $query->where('name', 'LIKE', '%' . $search_term . '%');
+        })->get()->toArray();
+    }
+
+    /**
+     * @param string $search_term
+     * @return array
+     */
+    protected function searchSubAmendmentsByContent(string $search_term) : array
+    {
+        return SubAmendment::where('updated_text', 'LIKE', '%' . $search_term . '%')
+            ->orWhere('explanation', 'LIKE', '%' . $search_term . '%')->get()->toArray();
+    }
+
+    /**
+     * @param string $search_term
+     * @return array
+     */
+    protected function searchSubAmendmentsByTag(string $search_term) : array
+    {
+        return SubAmendment::whereHas('tags', function(Builder $query) use($search_term){
+            $query->where('name', 'LIKE', '%' . $search_term . '%');
+        })->get()->toArray();
+    }
+
+    /**
+     * @param string $search_term
+     * @return array
+     */
+    protected function searchCommentsByContent(string $search_term) : array
+    {
+        return Comment::where('content', 'LIKE', '%' . $search_term . '%')->get()->toArray();
+    }
+
+    /**
+     * @param string $search_term
+     * @return array
+     */
+    protected function searchCommentsByTag(string $search_term) : array
+    {
+        return Comment::whereHas('tags', function(Builder $query) use($search_term){
+            $query->where('name', 'LIKE', '%' . $search_term . '%');
+        })->get()->toArray();
     }
 }

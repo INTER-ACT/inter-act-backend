@@ -6,10 +6,10 @@
  * Time: 10:42
  */
 
-namespace App;
+namespace App\Model;
 
 
-interface IRestResource extends IModel
+interface IRestResourcePrimary extends IRestResource
 {
     /**
      * @return string

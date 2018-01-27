@@ -7,9 +7,10 @@ use App\Amendments\SubAmendment;
 use App\Discussions\Discussion;
 use App\IModel;
 use App\IRestResource;
+use App\Model\RestModel;
 use Illuminate\Database\Eloquent\Model;
 
-class Tag extends Model implements IRestResource
+class Tag extends RestModel
 {
     //region constants
     const NUTZUNG_FREMDER_INHALTE_NAME = "Lizenz";
@@ -119,22 +120,15 @@ class Tag extends Model implements IRestResource
     }
     //endregion
 
-    //region IRestResource
-    function getIdProperty()
+    function getApiFriendlyType(): string
     {
-        return $this->id;
-    }
-
-    public function getType()
-    {
-        return get_class($this);
+        return 'tag';
     }
 
     public function getResourcePath()
     {
         return '/tags/' . $this->id;
     }
-    //endregion
 
     //region relations
     public function taggables()

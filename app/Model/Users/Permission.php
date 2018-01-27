@@ -2,9 +2,9 @@
 
 namespace App;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Model\RestModel;
 
-class Permission extends Model implements IModel
+class Permission extends RestModel
 {
     //region constants
     const READ_NAME = 'read';
@@ -49,17 +49,10 @@ class Permission extends Model implements IModel
     }
     //endregion
 
-    //region IModel
-    function getIdProperty()
+    public function getApiFriendlyType(): string
     {
-        return $this->id;
+        return 'permission';
     }
-
-    public function getType()
-    {
-        return get_class($this);
-    }
-    //endregion
 
     //region relations
     public function roles()
