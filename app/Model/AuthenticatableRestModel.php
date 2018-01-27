@@ -10,7 +10,7 @@ namespace App\Model;
 
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
-abstract class AuthRestModel extends Authenticatable implements IRestResource
+abstract class AuthRestModel extends Authenticatable implements IRestResourcePrimary
 {
     function getId() : int
     {

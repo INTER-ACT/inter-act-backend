@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Domain\ActionRepository;
 use App\Domain\PageGetRequest;
 use App\Domain\PageRequest;
+use App\Exceptions\CustomExceptions\InvalidValueException;
+use App\Http\Requests\SearchRequest;
+use App\Http\Resources\GeneralResources\SearchResource;
 use App\Http\Resources\StatisticsResources\StatisticsResource;
 use App\Http\Resources\StatisticsResources\UserActivityStatisticsResource;
 use Illuminate\Http\Request;
@@ -24,12 +27,18 @@ class ActionController extends Controller
         $this->repository = $repository;
     }
 
-    public function searchArticles(Request $request)
+    /**
+     * @param SearchRequest $request
+     * @return SearchResource
+     * @throws InvalidValueException
+     */
+    public function searchArticles(SearchRequest $request) : SearchResource
     {
         $search_term = $request->search_term;
         $type = $request->type;
-        $content_type = $request->content_type;
-        return $this->repository->searchArticlesByText($search_term, new PageGetRequest($request), $type, $content_type);
+        $content_types = $request->has('content_type') ? explode(',', $request->content_type) : null;
+
+        return $this->repository->searchArticlesByText($search_term, new PageGetRequest($request), $type, $content_types);
     }
 
     /**

@@ -4,9 +4,7 @@ namespace App\Comments;
 
 use App\CommentRating;
 use App\IHasActivity;
-use App\IModel;
-use App\IRestResource;
-use App\Model\RestModel;
+use App\Model\RestModelPrimary;
 use App\Reports\IReportable;
 use App\Reports\Report;
 use App\Tags\Tag;
@@ -14,11 +12,9 @@ use App\Traits\TPost;
 use App\User;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
-use Mockery\Exception;
 
-class Comment extends RestModel implements IReportable, ICommentable, IHasActivity
+class Comment extends RestModelPrimary implements IReportable, ICommentable, IHasActivity
 {
     use TPost;
 

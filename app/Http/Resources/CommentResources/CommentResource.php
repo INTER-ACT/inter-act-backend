@@ -34,7 +34,8 @@ class CommentResource extends ApiResource
             ],
             'parent' => [
                 'href' => url($this->parent->getResourcePath()),
-                'id' => $this->parent->id
+                'id' => $this->parent->id,
+                'type' => $this->parent->getApiFriendlyType()
             ],
             'positive_ratings' => $this->positive_rating_count,
             'negative_ratings' => $this->negative_rating_count,

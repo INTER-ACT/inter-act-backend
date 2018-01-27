@@ -8,7 +8,6 @@
 
 namespace App\Domain;
 
-
 use App\Amendments\Amendment;
 use App\Amendments\SubAmendment;
 use App\CommentRating;
@@ -17,7 +16,6 @@ use App\Discussions\Discussion;
 use App\Domain\EntityRepresentations\CommentRatingRepresentation;
 use App\Domain\EntityRepresentations\MultiAspectRatingRepresentation;
 use App\Http\Resources\GeneralResources\SearchResource;
-use App\Http\Resources\GeneralResources\SearchResourceData;
 use App\Http\Resources\StatisticsResources\ActionStatisticsResource;
 use App\Http\Resources\StatisticsResources\ActionStatisticsResourceData;
 use App\Http\Resources\StatisticsResources\CommentRatingStatisticsResource;
@@ -25,14 +23,13 @@ use App\Http\Resources\StatisticsResources\CommentRatingStatisticsResourceData;
 use App\Http\Resources\StatisticsResources\GeneralActivityStatisticsResource;
 use App\Http\Resources\StatisticsResources\RatingStatisticsResource;
 use App\Http\Resources\StatisticsResources\RatingStatisticsResourceData;
-use App\Http\Resources\StatisticsResources\StatisticsResource;
 use App\Http\Resources\StatisticsResources\UserActivityStatisticsResource;
 use App\RatingAspectRating;
 use App\Tags\Tag;
 use App\User;
 use Carbon\Carbon;
 use DB;
-use Illuminate\Database\Query\Builder;
+use Illuminate\Database\Eloquent\Builder;
 
 class ActionRepository implements IRestRepository   //TODO: Exceptions missing?
 {
@@ -74,21 +71,25 @@ class ActionRepository implements IRestRepository   //TODO: Exceptions missing?
      * @param string $text
      * @param PageRequest $pageRequest
      * @param string|null $type
-     * @param string|null $content_type
+     * @param array|null $content_types
      * @return SearchResource
      */
-    public function searchArticlesByText(string $text, PageRequest $pageRequest, string $type = null, string $content_type = null) : SearchResource
+    public function searchArticlesByText(string $text, PageRequest $pageRequest, string $type = null, array $content_types = null) : SearchResource
     {
-        $search_discussions = $content_type === null or $content_type == self::SEARCH_CONTENT_TYPE_DISCUSSIONS;
-        $search_amendments = $content_type === null or $content_type == self::SEARCH_CONTENT_TYPE_AMENDMENTS;
-        $search_subamendments = $content_type === null or $content_type == self::SEARCH_CONTENT_TYPE_SUBAMENDMENTS;
-        $search_comments = $content_type === null or $content_type == self::SEARCH_CONTENT_TYPE_COMMENTS;
+        $all = $content_types === null || sizeof($content_types) == 0;
+        $search_discussions = $all || in_array(self::SEARCH_CONTENT_TYPE_DISCUSSIONS, $content_types);
+        $search_amendments = $all || in_array(self::SEARCH_CONTENT_TYPE_AMENDMENTS, $content_types);
+        $search_subamendments = $all || in_array(self::SEARCH_CONTENT_TYPE_SUBAMENDMENTS, $content_types);
+        $search_comments = $all || in_array(self::SEARCH_CONTENT_TYPE_COMMENTS, $content_types);
+
         $search_results = [];
         if($type != self::SEARCH_TYPE_CONTENT)
-            array_push($search_results, $this->getTagSearchResult($text, $search_discussions, $search_amendments, $search_subamendments, $search_comments));
+            $search_results = array_merge($search_results, $this->getTagSearchResult($text, $search_discussions, $search_amendments, $search_subamendments, $search_comments));
         if($type != self::SEARCH_TYPE_TAG)
-            array_push($search_results, $this->getContentSearchResult($text, $search_discussions, $search_amendments, $search_subamendments, $search_comments));
-        return new SearchResource($search_results); //TODO: paginate
+            $search_results = array_merge($search_results, $this->getContentSearchResult($text, $search_discussions, $search_amendments, $search_subamendments, $search_comments));
+        $search_results = $this->paginate(collect($search_results), $pageRequest->perPage, $pageRequest->pageNumber);
+        $search_results = $this->updatePagination($search_results);
+        return new SearchResource($search_results);
     }
 
     public function getGeneralActivityStatistics(Carbon $start_date = null, Carbon $end_date = null) : GeneralActivityStatisticsResource
@@ -223,6 +224,7 @@ class ActionRepository implements IRestRepository   //TODO: Exceptions missing?
         return new ActionStatisticsResource($header, $action_resource_data);
     }
 
+    //region searchHelpers
     /**
      * @param string $search_term
      * @param bool $search_discussions
@@ -233,11 +235,11 @@ class ActionRepository implements IRestRepository   //TODO: Exceptions missing?
      */
     protected function getContentSearchResult(string $search_term, bool $search_discussions = true, bool $search_amendments = true, bool $search_subamendments = true, bool $search_comments = true) : array
     {
-        $search_result = [];
-        if($search_discussions) array_push($search_result, $this->searchDiscussionsByContent($search_term));
-        if($search_amendments) array_push($search_result, $this->searchAmendmentsByContent($search_term));
-        if($search_subamendments) array_push($search_result, $this->searchSubAmendmentsByContent($search_term));
-        if($search_comments) array_push($search_result, $this->searchCommentsByContent($search_term));
+        if($search_discussions) $search_result = $this->searchDiscussionsByContent($search_term);
+        else $search_result = [];
+        if($search_amendments) $search_result = isset($search_result) ? array_merge($search_result, $this->searchAmendmentsByContent($search_term)) : $this->searchAmendmentsByContent($search_term);
+        if($search_subamendments) $search_result = isset($search_result) ? array_merge($search_result, $this->searchSubAmendmentsByContent($search_term)) : $this->searchSubAmendmentsByContent($search_term);
+        if($search_comments) $search_result = isset($search_result) ? array_merge($search_result, $this->searchCommentsByContent($search_term)) : $this->searchCommentsByContent($search_term);
         return $search_result;
     }
 
@@ -251,11 +253,11 @@ class ActionRepository implements IRestRepository   //TODO: Exceptions missing?
      */
     protected function getTagSearchResult(string $search_term, bool $search_discussions = true, bool $search_amendments = true, bool $search_subamendments = true, bool $search_comments = true) : array
     {
-        $search_result = [];
-        if($search_discussions) array_push($search_result, $this->searchDiscussionsByTag($search_term));
-        if($search_amendments) array_push($search_result, $this->searchAmendmentsByTag($search_term));
-        if($search_subamendments) array_push($search_result, $this->searchSubAmendmentsByTag($search_term));
-        if($search_comments) array_push($search_result, $this->searchCommentsByTag($search_term));
+        if($search_discussions) $search_result = $this->searchDiscussionsByTag($search_term);
+        else $search_result = [];
+        if($search_amendments) $search_result = isset($search_result) ? array_merge($search_result, $this->searchAmendmentsByTag($search_term)) : $this->searchAmendmentsByTag($search_term);
+        if($search_subamendments) $search_result = isset($search_result) ? array_merge($search_result, $this->searchSubAmendmentsByTag($search_term)) : $this->searchSubAmendmentsByTag($search_term);
+        if($search_comments) $search_result = isset($search_result) ? array_merge($search_result, $this->searchCommentsByTag($search_term)) : $this->searchCommentsByTag($search_term);
         return $search_result;
     }
 
@@ -265,9 +267,9 @@ class ActionRepository implements IRestRepository   //TODO: Exceptions missing?
      */
     protected function searchDiscussionsByContent(string $search_term) : array
     {
-        return Discussion::where('title', 'LIKE', '%' . $search_term . '%')
+        return Discussion::select(['id'])->where('title', 'LIKE', '%' . $search_term . '%')
             ->orWhere('law_text', 'LIKE', '%' . $search_term . '%')
-            ->orWhere('law_explanation', 'LIKE', '%' . $search_term . '%')->get()->toArray();
+            ->orWhere('law_explanation', 'LIKE', '%' . $search_term . '%')->get()->all()    ;
     }
 
     /**
@@ -276,19 +278,19 @@ class ActionRepository implements IRestRepository   //TODO: Exceptions missing?
      */
     protected function searchDiscussionsByTag(string $search_term) : array
     {
-        return Discussion::whereHas('tags', function(Builder $query) use($search_term){
+        return Discussion::select(['id'])->whereHas('tags', function(Builder $query) use($search_term){
             $query->where('name', 'LIKE', '%' . $search_term . '%');
-        })->get()->toArray();
+        })->get()->all();
     }
 
     /**
      * @param string $search_term
      * @return array
      */
-    protected function searchAmendmentByContent(string $search_term) : array
+    protected function searchAmendmentsByContent(string $search_term) : array
     {
-        return Amendment::where('updated_text', 'LIKE', '%' . $search_term . '%')
-            ->orWhere('explanation', 'LIKE', '%' . $search_term . '%')->get()->toArray();
+        return Amendment::select(['id'])->where('updated_text', 'LIKE', '%' . $search_term . '%')
+            ->orWhere('explanation', 'LIKE', '%' . $search_term . '%')->get()->all();
     }
 
     /**
@@ -297,9 +299,9 @@ class ActionRepository implements IRestRepository   //TODO: Exceptions missing?
      */
     protected function searchAmendmentsByTag(string $search_term) : array
     {
-        return Amendment::whereHas('tags', function(Builder $query) use($search_term){
+        return Amendment::select(['id'])->whereHas('tags', function(Builder $query) use($search_term){
             $query->where('name', 'LIKE', '%' . $search_term . '%');
-        })->get()->toArray();
+        })->get()->all();
     }
 
     /**
@@ -308,8 +310,8 @@ class ActionRepository implements IRestRepository   //TODO: Exceptions missing?
      */
     protected function searchSubAmendmentsByContent(string $search_term) : array
     {
-        return SubAmendment::where('updated_text', 'LIKE', '%' . $search_term . '%')
-            ->orWhere('explanation', 'LIKE', '%' . $search_term . '%')->get()->toArray();
+        return SubAmendment::select(['id'])->where('updated_text', 'LIKE', '%' . $search_term . '%')
+            ->orWhere('explanation', 'LIKE', '%' . $search_term . '%')->get()->all();
     }
 
     /**
@@ -318,9 +320,9 @@ class ActionRepository implements IRestRepository   //TODO: Exceptions missing?
      */
     protected function searchSubAmendmentsByTag(string $search_term) : array
     {
-        return SubAmendment::whereHas('tags', function(Builder $query) use($search_term){
+        return SubAmendment::select(['id'])->whereHas('tags', function(Builder $query) use($search_term){
             $query->where('name', 'LIKE', '%' . $search_term . '%');
-        })->get()->toArray();
+        })->get()->all();
     }
 
     /**
@@ -329,7 +331,7 @@ class ActionRepository implements IRestRepository   //TODO: Exceptions missing?
      */
     protected function searchCommentsByContent(string $search_term) : array
     {
-        return Comment::where('content', 'LIKE', '%' . $search_term . '%')->get()->toArray();
+        return Comment::select(['id'])->where('content', 'LIKE', '%' . $search_term . '%')->get()->all();
     }
 
     /**
@@ -338,8 +340,9 @@ class ActionRepository implements IRestRepository   //TODO: Exceptions missing?
      */
     protected function searchCommentsByTag(string $search_term) : array
     {
-        return Comment::whereHas('tags', function(Builder $query) use($search_term){
+        return Comment::select(['id'])->whereHas('tags', function(Builder $query) use($search_term){
             $query->where('name', 'LIKE', '%' . $search_term . '%');
-        })->get()->toArray();
+        })->get()->all();
     }
+    //endregion
 }

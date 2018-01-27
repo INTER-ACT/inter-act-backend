@@ -2,17 +2,27 @@
 /**
  * Created by PhpStorm.
  * User: danube
- * Date: 28.12.17
- * Time: 10:42
+ * Date: 17.12.17
+ * Time: 18:51
  */
 
 namespace App\Model;
 
 
-interface IRestResourcePrimary extends IRestResource
+interface IRestResource
 {
+    /**
+     * @return int
+     */
+    function getId() : int;
+
     /**
      * @return string
      */
-    function getResourcePath();
+    function getType() : string;
+
+    /**
+     * @return string
+     */
+    function getApiFriendlyType() : string;
 }

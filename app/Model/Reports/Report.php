@@ -2,13 +2,10 @@
 
 namespace App\Reports;
 
-use App\IModel;
-use App\IRestResource;
-use App\Model\RestModel;
+use App\Model\RestModelPrimary;
 use App\User;
-use Illuminate\Database\Eloquent\Model;
 
-class Report extends RestModel
+class Report extends RestModelPrimary
 {
     protected $fillable = ['explanation'];
 

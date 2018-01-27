@@ -3,22 +3,17 @@
 namespace App\Http\Resources\GeneralResources;
 
 use App\Http\Resources\AmendmentResources\AmendmentCollection;
+use App\Http\Resources\ApiCollectionResource;
 use App\Http\Resources\ApiResource;
 use App\Http\Resources\CommentResources\CommentCollection;
 use App\Http\Resources\DiscussionResources\DiscussionCollection;
 use App\Http\Resources\SubAmendmentResources\SubAmendmentCollection;
+use App\Model\IRestResource;
+use App\Model\IRestResourcePrimary;
+use App\Model\RestModel;
 
-class SearchResource extends ApiResource
+class SearchResource extends ApiCollectionResource
 {
-    /**
-     * SearchResource constructor.
-     * @param array $resource
-     */
-    public function __construct(array $resource)
-    {
-        parent::__construct($resource);
-    }
-
     /**
      * Transform the resource into an array. (resource has to be SearchResourceData)
      *
@@ -31,7 +26,13 @@ class SearchResource extends ApiResource
 
         return [
             'href' => $thisURI,
-            'search_result' => $this->search_result
+            'search_results' => $this->collection->transform(function(IRestResourcePrimary $item){
+                return [
+                    'href' => $this->getUrl($item->getResourcePath()),
+                    'id' => $item->getId(),
+                    'type' => $item->getApiFriendlyType()
+                ];
+            })
         ];
     }
 }

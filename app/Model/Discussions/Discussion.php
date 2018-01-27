@@ -7,20 +7,15 @@ use App\Amendments\IRatable;
 use App\Comments\Comment;
 use App\Comments\ICommentable;
 use App\IHasActivity;
-use App\IModel;
-use App\IRestResource;
-use App\Model\RestModel;
+use App\Model\RestModelPrimary;
 use App\MultiAspectRating;
 use App\Tags\ITaggable;
 use App\Tags\Tag;
 use App\Traits\TTaggablePost;
 use App\User;
 use Carbon\Carbon;
-use DB;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Query\Builder;
 
-class Discussion extends RestModel implements ITaggable, ICommentable, IHasActivity, IRatable
+class Discussion extends RestModelPrimary implements ITaggable, ICommentable, IHasActivity, IRatable
 {
     use TTaggablePost;
 

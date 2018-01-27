@@ -5,12 +5,9 @@ namespace App\Tags;
 use App\Amendments\Amendment;
 use App\Amendments\SubAmendment;
 use App\Discussions\Discussion;
-use App\IModel;
-use App\IRestResource;
-use App\Model\RestModel;
-use Illuminate\Database\Eloquent\Model;
+use App\Model\RestModelPrimary;
 
-class Tag extends RestModel
+class Tag extends RestModelPrimary
 {
     //region constants
     const NUTZUNG_FREMDER_INHALTE_NAME = "Lizenz";

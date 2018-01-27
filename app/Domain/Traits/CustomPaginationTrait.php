@@ -10,7 +10,7 @@ namespace App\Domain;
 
 use Exception;
 use Illuminate\Contracts\Pagination\Paginator as IPaginator;
-use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Input;
