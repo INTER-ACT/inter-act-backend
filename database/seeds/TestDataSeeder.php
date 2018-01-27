@@ -18,9 +18,6 @@ class TestDataSeeder extends Seeder
      */
     public function run(Faker $faker)
     {
-        //$output = new \Symfony\Component\Console\Output\ConsoleOutput(2);   //TODO: fix output or remove if not necessary anymore
-        //$output->writeln('run-start');
-
         //region Roles
         $admin = Role::getAdmin();
         $expert = Role::getExpert();
@@ -28,7 +25,6 @@ class TestDataSeeder extends Seeder
         $standard_user = Role::getStandardUser();
         $guest = Role::getGuest();
 
-        //$output->writeln('roles seeded');
         //endregion
 
         //region Tags
@@ -43,7 +39,6 @@ class TestDataSeeder extends Seeder
         $wirtschaftlicheInteressen = Tag::getWirtschaftlicheInteressen();
         $userGeneratedContent = Tag::getUserGeneratedContent();
 
-        //$output->writeln('tags seeded');
         //endregion
 
         //region UserResource
@@ -61,7 +56,6 @@ class TestDataSeeder extends Seeder
             ModelFactory::CreateUser($guest)
         ];
 
-        //$output->writeln('users seeded');
         //endregion
 
         //region Discussions
@@ -74,26 +68,13 @@ class TestDataSeeder extends Seeder
             ModelFactory::CreateDiscussion($users[1], $faker->dateTimeBetween(), [$socialMedia, $bildungWissenschaft, $respektAnerkennung, $downloadStreaming])
             ];
 
-        //$output->writeln('discussions seeded');
         //endregion
 
-        //region Rating-Aspects
+        /*//region Rating-Aspects
         $aspects = ModelFactory::CreateRatingAspects([
             'fair', 'unfair', 'zielführend', 'nicht zielführend', 'perfekt', 'kompliziert', 'benachteiligend', 'blödsinning', 'interessant', 'unwichtig'
         ]);
-        /*$aspects = [ModelFactory::CreateRatingAspect('fair'),
-            ModelFactory::CreateRatingAspect('unfair'),
-            ModelFactory::CreateRatingAspect('zielführend'),
-            ModelFactory::CreateRatingAspect('nicht zielführend'),
-            ModelFactory::CreateRatingAspect('perfekt'),
-            ModelFactory::CreateRatingAspect('kompliziert'),
-            ModelFactory::CreateRatingAspect('benachteiligend'),
-            ModelFactory::CreateRatingAspect('blödsinnig'),
-            ModelFactory::CreateRatingAspect('interessant'),
-            ModelFactory::CreateRatingAspect('unwichtig')];*/
-
-        //$output->writeln('ratingAspects seeded');
-        //endregion
+        //endregion*/
 
         //region Amendments
         $amendments = [
@@ -111,7 +92,6 @@ class TestDataSeeder extends Seeder
         $amendments[2]->created_at = Carbon::createFromDate(2018, 1, 1, 2);
         $amendments[2]->save();
 
-        //$output->writeln('amendments seeded');
         //endregion
 
         //region SubAmendments
@@ -132,17 +112,29 @@ class TestDataSeeder extends Seeder
         $subamendments[2]->created_at = Carbon::createFromDate(2018, 1, 1, 2);
         $subamendments[2]->save();
 
-        //$output->writeln('subamendments seeded');
         //endregion
 
         //region MA-Ratings
-        foreach ($amendments as $amendment)
+        ModelFactory::CreateMultiAspectRating($users[0], $discussions[0]);
+        ModelFactory::CreateMultiAspectRating($users[1], $discussions[0]);
+        ModelFactory::CreateMultiAspectRating($users[2], $discussions[0]);
+        ModelFactory::CreateMultiAspectRating($users[3], $discussions[0]);
+        ModelFactory::CreateMultiAspectRating($users[0], $discussions[1]);
+        ModelFactory::CreateMultiAspectRating($users[0], $amendments[0]);
+        ModelFactory::CreateMultiAspectRating($users[1], $amendments[0]);
+        ModelFactory::CreateMultiAspectRating($users[2], $amendments[0]);
+        ModelFactory::CreateMultiAspectRating($users[3], $amendments[0]);
+        ModelFactory::CreateMultiAspectRating($users[0], $amendments[1]);
+        ModelFactory::CreateMultiAspectRating($users[0], $subamendments[0]);
+        ModelFactory::CreateMultiAspectRating($users[1], $subamendments[0]);
+        ModelFactory::CreateMultiAspectRating($users[2], $subamendments[0]);
+        ModelFactory::CreateMultiAspectRating($users[3], $subamendments[0]);
+        ModelFactory::CreateMultiAspectRating($users[0], $subamendments[1]);
+
+        /*foreach ($amendments as $amendment)
             $amendment->rating_aspects()->attach(array_map(function($item){return $item->id;}, $aspects));
         foreach ($subamendments as $subamendment)
             $subamendment->rating_aspects()->attach(array_map(function($item){return $item->id;}, $aspects));
-
-        //$output->writeln('ratingAspects to ratables seeded');
-
         ModelFactory::CreateRating($users[0], $amendments[0], $aspects[0]);
         ModelFactory::CreateRating($users[2], $amendments[0], $aspects[0]);
         ModelFactory::CreateRating($users[4], $amendments[0], $aspects[1]);
@@ -150,9 +142,7 @@ class TestDataSeeder extends Seeder
         ModelFactory::CreateRating($users[6], $subamendments[0], $aspects[3]);
         ModelFactory::CreateRating($users[7], $subamendments[1], $aspects[4]);
         ModelFactory::CreateRating($users[7], $subamendments[2], $aspects[8]);
-        ModelFactory::CreateRating($users[8], $amendments[0], $aspects[0]);
-
-        //$output->writeln('ratings seeded');
+        ModelFactory::CreateRating($users[8], $amendments[0], $aspects[0]);*/
         //endregion
 
         //region Comments
@@ -179,7 +169,6 @@ class TestDataSeeder extends Seeder
         $comments[2]->created_at = Carbon::createFromDate(2018, 1, 1, 2);
         $comments[2]->save();
 
-        //$output->writeln('comments seeded');
 
         ModelFactory::CreateCommentRating($users[0], $comments[0], 1);
         ModelFactory::CreateCommentRating($users[2], $comments[0], 1);
@@ -190,7 +179,6 @@ class TestDataSeeder extends Seeder
         ModelFactory::CreateCommentRating($users[7], $comments[1], 1);
         ModelFactory::CreateCommentRating($users[8], $comments[1], -1);
 
-        //$output->writeln('comment_ratings seeded');
         //endregion
 
         //region Reports
@@ -202,7 +190,6 @@ class TestDataSeeder extends Seeder
             ModelFactory::CreateReport($users[8], $comments[0]),
         ];
 
-        //$output->writeln('reports seeded');
         //endregion
     }
 }

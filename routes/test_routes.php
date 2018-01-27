@@ -94,6 +94,10 @@ Route::get('/discussions/{discussion_id}', function(int $discussion_id, Discussi
     return $repository->getById($discussion_id);
 });
 
+Route::get('/discussions/{discussion_id}/rating', function(int $discussion_id, DiscussionRepository $repository){
+    return $repository->getRating($discussion_id);
+});
+
 Route::get('/discussions/{discussion_id}/amendments', function(int $discussion_id, DiscussionRepository $repository){
     $perPage = Input::get('count', 10);
     $pageNumber = Input::get('start', 1);

@@ -17,6 +17,6 @@ trait ApiTestTrait
 
     public function getUrl(string $path = '')
     {
-        return env('APP_URL') . $path;
+        return config('app.url') . $path;
     }
 }

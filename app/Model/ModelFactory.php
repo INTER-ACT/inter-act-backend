@@ -16,6 +16,7 @@ use App\Amendments\SubAmendment;
 use App\Comments\Comment;
 use App\Comments\ICommentable;
 use App\Discussions\Discussion;
+use App\MultiAspectRating;
 use App\Reports\IReportable;
 use App\Reports\Report;
 use App\Role;
@@ -173,6 +174,21 @@ class ModelFactory
         if(isset($tags))
             $subAmendment->tags()->attach(array_map(function($item){return $item->id;}, $tags));
         return $subAmendment;
+    }
+
+    /**
+     * @param User $user
+     * @param IRatable $ratable
+     * @return MultiAspectRating
+     */
+    public static function CreateMultiAspectRating(User $user, IRatable $ratable) : MultiAspectRating
+    {
+        $rating = factory(MultiAspectRating::class)->create([
+            'user_id' => $user->id,
+            'ratable_id' => $ratable->getIdProperty(),
+            'ratable_type' => $ratable->getType()
+        ]);
+        return $rating;
     }
 
     /**

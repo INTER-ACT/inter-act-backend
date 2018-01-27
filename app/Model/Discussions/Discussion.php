@@ -3,11 +3,13 @@
 namespace App\Discussions;
 
 use App\Amendments\Amendment;
+use App\Amendments\IRatable;
 use App\Comments\Comment;
 use App\Comments\ICommentable;
 use App\IHasActivity;
 use App\IModel;
 use App\IRestResource;
+use App\MultiAspectRating;
 use App\Tags\ITaggable;
 use App\Tags\Tag;
 use App\Traits\TTaggablePost;
@@ -17,7 +19,7 @@ use DB;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Builder;
 
-class Discussion extends Model implements ITaggable, ICommentable, IRestResource, IHasActivity
+class Discussion extends Model implements ITaggable, ICommentable, IRestResource, IHasActivity, IRatable
 {
     use TTaggablePost;
 
@@ -79,13 +81,32 @@ class Discussion extends Model implements ITaggable, ICommentable, IRestResource
         $this->load(['amendments' => function($query){
             return $query->select('id', 'discussion_id');
         }]);
+        $this->load(['ratings' => function($query){
+            return $query->select(['*']);
+        }]);
         $comment_sum = $this->comments->sum(function($comment) use($start_date, $end_date){
             return $comment->getActivity($start_date, $end_date);
         });
         $amendment_sum = $this->amendments->sum(function($amendment) use($start_date, $end_date){
             return $amendment->getActivity($start_date, $end_date);
         });
-        return (int)($comment_sum + $amendment_sum) + 1;
+        $rating_sum = $this->ratings->count();
+        return (int)($comment_sum + $amendment_sum + $rating_sum) + 1;
+    }
+
+    public function getRatingSumAttribute()
+    {
+        return $this->rating_sum();
+    }
+
+    public function getUserRatingAttribute()
+    {
+        return $this->user_rating();
+    }
+
+    public function getRatingPath()
+    {
+        return $this->getResourcePath() . '/rating';
     }
     //endregion
 
@@ -108,6 +129,44 @@ class Discussion extends Model implements ITaggable, ICommentable, IRestResource
     public function tags()
     {
         return $this->morphToMany(Tag::class, 'taggable', 'taggables');
+    }
+
+    public function ratings()
+    {
+        /*$thisTable = $this->getTable();
+        $maTable = MultiAspectRating::TABLE_NAME;
+        $queryResult = DB::table($thisTable)->select($maTable . '.*')->leftJoin($maTable, function(Builder $query) use($thisTable, $maTable) {
+            $query->on($thisTable . '.id', '=', $maTable . '.ratable_id')
+                ->where($maTable . '.ratable_type', '=', get_class($this));
+        })->get();
+        $ratings = [];
+        foreach ($queryResult as $item)
+        {
+            array_push($ratings, new MultiAspectRating(json_decode(json_encode($item), true)));
+        }
+        return collect($ratings);*/
+        return $this->morphMany(MultiAspectRating::class, 'ratable');
+    }
+
+    public function rating_sum()
+    {
+        return collect([
+            MultiAspectRating::ASPECT1 => $this->ratings->sum(MultiAspectRating::ASPECT1),
+            MultiAspectRating::ASPECT2 => $this->ratings->sum(MultiAspectRating::ASPECT2),
+            MultiAspectRating::ASPECT3 => $this->ratings->sum(MultiAspectRating::ASPECT3),
+            MultiAspectRating::ASPECT4 => $this->ratings->sum(MultiAspectRating::ASPECT4),
+            MultiAspectRating::ASPECT5 => $this->ratings->sum(MultiAspectRating::ASPECT5),
+            MultiAspectRating::ASPECT6 => $this->ratings->sum(MultiAspectRating::ASPECT6),
+            MultiAspectRating::ASPECT7 => $this->ratings->sum(MultiAspectRating::ASPECT7),
+            MultiAspectRating::ASPECT8 => $this->ratings->sum(MultiAspectRating::ASPECT8),
+            MultiAspectRating::ASPECT9 => $this->ratings->sum(MultiAspectRating::ASPECT9),
+            MultiAspectRating::ASPECT10 =>  $this->ratings->sum(MultiAspectRating::ASPECT10)
+        ]);
+    }
+
+    public function user_rating()
+    {
+        return $this->ratings()->where('user_id', '=', \Auth::id())->first();
     }
     //endregion
 

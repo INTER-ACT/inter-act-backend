@@ -8,7 +8,19 @@
 
 namespace App\Amendments;
 
-interface IRatable
+use App\IModel;
+
+interface IRatable extends IModel
 {
-    function ratable_rating_aspects();
+    function ratings();
+
+    function rating_sum();
+
+    function user_rating();
+
+    function getRatingSumAttribute();
+
+    function getUserRatingAttribute();
+
+    function getRatingPath();
 }

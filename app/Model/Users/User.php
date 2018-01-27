@@ -86,8 +86,7 @@ class User extends Authenticatable implements IRestResource
 
     public function ratings()
     {
-        throw new Exception("User Ratings not implemented!");   //TODO: Implement User->ratings
-        //return $this->hasMany(RatableRatingAspect::class);
+        return $this->hasMany(MultiAspectRating::class, 'user_id');
     }
 
     public function rated_comments()

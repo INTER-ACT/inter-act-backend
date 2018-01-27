@@ -8,6 +8,7 @@ use App\Discussions\Discussion;
 use App\IHasActivity;
 use App\IModel;
 use App\IRestResource;
+use App\MultiAspectRating;
 use App\Reports\IReportable;
 use App\Reports\Report;
 use App\Tags\ITaggable;
@@ -78,8 +79,8 @@ class Amendment extends Model implements ITaggable, IReportable, IRatable, IComm
             return $query->select('id', 'commentable_id', 'commentable_type');
         }, 'sub_amendments' => function($query){
             return $query->select('id', 'amendment_id');
-        }, 'ratable_rating_aspects' => function($query){
-            return $query->select('id', 'ratable_id', 'ratable_type');
+        }, 'ratings' => function($query){
+            return $query->select();
         }];
         foreach ($relationsToLoad as $key => $item)
         {
@@ -93,11 +94,23 @@ class Amendment extends Model implements ITaggable, IReportable, IRatable, IComm
         $sub_amendment_sum = $this->sub_amendments->sum(function($sub_amendment) use($start_date, $end_date){
             return $sub_amendment->getActivity($start_date, $end_date);
         });
-        $rating_sum = $this->ratable_rating_aspects()->get()->sum(function($aspect) use($start_date, $end_date){
-            return $aspect->getActivity($start_date, $end_date);
-        });
-        \Log::info($this->ratable_rating_aspects);
+        $rating_sum = $this->ratings()->count();
         return (int)($comment_sum + $sub_amendment_sum + $rating_sum) + 1;
+    }
+
+    public function getRatingSumAttribute()
+    {
+        return $this->rating_sum;
+    }
+
+    public function getUserRatingAttribute()
+    {
+        return $this->user_rating;
+    }
+
+    public function getRatingPath()
+    {
+        return $this->getResourcePath() . '/rating';
     }
     //endregion
 
@@ -142,7 +155,33 @@ class Amendment extends Model implements ITaggable, IReportable, IRatable, IComm
         return $this->morphToMany(Tag::class, 'taggable', 'taggables');
     }
 
-    public function ratable_rating_aspects()
+    public function ratings()
+    {
+        return $this->morphMany(MultiAspectRating::class, 'ratable');
+    }
+
+    public function rating_sum()
+    {
+        return collect([
+            MultiAspectRating::ASPECT1 => $this->ratings->sum(MultiAspectRating::ASPECT1),
+            MultiAspectRating::ASPECT2 => $this->ratings->sum(MultiAspectRating::ASPECT2),
+            MultiAspectRating::ASPECT3 => $this->ratings->sum(MultiAspectRating::ASPECT3),
+            MultiAspectRating::ASPECT4 => $this->ratings->sum(MultiAspectRating::ASPECT4),
+            MultiAspectRating::ASPECT5 => $this->ratings->sum(MultiAspectRating::ASPECT5),
+            MultiAspectRating::ASPECT6 => $this->ratings->sum(MultiAspectRating::ASPECT6),
+            MultiAspectRating::ASPECT7 => $this->ratings->sum(MultiAspectRating::ASPECT7),
+            MultiAspectRating::ASPECT8 => $this->ratings->sum(MultiAspectRating::ASPECT8),
+            MultiAspectRating::ASPECT9 => $this->ratings->sum(MultiAspectRating::ASPECT9),
+            MultiAspectRating::ASPECT10 =>  $this->ratings->sum(MultiAspectRating::ASPECT10)
+        ]);
+    }
+
+    public function user_rating()
+    {
+        return $this->ratings()->where('user_id', '=', \Auth::id())->first();
+    }
+
+    /*public function ratable_rating_aspects()
     {
         return $this->morphMany(RatableRatingAspect::class, 'ratable');
     }
@@ -150,7 +189,7 @@ class Amendment extends Model implements ITaggable, IReportable, IRatable, IComm
     public function rating_aspects()
     {
         return $this->morphToMany(RatingAspect::class, 'ratable', 'ratable_rating_aspects', 'rating_aspect_id', 'ratable_id');
-    }//TODO: not sure if it works if keys of pivot are not pk
+    }//TODO: not sure if it works if keys of pivot are not pk*/
 
     /*public function ratings()
     {

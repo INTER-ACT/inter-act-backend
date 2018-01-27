@@ -42,7 +42,8 @@ class DiscussionResource extends Resource
                     'name' => $tag->name,
                     'description' => $tag->description
                 ];
-            })
+            }),
+            'rating' => $this->getUrl($this->getRatingPath())
         ];
     }
 

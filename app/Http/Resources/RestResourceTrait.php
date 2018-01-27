@@ -45,7 +45,7 @@ trait RestResourceTrait
      */
     public function getUrl(string $uri)
     {
-        return env('APP_URL', '') . $uri;
+        return config('app.url') . $uri;
     }
 
     public function getUrlFromBase(string $uri)

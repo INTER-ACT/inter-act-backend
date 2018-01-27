@@ -28,8 +28,8 @@ class ActionController extends Controller
     {
         $search_term = $request->search_term;
         $type = $request->type;
-        $post_type = $request->post_type;
-        return $this->repository->searchArticlesByText($search_term, new PageGetRequest($request), $type, $post_type);
+        $content_type = $request->content_type;
+        return $this->repository->searchArticlesByText($search_term, new PageGetRequest($request), $type, $content_type);
     }
 
     /**

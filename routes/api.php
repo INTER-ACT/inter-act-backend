@@ -54,6 +54,8 @@ Route::patch('/discussions/{discussion_id}', 'DiscussionController@update')->mid
 
 Route::delete('/discussions/{discussion_id}', 'DiscussionController@destroy')->middleware('auth:api');
 
+Route::get('/discussions/{discussion_id}/rating', 'DiscussionController@getRating');
+
 Route::get('/discussions/{discussion_id}/amendments', 'DiscussionController@listAmendments');
 
 Route::post('/discussions/{discussion_id}/amendments', 'DiscussionController@createAmendment')->middleware('auth:api');

@@ -65,10 +65,10 @@ class ActionRepository implements IRestRepository   //TODO: Exceptions missing?
      * @param string $text
      * @param PageRequest $pageRequest
      * @param string|null $type
-     * @param string|null $post_type
+     * @param string|null $content_type
      * @return SearchResource
      */
-    public function searchArticlesByText(string $text, PageRequest $pageRequest, string $type = null, string $post_type = null) : SearchResource
+    public function searchArticlesByText(string $text, PageRequest $pageRequest, string $type = null, string $content_type = null) : SearchResource
     {
         $discussions = Discussion::where('title', 'LIKE', '%' . $text . '%')
             ->orWhere('law_text', 'LIKE', '%' . $text . '%')

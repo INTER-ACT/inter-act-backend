@@ -28,6 +28,7 @@ use App\Http\Resources\DiscussionResources\DiscussionResource;
 use App\Http\Resources\DiscussionResources\DiscussionStatisticsResource;
 use App\Http\Resources\LawCollection;
 use App\Http\Resources\LawResource;
+use App\Http\Resources\MultiAspectRatingResource;
 use App\Http\Resources\NoContentResource;
 use App\Http\Resources\SuccessfulCreationResource;
 use Exception;
@@ -87,12 +88,12 @@ class DiscussionController extends Controller
     /**
      * @param UpdateDiscussionRequest $request
      * @param int $id
+     * @return NoContentResource
      */
-    public function update(UpdateDiscussionRequest $request, int $id)
+    public function update(UpdateDiscussionRequest $request, int $id) : NoContentResource
     {
         DiscussionManipulator::update($id, $request->all());
-        return response(null, 204)
-            ->header('Content-Type', 'text/json');
+        return new NoContentResource($request);
     }
 
     /**
@@ -100,10 +101,15 @@ class DiscussionController extends Controller
      * @param int $id
      * @return NoContentResource
      */
-    public function destroy(DeleteDiscussionRequest $request, int $id)
+    public function destroy(DeleteDiscussionRequest $request, int $id) : NoContentResource
     {
         DiscussionManipulator::delete($id);
         return new NoContentResource($request);
+    }
+
+    public function getRating(Request $request, int $id) : MultiAspectRatingResource //TODO: care that id is passed or just leave InternalServerError?
+    {
+        return $this->repository->getRating($id);
     }
 
     /**

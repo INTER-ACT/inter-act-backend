@@ -19,6 +19,7 @@ use App\Http\Resources\CommentResources\CommentCollection;
 use App\Http\Resources\DiscussionResources\DiscussionCollection;
 use App\Http\Resources\DiscussionResources\DiscussionResource;
 use App\Http\Resources\DiscussionResources\DiscussionStatisticsResource;
+use App\Http\Resources\MultiAspectRatingResource;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Contracts\Pagination\Paginator as IPaginator;
 
@@ -86,6 +87,12 @@ class DiscussionRepository implements IRestRepository   //TODO: Exceptions missi
     {
         $discussion = $this->getDiscussionByIdOrThrowError($id);
         return new DiscussionResource($discussion);
+    }
+
+    public function getRating(int $id) : MultiAspectRatingResource
+    {
+        $discussion = self::getDiscussionByIdOrThrowError($id);
+        return new MultiAspectRatingResource($discussion);
     }
 
     /**

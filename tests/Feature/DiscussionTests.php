@@ -19,8 +19,10 @@ use App\Exceptions\CustomExceptions\NotAuthorizedException;
 use App\Exceptions\CustomExceptions\NotPermittedException;
 use App\Exceptions\CustomExceptions\PayloadTooLargeException;
 use App\Exceptions\CustomExceptions\ResourceNotFoundException;
+use App\Http\Resources\MultiAspectRatingResource;
 use App\Http\Resources\PostResources\TagCollection;
 use App\Model\ModelFactory;
+use App\MultiAspectRating;
 use App\Role;
 use App\Tags\Tag;
 use App\User;
@@ -31,6 +33,7 @@ use Mockery\Exception;
 use Tests\ApiTestTrait;
 use Tests\FeatureTestCase;
 use Tests\TestCase;
+use Tests\Unit\MultiAspectRatingResourceTests;
 use Tests\Unit\ResourceTests\ResourceTestTrait;
 
 class DiscussionTests extends FeatureTestCase
@@ -440,7 +443,7 @@ class DiscussionTests extends FeatureTestCase
         $resourcePath = $this->getUrl($discussion->getResourcePath());
         $response = $this->get($resourcePath);
         $response->assertStatus(200)
-            ->assertExactJson(self::mapDiscussionToJson($discussion, $this->getUrl()));
+            ->assertJson(self::mapDiscussionToJson($discussion, $this->getUrl()));
     }   //TODO: remove? same as testOneDiscussionResponse?
 
     /** @test */
@@ -474,7 +477,8 @@ class DiscussionTests extends FeatureTestCase
                     'comments' => [
                         'href' => $requestPath . '/comments'
                     ],
-                    'tags' => (new TagCollection($tagCollection))->toSubResourceArray()
+                    'tags' => (new TagCollection($tagCollection))->toSubResourceArray(),
+                    'rating' => $this->getUrl($discussion->getRatingPath())
                 ]
             );
     }
@@ -1356,6 +1360,88 @@ class DiscussionTests extends FeatureTestCase
     }
     //endregion
 
+    //region get /discussions/{id}/rating
+    /** @test */
+    public function testGetDiscussionRatingValidAndAuthenticated()
+    {
+        Passport::actingAs(ModelFactory::CreateUser(Role::getAdmin()), ['*']);
+        $discussion = ModelFactory::CreateDiscussion(\Auth::user());
+        $other_rating = ModelFactory::CreateMultiAspectRating(ModelFactory::CreateUser(Role::getStandardUser()), $discussion);
+        $user_rating = ModelFactory::CreateMultiAspectRating(\Auth::user(), $discussion);
+        $user_rating = MultiAspectRatingResourceTests::getArrayFromRating($user_rating);
+        $other_rating = MultiAspectRatingResourceTests::getArrayFromRating($other_rating);
+        $total_rating = [MultiAspectRating::ASPECT1 => 0, MultiAspectRating::ASPECT2 => 0, MultiAspectRating::ASPECT3 => 0, MultiAspectRating::ASPECT4 => 0, MultiAspectRating::ASPECT5 => 0, MultiAspectRating::ASPECT6 => 0, MultiAspectRating::ASPECT7 => 0, MultiAspectRating::ASPECT8 => 0, MultiAspectRating::ASPECT9 => 0, MultiAspectRating::ASPECT10 => 0];
+        foreach($user_rating as $key => $item)
+        {
+            if($user_rating[$key])
+                $total_rating[$key]++;
+            if($other_rating[$key])
+                $total_rating[$key]++;
+        }
+
+        $requestPath = $this->getUrl($discussion->getRatingPath());
+        $response = $this->get($requestPath);
+        $response->assertStatus(200)->assertJson([
+            'href' => $requestPath,
+            'user_rating' => $user_rating,
+            'total_rating' => $total_rating
+        ]);
+    }
+
+    /** @test */
+    public function testGetDiscussionRatingValidNotAuthenticated()
+    {
+        $user = ModelFactory::CreateUser(Role::getAdmin());
+        $discussion = ModelFactory::CreateDiscussion($user);
+        $other_rating = ModelFactory::CreateMultiAspectRating(ModelFactory::CreateUser(Role::getStandardUser()), $discussion);
+        $user_rating = ModelFactory::CreateMultiAspectRating($user, $discussion);
+        $user_rating = MultiAspectRatingResourceTests::getArrayFromRating($user_rating);
+        $other_rating = MultiAspectRatingResourceTests::getArrayFromRating($other_rating);
+        $total_rating = [MultiAspectRating::ASPECT1 => 0, MultiAspectRating::ASPECT2 => 0, MultiAspectRating::ASPECT3 => 0, MultiAspectRating::ASPECT4 => 0, MultiAspectRating::ASPECT5 => 0, MultiAspectRating::ASPECT6 => 0, MultiAspectRating::ASPECT7 => 0, MultiAspectRating::ASPECT8 => 0, MultiAspectRating::ASPECT9 => 0, MultiAspectRating::ASPECT10 => 0];
+        foreach($user_rating as $key => $item)
+        {
+            if($user_rating[$key])
+                $total_rating[$key]++;
+            if($other_rating[$key])
+                $total_rating[$key]++;
+        }
+
+        $requestPath = $this->getUrl($discussion->getRatingPath());
+        $response = $this->get($requestPath);
+        $response->assertStatus(200)->assertJson([
+            'href' => $requestPath,
+            'total_rating' => $total_rating
+        ]);
+    }
+
+    /** @test */
+    public function testGetDiscussionRatingInvalidDiscussionId()
+    {
+        $user = ModelFactory::CreateUser(Role::getAdmin());
+        $discussion = ModelFactory::CreateDiscussion($user);
+        $other_rating = ModelFactory::CreateMultiAspectRating(ModelFactory::CreateUser(Role::getStandardUser()), $discussion);
+        $user_rating = ModelFactory::CreateMultiAspectRating($user, $discussion);
+        $user_rating = MultiAspectRatingResourceTests::getArrayFromRating($user_rating);
+        $other_rating = MultiAspectRatingResourceTests::getArrayFromRating($other_rating);
+        $total_rating = [MultiAspectRating::ASPECT1 => 0, MultiAspectRating::ASPECT2 => 0, MultiAspectRating::ASPECT3 => 0, MultiAspectRating::ASPECT4 => 0, MultiAspectRating::ASPECT5 => 0, MultiAspectRating::ASPECT6 => 0, MultiAspectRating::ASPECT7 => 0, MultiAspectRating::ASPECT8 => 0, MultiAspectRating::ASPECT9 => 0, MultiAspectRating::ASPECT10 => 0];
+        foreach($user_rating as $key => $item)
+        {
+            if($user_rating[$key])
+                $total_rating[$key]++;
+            if($other_rating[$key])
+                $total_rating[$key]++;
+        }
+
+        $requestPath = $this->getUrl("/discussions/12/rating");
+        $response = $this->get($requestPath);
+        $response->assertStatus(ResourceNotFoundException::HTTP_CODE)->assertJson(['code' => ResourceNotFoundException::ERROR_CODE]);
+    }
+    //endregion
+
+    //region put /discussions/{id}/rating
+
+    //endregion
+
     /**
      * @param Discussion $discussion
      * @param string $baseUri
@@ -1384,7 +1470,8 @@ class DiscussionTests extends FeatureTestCase
                     'name' => $tag->name,
                     'description' => $tag->description
                 ];
-            })->toArray()
+            })->toArray(),
+            'rating' => config('app.url') . $discussion->getRatingPath()
         ];
     }
 }
