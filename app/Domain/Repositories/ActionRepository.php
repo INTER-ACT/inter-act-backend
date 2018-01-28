@@ -113,7 +113,7 @@ class ActionRepository implements IRestRepository   //TODO: Exceptions missing?
             $end_date = now();
         else
             $end_date = Carbon::createFromFormat('Y-m-d', $end_date);
-        if($start_date >= $end_date)
+        if($start_date > $end_date)
             throw new InvalidValueException('The start_date has to be greater than the end_date.');
         $discussions = $this->getDiscussionsBetweenDates($start_date, $end_date);
         $amendments = $this->getDiscussionsBetweenDates($start_date, $end_date);

@@ -31,13 +31,18 @@ class CommentRating extends RestModel
 
     public function getApiFriendlyRating() : string
     {
-        $score = $this->rating_score;
-        return ($score > 0) ? 'positiv' : (($score == 0) ? 'neutral' : 'negativ');
+        $score = $this->getRatingScoreAttribute();
+        return ($score > 0) ? 'positiv' : 'negativ';
     }
 
     public function setRatingScoreAttribute(int $value)
     {
-        $this->attributes['rating_score'] = ($value > 0) ? 1 : ($value == 0) ? 0 : -1;  //ceil(1/$value)
+        $this->attributes['rating_score'] = ($value > 0) ? true : false;
+    }
+
+    public function getRatingScoreAttribute() : int
+    {
+        return $this->attributes['rating_score'];
     }
 
     function user()
