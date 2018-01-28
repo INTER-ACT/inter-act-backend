@@ -37,7 +37,7 @@ trait CustomPaginationTrait
      *
      * @return LengthAwarePaginator
      */
-    public function paginate($items, $perPage = 15, $page = null, string $pageName = 'start') : LengthAwarePaginator
+    public function paginate($items, $perPage = 100, $page = null, string $pageName = 'start') : LengthAwarePaginator
     {
         $page = $page ?: (Paginator::resolveCurrentPage() ?: 1);
         $items = $items instanceof Collection ? $items : Collection::make($items);
