@@ -13,7 +13,7 @@ use App\Tags\Tag;
 use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Request;
 
-class IlaiApi
+class IlaiApi //TODO: add timeout for response
 {
     /**
      * @param string $text
@@ -82,6 +82,6 @@ class IlaiApi
         ];
         $res = $client->request('POST', 'https://ilai.inter-act.at/sentiment/predict', $inputData);
         $responseData = \GuzzleHttp\json_decode($res->getBody(), true);
-        return $responseData[0]['tags'][0]; //TODO: convert string to int
+        return (int)$responseData[0]['tags'][0];
     }
 }

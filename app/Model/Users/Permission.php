@@ -54,6 +54,11 @@ class Permission extends RestModel
         return 'permission';
     }
 
+    public function getApiFriendlyTypeGer(): string
+    {
+        return 'Berechtigung';
+    }
+
     //region relations
     public function roles()
     {

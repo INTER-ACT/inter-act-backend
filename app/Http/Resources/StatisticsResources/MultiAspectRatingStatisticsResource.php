@@ -19,7 +19,7 @@ class MultiAspectRatingStatisticsResource extends CustomArrayResource
     public function __construct(array $data)
     {
         $header = [
-            'Datum',
+            'Erstellungszeitpunkt',
             'Geschlecht',
             'PLZ',
             'Job',

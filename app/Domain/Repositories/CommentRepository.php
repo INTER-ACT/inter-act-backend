@@ -11,6 +11,7 @@ namespace App\Domain;
 use App\Comments\Comment;
 use App\Exceptions\CustomExceptions\ApiException;
 use App\Exceptions\CustomExceptions\ApiExceptionMeta;
+use App\Exceptions\CustomExceptions\ResourceNotFoundException;
 use App\Http\Resources\CommentResources\CommentCollection;
 use App\Http\Resources\CommentResources\CommentResource;
 use App\Http\Resources\PostResources\ReportCollection;
@@ -122,7 +123,7 @@ class CommentRepository implements IRestRepository   //TODO: Exceptions missing?
     {
         $comment = Comment::find($id);
         if($comment === null)
-            throw new ApiException(ApiExceptionMeta::getRequestResourceNotFound(), 'Comment with id ' . $id . ' not found.');
+            throw new ResourceNotFoundException('Comment with id ' . $id . ' not found.');
         return $comment;
     }
 }

@@ -136,9 +136,15 @@ class ActionRepository implements IRestRepository   //TODO: Exceptions missing?
         return new MultiAspectRatingStatisticsResource($ratings);
     }
 
-    public function getCommentRatingStatisticsResource() : CommentRatingStatisticsResource
+    /**
+     * @param null $start_date
+     * @param null $end_date
+     * @return CommentRatingStatisticsResource
+     */
+    public function getCommentRatingStatisticsResource($start_date = null, $end_date = null) : CommentRatingStatisticsResource
     {
-        $comments = Comment::select('id', 'sentiment', 'created_at')->with(['rating_users:id,year_of_birth'])->orderBy('created_at')->get();
+        self::mapDateInputToDates($start_date, $end_date);
+        $comments = Comment::where([['created_at', '>=', $start_date], ['created_at', '<=', $end_date]])->select('id', 'sentiment', 'created_at')->with(['rating_users:id,year_of_birth'])->orderBy('created_at')->get();
         $comments = $comments->transform(function($item){
             $rating_users = $item->rating_users;
             $pos_ratings = $rating_users->filter(function($user, $key){
@@ -146,44 +152,33 @@ class ActionRepository implements IRestRepository   //TODO: Exceptions missing?
             })->pluck('year_of_birth')->toArray();
             rsort($pos_ratings);
             $neg_ratings = $rating_users->filter(function($user, $key){
-                return $user->pivot->rating_score == -1;
+                return $user->pivot->rating_score <= 0;
             })->pluck('year_of_birth')->toArray();
             rsort($neg_ratings);
-
             $current_year = (int)(date("Y"));
             $pos_rating_count = sizeof($pos_ratings);
             $neg_rating_count = sizeof($neg_ratings);
-            if($pos_rating_count == 0)
-            {
+            if($pos_rating_count == 0) {
                 $age_q1_pos = 0;
                 $age_q2_pos = 0;
                 $age_q3_pos = 0;
             }
             else {
-                /*$pos_years = array_map(function ($item) {
-                    return ($item === null) ? 0 : $item->user->year_of_birth;
-                }, $pos_ratings);*/
-                $pos_age_count = sizeof($pos_ratings);   //may be the same as $pos_rating_count but not entirely sure
-                $age_q1_pos = $current_year - $pos_ratings[(int)($pos_age_count * 0.25)]; //actually a bit more complex (with decimal places)
-                $age_q2_pos = $current_year - $pos_ratings[(int)($pos_age_count * 0.5)];
-                $age_q3_pos = $current_year - $pos_ratings[(int)($pos_age_count * 0.75)];
+                $age_q1_pos = $current_year - $this->getQuartile($pos_ratings, 0.25);
+                $age_q2_pos = $current_year - $this->getQuartile($pos_ratings, 0.5);
+                $age_q3_pos = $current_year - $this->getQuartile($pos_ratings, 0.75);
             }
-            if($neg_rating_count == 0)
-            {
+            if($neg_rating_count == 0) {
                 $age_q1_neg = 0;
                 $age_q2_neg = 0;
                 $age_q3_neg = 0;
             }
             else {
-                /*$neg_years = array_map(function ($item) {
-                    return ($item === null) ? 0 : $item->user->year_of_birth;
-                }, $neg_ratings);*/
-                $neg_age_count = sizeof($neg_ratings);   //may be the same as $neg_rating_count but not entirely sure
-                $age_q1_neg = $current_year - $neg_ratings[(int)($neg_age_count * 0.25)]; //actually a bit more complex (with decimal places)
-                $age_q2_neg = $current_year - $neg_ratings[(int)($neg_age_count * 0.5)];
-                $age_q3_neg = $current_year - $neg_ratings[(int)($neg_age_count * 0.75)];
+                $age_q1_neg = $current_year - $this->getQuartile($neg_ratings, 0.25);
+                $age_q2_neg = $current_year - $this->getQuartile($neg_ratings, 0.5);
+                $age_q3_neg = $current_year - $this->getQuartile($neg_ratings, 0.75);
             }
-            return (new CommentRatingStatisticsResourceData($item->getResourcePath(), $pos_rating_count, $neg_rating_count, $age_q1_pos, $age_q2_pos, $age_q3_pos, $age_q1_neg, $age_q2_neg, $age_q3_neg, $item->sentiment))->toArray();
+            return (new CommentRatingStatisticsResourceData($item->getResourcePath(), $item->created_at, $pos_rating_count, $neg_rating_count, $item->sentiment, $age_q1_pos, $age_q2_pos, $age_q3_pos, $age_q1_neg, $age_q2_neg, $age_q3_neg))->toArray();
         })->toArray();
         return new CommentRatingStatisticsResource($comments);
     }
@@ -458,6 +453,18 @@ class ActionRepository implements IRestRepository   //TODO: Exceptions missing?
             $user = $item->user;
             return new GeneralActivityStatisticsResourceData(GeneralActivityStatisticsResource::getStatisticsType($item->getType()), $item->created_at, $user->getSex(), $user->postal_code, $user->job, $user->graduation, $user->getAge(), $item->ratable->getRatingPath(), implode(',', $item->getRatedAspects()));
         })->all();
+    }
+    //endregion
+
+    //region commentRatingHelpers
+    protected function getQuartile(array $array, float $factor) : float
+    {
+        $size = sizeof($array);
+        if($size == 0)
+            return 0;
+        $size -= 1;
+        $float_index = $size * $factor;
+        return ($array[(int)floor($float_index)] + $array[(int)ceil($float_index)]) / 2;
     }
     //endregion
 

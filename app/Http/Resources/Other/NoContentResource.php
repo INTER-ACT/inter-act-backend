@@ -2,23 +2,18 @@
 
 namespace App\Http\Resources;
 
-use Illuminate\Http\Resources\Json\Resource;
+use Illuminate\Contracts\Support\Responsable;
 
-class NoContentResource extends ApiResource
+class NoContentResource implements Responsable
 {
     /**
-     * Transform the resource into an array.
+     * Create an HTTP response that represents the object.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @return array
+     * @param  \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\Response
      */
-    public function toArray($request)
+    public function toResponse($request)
     {
-        return parent::toArray($request);
-    }
-
-    public function withResponse($request, $response)
-    {
-        $response->setStatusCode(204);
+        return \Response::make(null, 204);
     }
 }

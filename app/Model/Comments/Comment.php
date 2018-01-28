@@ -144,9 +144,9 @@ class Comment extends RestModel implements IReportable, ICommentable, IHasActivi
         return $this->hasMany(CommentRating::class, 'comment_id');
     }
 
-    public function rating_users()  //TODO: change foreignPivotKey and relatedPivotKey for other Models as well if needed
+    public function rating_users()
     {
-        return $this->belongsToMany(User::class, 'comment_ratings', 'comment_id', 'user_id')->withTimestamps()->withPivot(['rating_score']);
+        return $this->belongsToMany(User::class, 'comment_ratings', 'comment_id', 'user_id', 'id', 'id')->withTimestamps()->withPivot(['rating_score']);
     }
 
     public function positive_rating_count()

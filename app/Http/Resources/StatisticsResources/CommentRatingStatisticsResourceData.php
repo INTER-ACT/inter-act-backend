@@ -12,6 +12,8 @@ namespace App\Http\Resources\StatisticsResources;
 class CommentRatingStatisticsResourceData
 {
     /** @var string */
+    protected $creation_date;
+    /** @var string */
     protected $comment_path;
     /** @var int */
     protected $positive_rating_count;
@@ -34,6 +36,7 @@ class CommentRatingStatisticsResourceData
 
     /**
      * CommentRatingStatisticsResourceData constructor.
+     * @param string $creation_date
      * @param string $comment_path
      * @param int $positive_rating_count
      * @param int $negative_rating_count
@@ -45,9 +48,10 @@ class CommentRatingStatisticsResourceData
      * @param int $age_q3_neg
      * @param int $sentiment
      */
-    public function __construct(string $comment_path, int $positive_rating_count, int $negative_rating_count, int $age_q1_pos, int $age_q2_pos, int $age_q3_pos, int $age_q1_neg, int $age_q2_neg, int $age_q3_neg, int $sentiment)
+    public function __construct(string $comment_path, string $creation_date, int $positive_rating_count, int $negative_rating_count, int $age_q1_pos, int $age_q2_pos, int $age_q3_pos, int $age_q1_neg, int $age_q2_neg, int $age_q3_neg, int $sentiment)
     {
         $this->comment_path = $comment_path;
+        $this->creation_date = $creation_date;
         $this->positive_rating_count = $positive_rating_count;
         $this->negative_rating_count = $negative_rating_count;
         $this->age_q1_pos = $age_q1_pos;
@@ -63,15 +67,16 @@ class CommentRatingStatisticsResourceData
     {
         return[
             $this->comment_path,
+            $this->creation_date,
             $this->positive_rating_count,
             $this->negative_rating_count,
+            $this->sentiment,
             $this->age_q1_pos,
             $this->age_q2_pos,
             $this->age_q3_pos,
             $this->age_q1_neg,
             $this->age_q2_neg,
-            $this->age_q3_neg,
-            $this->sentiment,
+            $this->age_q3_neg
         ];
     }
 
@@ -79,15 +84,16 @@ class CommentRatingStatisticsResourceData
     {
         return[
             'comment_path' => $this->comment_path,
+            'creation_date' => $this->creation_date,
             'positive_rating_count' => $this->positive_rating_count,
             'negative_rating_count' => $this->negative_rating_count,
+            'sentiment' => $this->sentiment,
             'age_q1_pos' => $this->age_q1_pos,
             'age_q2_pos' => $this->age_q2_pos,
             'age_q3_pos' => $this->age_q3_pos,
             'age_q1_neg' => $this->age_q1_neg,
             'age_q2_neg' => $this->age_q2_neg,
-            'age_q3_neg' => $this->age_q3_neg,
-            'sentiment' => $this->sentiment,
+            'age_q3_neg' => $this->age_q3_neg
         ];
     }
 

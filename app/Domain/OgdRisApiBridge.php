@@ -14,7 +14,7 @@ use DOMXPath;
 use GuzzleHttp\Client;
 use SimpleXMLElement;
 
-class OgdRisApiBridge
+class OgdRisApiBridge   //TODO: add timeout for response
 {
     public const NORM_FETCH_PATH = 'https://data.bka.gv.at/ris/api/v2.5/bundesnormen';
     public const DOC_FETCH_PATH = 'https://www.ris.bka.gv.at/Dokumente/Bundesnormen';

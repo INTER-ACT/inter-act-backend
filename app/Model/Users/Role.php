@@ -68,6 +68,11 @@ class Role extends RestModel
         return 'role';
     }
 
+    public function getApiFriendlyTypeGer(): string
+    {
+        return 'Rolle';
+    }
+
     //region relations
     public function permissions()
     {

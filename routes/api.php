@@ -95,11 +95,15 @@ Route::get('/comments/{comment_id}', 'CommentController@show');
 
 Route::delete('/comments/{comment_id}', 'CommentController@destroy')->middleware('auth:api');
 
+Route::patch('/comments/{comment_id}', 'CommentController@update')->middleware('auth:api');
+
 Route::get('/comments/{comment_id}/comments', 'CommentController@listComments');
 
 Route::post('/comments/{comment_id}/comments', 'CommentController@createComment')->middleware('auth:api');
 
-Route::get('/comments/{comment_id}/ratings', 'CommentController@showRating');
+//Route::get('/comments/{comment_id}/ratings', 'CommentController@showRating');
+
+Route::put('/comments/{comment_id}/user_rating', 'CommentController@updateRating')->middleware('auth:api');
 
 Route::get('/comments/{comment_id}/reports', 'CommentController@listReports')->middleware('auth:api');
 

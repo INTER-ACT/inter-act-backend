@@ -15,15 +15,16 @@ class CommentRatingStatisticsResource extends CustomArrayResource
     {
         $header = [
             'Kommentar',
+            'Erstellungszeitpunkt',
             'positive Bewertungen',
             'negative Bewertungen',
+            'Einstellung zum Thema (Sentiment)',
             'Alter Q1 positive Bewerter',
             'Alter Median positive Bewerter',
             'Alter Q3 positive Bewerter',
             'Alter Q1 negative Bewerter',
             'Alter Median negative Bewerter',
-            'Alter Q3 negative Bewerter',
-            'Einstellung zum Thema (Sentiment)'
+            'Alter Q3 negative Bewerter'
         ];
         parent::__construct($header, $data);
     }

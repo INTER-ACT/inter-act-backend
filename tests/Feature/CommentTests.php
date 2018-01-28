@@ -436,6 +436,250 @@ class CommentTests extends FeatureTestCase
     }
     //endregion
 
+    //region patch /comments/{id}
+    /** @test */
+    public function testPatchCommentWithValidValuesAndAuthenticated()
+    {
+        $new_tag_ids = [1, 3];
+
+        Passport::actingAs(
+            ModelFactory::CreateUser(Role::getStandardUser()), ['*']
+        );
+        $discussion = ModelFactory::CreateDiscussion(ModelFactory::CreateUser(Role::getAdmin()), null, []);
+        $comment = ModelFactory::CreateComment(\Auth::user(), $discussion);
+        $requestPath = $this->getUrl($comment->getResourcePath());
+        $inputData = [
+            'tags' => $new_tag_ids
+        ];
+        $response = $this->json('PATCH', $requestPath, $inputData);
+        $response->assertStatus(204);
+        $getData = $this->json('GET', $requestPath);
+        $getData->assertJson([
+            'tags' => array_map(function($item){
+                return TagCollection::getSubResourceItemArray(Tag::find($item));
+            }, $new_tag_ids)
+        ]);
+    }
+
+    /** @test */
+    public function testPatchCommentWithValidValuesAndNotAuthenticated()
+    {
+        $new_tag_ids = [1, 3];
+        $user = ModelFactory::CreateUser(Role::getAdmin());
+        $discussion = ModelFactory::CreateDiscussion($user, null, []);
+        $comment = ModelFactory::CreateComment($user, $discussion);
+        $requestPath = $this->getUrl($comment->getResourcePath());
+        $inputData = [
+            'tags' => $new_tag_ids
+        ];
+        $response = $this->json('PATCH', $requestPath, $inputData);
+        $response->assertStatus(NotAuthorizedException::HTTP_CODE)->assertJson(['code' => NotAuthorizedException::ERROR_CODE]);
+    }
+
+    /** @test */
+    public function testPatchCommentWithValidValuesAndNotPermitted()
+    {
+        $new_tag_ids = [1, 3];
+        Passport::actingAs(ModelFactory::CreateUser(Role::getAdmin()), ['*']);
+        $user = ModelFactory::CreateUser(Role::getAdmin());
+        $discussion = ModelFactory::CreateDiscussion($user, null, []);
+        $comment = ModelFactory::CreateComment($user, $discussion);
+        $requestPath = $this->getUrl($comment->getResourcePath());
+        $inputData = [
+            'tags' => $new_tag_ids
+        ];
+        $response = $this->json('PATCH', $requestPath, $inputData);
+        $response->assertStatus(NotPermittedException::HTTP_CODE)->assertJson(['code' => NotPermittedException::ERROR_CODE]);
+    }
+
+    /** @test */
+    public function testPatchNonexistentComment()
+    {
+        $new_tag_ids = [1, 3];
+
+        Passport::actingAs(
+            ModelFactory::CreateUser(Role::getStandardUser()), ['*']
+        );
+        $discussion = ModelFactory::CreateDiscussion(ModelFactory::CreateUser(Role::getAdmin()), null, []);
+        $comment = ModelFactory::CreateComment(\Auth::user(), $discussion);
+        $requestPath = $this->getUrl('/comments/' . 10);
+        $inputData = [
+            'tags' => $new_tag_ids
+        ];
+        $response = $this->json('PATCH', $requestPath, $inputData);
+        $response->assertStatus(ResourceNotFoundException::HTTP_CODE)->assertJson(['code' => ResourceNotFoundException::ERROR_CODE]);
+    }
+
+    /** @test */
+    public function testPatchCommentInvalidTags()
+    {
+        $new_tag_ids = [1, 12];
+
+        Passport::actingAs(
+            ModelFactory::CreateUser(Role::getAdmin()), ['*']
+        );
+        $discussion = ModelFactory::CreateDiscussion(ModelFactory::CreateUser(Role::getAdmin()), null, []);
+        $comment = ModelFactory::CreateComment(\Auth::user(), $discussion);
+        $requestPath = $this->getUrl($comment->getResourcePath());
+        $inputData = [
+            'tags' => $new_tag_ids
+        ];
+        $response = $this->json('PATCH', $requestPath, $inputData);
+        $response->assertStatus(CannotResolveDependenciesException::HTTP_CODE)->assertJson(['code' => CannotResolveDependenciesException::ERROR_CODE]);
+    }
+    //endregion
+
+    //region put /comments/{id}/user_rating
+    /** @test */
+    public function testPutCommentRatingValid()
+    {
+        $user_rating = 1;
+
+        Passport::actingAs(ModelFactory::CreateUser(Role::getStandardUser()));
+        $discussion = ModelFactory::CreateDiscussion(\Auth::user());
+        $comment = ModelFactory::CreateComment(\Auth::user(), $discussion);
+        $requestPath = $this->getUrl($comment->getResourcePath() . '/user_rating');
+        $inputData = [
+            'user_rating' => $user_rating
+        ];
+        $response = $this->json('PUT', $requestPath, $inputData);
+        $response->assertStatus(204);
+        $getData = $this->json('GET', $this->getUrl($comment->getResourcePath()));
+        $getData->assertStatus(200)
+            ->assertJson([
+            'user_rating' => $user_rating
+        ]);
+    }
+
+    /** @test */
+    public function testPutCommentRatingValidOnExisting()
+    {
+        $user_rating = -1;
+
+        Passport::actingAs(ModelFactory::CreateUser(Role::getStandardUser()));
+        $discussion = ModelFactory::CreateDiscussion(\Auth::user());
+        $comment = ModelFactory::CreateComment(\Auth::user(), $discussion);
+        ModelFactory::CreateCommentRating(ModelFactory::CreateUser(Role::getStandardUser()), $comment, 1);
+        ModelFactory::CreateCommentRating(\Auth::user(), $comment, 1);
+        $requestPath = $this->getUrl($comment->getResourcePath() . '/user_rating');
+        $inputData = [
+            'user_rating' => $user_rating
+        ];
+        $response = $this->json('PUT', $requestPath, $inputData);
+        $response->assertStatus(204);
+        $getData = $this->json('GET', $this->getUrl($comment->getResourcePath()));
+        $getData->assertStatus(200)
+            ->assertJson([
+                'positive_ratings' => 1,
+                'negative_ratings' => 1,
+                'user_rating' => $user_rating
+            ]);
+    }
+
+    /** @test */
+    public function testPutCommentRatingNotAuthenticated()
+    {
+        $user_rating = -1;
+
+        $user = ModelFactory::CreateUser(Role::getStandardUser());
+        $discussion = ModelFactory::CreateDiscussion($user);
+        $comment = ModelFactory::CreateComment($user, $discussion);
+        ModelFactory::CreateCommentRating(ModelFactory::CreateUser(Role::getStandardUser()), $comment, 1);
+        ModelFactory::CreateCommentRating($user, $comment, 1);
+        $requestPath = $this->getUrl($comment->getResourcePath() . '/user_rating');
+        $inputData = [
+            'user_rating' => $user_rating
+        ];
+        $response = $this->json('PUT', $requestPath, $inputData);
+        $response->assertStatus(NotAuthorizedException::HTTP_CODE)->assertJson(['code' => NotAuthorizedException::ERROR_CODE]);
+    }
+
+    /** @test */
+    public function testPutCommentRatingOnNonexistentComment()
+    {
+        $user_rating = -1;
+        Passport::actingAs(ModelFactory::CreateUser(Role::getStandardUser()));
+        $user = ModelFactory::CreateUser(Role::getStandardUser());
+        $discussion = ModelFactory::CreateDiscussion($user);
+        $comment = ModelFactory::CreateComment($user, $discussion);
+        ModelFactory::CreateCommentRating(ModelFactory::CreateUser(Role::getStandardUser()), $comment, 1);
+        ModelFactory::CreateCommentRating($user, $comment, 1);
+        $requestPath = $this->getUrl('/comments/' . 1000 . '/user_rating');
+        $inputData = [
+            'user_rating' => $user_rating
+        ];
+        $response = $this->json('PUT', $requestPath, $inputData);
+        $response->assertStatus(ResourceNotFoundException::HTTP_CODE)->assertJson(['code' => ResourceNotFoundException::ERROR_CODE]);
+    }
+
+    /** @test */
+    public function testPutCommentRatingUserRatingInvalid()
+    {
+        $user_rating = "lol";
+        Passport::actingAs(ModelFactory::CreateUser(Role::getStandardUser()));
+        $user = ModelFactory::CreateUser(Role::getStandardUser());
+        $discussion = ModelFactory::CreateDiscussion($user);
+        $comment = ModelFactory::CreateComment($user, $discussion);
+        ModelFactory::CreateCommentRating(ModelFactory::CreateUser(Role::getStandardUser()), $comment, 1);
+        ModelFactory::CreateCommentRating($user, $comment, 1);
+        $requestPath = $this->getUrl('/comments/' . 1000 . '/user_rating');
+        $inputData = [
+            'user_rating' => $user_rating
+        ];
+        $response = $this->json('PUT', $requestPath, $inputData);
+        $response->assertStatus(InvalidValueException::HTTP_CODE)->assertJson(['code' => InvalidValueException::ERROR_CODE]);
+    }
+
+    /** @test */
+    public function testPutCommentRatingDeleteRating()
+    {
+        $user_rating = 0;
+        Passport::actingAs(ModelFactory::CreateUser(Role::getStandardUser()));
+        $user = ModelFactory::CreateUser(Role::getStandardUser());
+        $discussion = ModelFactory::CreateDiscussion($user);
+        $comment = ModelFactory::CreateComment($user, $discussion);
+        ModelFactory::CreateCommentRating(ModelFactory::CreateUser(Role::getStandardUser()), $comment, 1);
+        ModelFactory::CreateCommentRating(\Auth::user(), $comment, 1);
+        $requestPath = $this->getUrl($comment->getResourcePath() . '/user_rating');
+        $inputData = [
+            'user_rating' => $user_rating
+        ];
+        $response = $this->json('PUT', $requestPath, $inputData);
+        $response->assertStatus(204);
+        $getData = $this->json('GET', $this->getUrl($comment->getResourcePath()));
+        $getData->assertStatus(200)
+            ->assertJson([
+                'positive_ratings' => 1,
+                'negative_ratings' => 0,
+                'user_rating' => null
+            ]);
+    }
+
+    /** @test */
+    public function testPutCommentRatingDeleteRatingWhenNoRatingExists()
+    {
+        $user_rating = 0;
+        Passport::actingAs(ModelFactory::CreateUser(Role::getStandardUser()));
+        $user = ModelFactory::CreateUser(Role::getStandardUser());
+        $discussion = ModelFactory::CreateDiscussion($user);
+        $comment = ModelFactory::CreateComment($user, $discussion);
+        ModelFactory::CreateCommentRating(ModelFactory::CreateUser(Role::getStandardUser()), $comment, 1);
+        $requestPath = $this->getUrl($comment->getResourcePath() . '/user_rating');
+        $inputData = [
+            'user_rating' => $user_rating
+        ];
+        $response = $this->json('PUT', $requestPath, $inputData);
+        $response->assertStatus(204);
+        $getData = $this->json('GET', $this->getUrl($comment->getResourcePath()));
+        $getData->assertStatus(200)
+            ->assertJson([
+                'positive_ratings' => 1,
+                'negative_ratings' => 0,
+                'user_rating' => null
+            ]);
+    }
+    //endregion
+
     //region get /comments/{id}/comments
     /** @test */
     public function testSubCommentsRouteResponseNoParametersSet()

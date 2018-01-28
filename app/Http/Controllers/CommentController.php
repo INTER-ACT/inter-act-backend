@@ -9,8 +9,11 @@ use App\Domain\PageGetRequest;
 use App\Domain\PageRequest;
 use App\Exceptions\CustomExceptions\InvalidValueException;
 use App\Http\Requests\CreateCommentRequest;
+use App\Http\Requests\CreateReportRequest;
 use App\Http\Requests\DeleteCommentRequest;
 use App\Http\Requests\TagRecommendationsRequest;
+use App\Http\Requests\UpdateCommentRatingRequest;
+use App\Http\Requests\UpdateCommentRequest;
 use App\Http\Resources\CommentResources\CommentCollection;
 use App\Http\Resources\CommentResources\CommentResource;
 use App\Http\Resources\NoContentResource;
@@ -66,14 +69,27 @@ class CommentController extends Controller
     }
 
     /**
+     * @param UpdateCommentRequest $request
+     * @param $id
+     * @return NoContentResource
+     * @throws InvalidValueException
+     */
+    public function update(UpdateCommentRequest $request, $id) : NoContentResource
+    {
+        if(!is_numeric($id))
+            throw new InvalidValueException("The given id was not valid");
+        return CommentManipulator::update($id, $request->all()['tags']);
+    }
+
+    /**
      * @param DeleteCommentRequest $request
      * @param int $id
      * @return NoContentResource
      */
-    public function destroy(DeleteCommentRequest $request, int $id)
+    public function destroy(DeleteCommentRequest $request, int $id) : NoContentResource
     {
         CommentManipulator::delete($id);
-        return new NoContentResource($request);
+        return new NoContentResource();
     }
 
     /**
@@ -96,25 +112,37 @@ class CommentController extends Controller
         return CommentManipulator::createComment($id, $request->all());
     }
 
-    public function showRating(Request $request, int $id)
+    /*public function showRating(Request $request, int $id)
     {
         return $this->repository->getRating($id, 1)->toArray($request, User::find(1));
-    }
+    }*/
 
     //TODO: change UpdateMARatingRequest to UpdateCommentRatingRequest in docs
-    public function updateRating(int $id, Request $request) //TODO: change Request to UpdateCommentRatingRequest
+    /**
+     * @param UpdateCommentRatingRequest $request
+     * @param int $id
+     * @return NoContentResource
+     */
+    public function updateRating(UpdateCommentRatingRequest $request, int $id) : NoContentResource
     {
-        CommentManipulator::updateRating($id, $request->all()['rating_score'], Auth::id());
+        $rating = $request->input('user_rating');
+        if($rating == 0)
+            return CommentManipulator::destroyRating($id, Auth::id());
+        return CommentManipulator::updateRating($id, $rating, Auth::id());
     }
 
+    /**
+     * @param int $id
+     * @return ReportCollection
+     */
     public function listReports(int $id) : ReportCollection
     {
         return $this->repository->getReports($id);
     }
 
-    public function createReport(int $id, Request $request) //TODO: change Request to CreateReportRequest
+    public function createReport(int $id, CreateReportRequest $request)
     {
-        CommentManipulator::createReport($id, $request->all(), Auth::id());
+        CommentManipulator::createReport($id, $request->all(), Auth::id()); //TODO: implement
     }
 
     /**

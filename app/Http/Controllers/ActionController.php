@@ -97,9 +97,13 @@ class ActionController extends Controller
         );
     }
 
+    /**
+     * @param Request $request
+     * @return StreamedResponse
+     */
     public function getCommentRatingStatistics(Request $request) : StreamedResponse
     {
-        $data = $this->repository->getCommentRatingStatisticsResource()->toArray();
+        $data = $this->repository->getCommentRatingStatisticsResource($request->begin, $request->end)->toArray();
         return new StreamedResponse(
             function() use($data)
             {

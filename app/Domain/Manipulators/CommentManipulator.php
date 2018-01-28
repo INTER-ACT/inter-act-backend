@@ -11,14 +11,28 @@ namespace App\Domain\Manipulators;
 
 use App\Comments\Comment;
 use App\Domain\CommentRepository;
+use App\Domain\IlaiApi;
 use App\Exceptions\CustomExceptions\ApiException;
-use App\Exceptions\CustomExceptions\ApiExceptionMeta;
 use App\Exceptions\CustomExceptions\InternalServerError;
+use App\Http\Resources\NoContentResource;
 use App\Http\Resources\SuccessfulCreationResource;
 
 class CommentManipulator
 {
     const DELETED_COMMENT_CONTENT = '[entfernt]';
+
+    /**
+     * @param int $id
+     * @param array $tags
+     * @return NoContentResource
+     * @throws InternalServerError
+     */
+    public static function update(int $id, array $tags) : NoContentResource
+    {
+        $comment = CommentRepository::getCommentByIdOrThrowError($id);
+        $comment->tags()->attach($tags);
+        return new NoContentResource();
+    }
 
     /**
      * @param int $id
@@ -46,6 +60,7 @@ class CommentManipulator
         $sub_comment = new Comment();
         $sub_comment->fill($data);
         $sub_comment->user_id = $user->id;
+        $sub_comment->sentiment = IlaiApi::getSentimentForText($sub_comment->content);
         if(!$comment->comments()->save($sub_comment))
             throw new InternalServerError("Could not create a comment with the given data.");
         $sub_comment->tags()->attach($data['tags']);
@@ -70,22 +85,25 @@ class CommentManipulator
      * @param int $id
      * @param int $rating_score
      * @param int $user_id
+     * @return NoContentResource
      */
-    public static function updateRating(int $id, int $rating_score, int $user_id)   //TODO: return type
+    public static function updateRating(int $id, int $rating_score, int $user_id) : NoContentResource
     {
         $comment = CommentRepository::getCommentByIdOrThrowError($id);
-        $comment->rating_users()->attach($user_id, ['rating_score' => $rating_score]);
+        $comment->rating_users()->sync([$user_id => ['rating_score' => $rating_score]], false);
+        return new NoContentResource();
     }
 
     /**
      * @param int $id
      * @param int $user_id
-     * @return void
+     * @return NoContentResource
      */
-    public static function destroyRating(int $id, int $user_id) : void
+    public static function destroyRating(int $id, int $user_id) : NoContentResource
     {
         $comment = CommentRepository::getCommentByIdOrThrowError($id);
         $comment->rating_users()->detach([$user_id]);
+        return new NoContentResource();
     }
 
     /**

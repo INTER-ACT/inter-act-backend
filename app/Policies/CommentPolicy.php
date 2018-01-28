@@ -55,11 +55,6 @@ class CommentPolicy
      */
     public function delete(User $user, Comment $comment)
     {
-        return false;
-    }
-
-    public function before(User $user, $ability)
-    {
         return $user->hasRole(Role::getAdmin());
     }
 }
