@@ -4,6 +4,13 @@ namespace App\Http\Resources\AmendmentResources;
 
 use App\Http\Resources\ApiResource;
 
+/**
+ * Resource for transforming a SubAmendment into a Json representing the
+ * changes to the previous Amendment
+ *
+ * Class ChangeResource
+ * @package App\Http\Resources\AmendmentResources
+ */
 class ChangeResource extends ApiResource
 {
     /**
