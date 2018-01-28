@@ -17,6 +17,8 @@ class PageGetRequest extends PageRequest
 {
     use CustomPaginationTrait;
 
+    public $request;
+
     /**
      * PageGetRequest constructor.
      * @param Request $request
@@ -24,6 +26,8 @@ class PageGetRequest extends PageRequest
      */
     public function __construct(Request $request)
     {
+        $this->request = $request;
+
         $count = $request->input('count', null);
         $start = $request->input('start', null);
         if(!isset($count))
