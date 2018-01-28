@@ -45,9 +45,9 @@ class ActionController extends Controller
      * @param Request $request
      * @return StreamedResponse
      */
-    public function getGeneralStatistics(Request $request) : StreamedResponse
+    public function getGeneralActivityStatistics(Request $request) : StreamedResponse
     {
-        $data = $this->repository->getGeneralActivityStatistics($request->start_date, $request->end_date)->toArray();
+        $data = $this->repository->getGeneralActivityStatistics($request->begin, $request->end)->toArray();
         return new StreamedResponse(
             function() use($data)
             {

@@ -8,7 +8,9 @@
 
 namespace App\Amendments;
 
-interface IRatable
+use App\Model\IRestResource;
+
+interface IRatable extends IRestResource
 {
     function ratings();
 

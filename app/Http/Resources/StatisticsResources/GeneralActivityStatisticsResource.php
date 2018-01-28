@@ -9,6 +9,9 @@ use App\Comments\Comment;
 use App\Discussions\Discussion;
 use App\Domain\EntityRepresentations\CommentRatingRepresentation;
 use App\Domain\EntityRepresentations\MultiAspectRatingRepresentation;
+use App\Model\RestModel;
+use App\Model\RestModelPrimary;
+use App\MultiAspectRating;
 use App\RatingAspectRating;
 use App\Reports\Report;
 use function foo\func;
@@ -17,7 +20,7 @@ use Mockery\Exception;
 
 class GeneralActivityStatisticsResource extends CustomArrayResource
 {
-    protected static $type_array = [Discussion::class => 'Diskussion', Amendment::class => 'Änderungsvorschlag', SubAmendment::class => 'Sub-Änderungsvorschlag', Comment::class => 'Kommentar', Report::class => 'Meldung', MultiAspectRatingRepresentation::class => 'Multi-Aspect-Rating', CommentRatingRepresentation::class => 'Kommentar-Bewertung'];
+    protected static $type_array = [Discussion::class => 'Diskussion', Amendment::class => 'Änderungsvorschlag', SubAmendment::class => 'Sub-Änderungsvorschlag', Comment::class => 'Kommentar', Report::class => 'Meldung', MultiAspectRating::class => 'Multi-Aspect-Rating', CommentRating::class => 'Kommentar-Bewertung'];
 
     /** @var  array */
     protected $data;
@@ -37,7 +40,6 @@ class GeneralActivityStatisticsResource extends CustomArrayResource
             'Höchster Bildungsabschluss',
             'Alter',
             'Beitrag',
-            'Beitrags-ID',
             'Extra-Information'
         ];
         uasort($data, function($item1, $item2){
@@ -63,9 +65,9 @@ class GeneralActivityStatisticsResource extends CustomArrayResource
      * @param \Illuminate\Database\Eloquent\Collection $collection
      * @return array
      */
-    public static function transformCollectionToResourceDataArray(Collection $collection)
+    public static function transformCollectionToResourceDataArray(Collection $collection) : array
     {
-        return $collection->transform([self::class, 'EntityToResourceDataReturn'])->toArray();
+        return $collection->transform([self::class, 'EntityToResourceDataReturn'])->all();
     }
 
     /**
@@ -93,5 +95,14 @@ class GeneralActivityStatisticsResource extends CustomArrayResource
         }
 
         $item = new GeneralActivityStatisticsResourceData(self::$type_array[get_class($item)], $item->date, $item->user->getSex(), $item->user->postal_code, $item->user->job, $item->user->graduation, $item->user->getAge(), $item->getResourcePath(), $item->extra);
+    }
+
+    /**
+     * @param string $class_name
+     * @return string
+     */
+    public static function getStatisticsType(string $class_name) : string
+    {
+        return array_key_exists($class_name, self::$type_array) ? self::$type_array[$class_name] : 'Unknown';
     }
 }

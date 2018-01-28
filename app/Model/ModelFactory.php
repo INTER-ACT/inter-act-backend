@@ -161,7 +161,7 @@ class ModelFactory
     {
         $rating = factory(MultiAspectRating::class)->create([
             'user_id' => $user->id,
-            'ratable_id' => $ratable->getIdProperty(),
+            'ratable_id' => $ratable->getId(),
             'ratable_type' => $ratable->getType()
         ]);
         return $rating;
@@ -198,7 +198,7 @@ class ModelFactory
         /** @var Comment $comment */
         $comment = factory(Comment::class)->create([
             'user_id' => $user->id,
-            'commentable_id' => $parent->getIdProperty(),
+            'commentable_id' => $parent->getId(),
             'commentable_type' => get_class($parent),
             'created_at' => $created_at
         ]);
@@ -228,7 +228,7 @@ class ModelFactory
         /** @var Report $report */
         $report = factory(Report::class)->create([
             'user_id' => $user->id,
-            'reportable_id' => $reportable->getIdProperty(),
+            'reportable_id' => $reportable->getId(),
             'reportable_type' => get_class($reportable)
         ]);
         return $report;

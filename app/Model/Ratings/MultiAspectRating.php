@@ -2,9 +2,9 @@
 
 namespace App;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Model\RestModel;
 
-class MultiAspectRating extends Model
+class MultiAspectRating extends RestModel
 {
     //protected $primaryKey = ['user_id', 'ratable_id', 'ratable_type'];
     //protected $incrementing = false;
@@ -36,6 +36,26 @@ class MultiAspectRating extends Model
     protected $fillable = ['aspect1', 'aspect2', 'aspect3', 'aspect4', 'aspect5', 'aspect6', 'aspect7', 'aspect8', 'aspect9', 'aspect10'];
     protected $hidden = ['user_id', 'ratable_id', 'ratable_type', 'created_at', 'updated_at'];
 
+    public function getId() : int
+    {
+        return 0;
+    }
+
+    public function getType() : string
+    {
+        return get_class($this);
+    }
+
+    public  function getApiFriendlyType(): string
+    {
+        return 'multi-aspect-rating';
+    }
+
+    public function getResourcePath() : string
+    {
+        return $this->ratable->getResourcePath() . '/rating';
+    }
+
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id');
@@ -51,7 +71,43 @@ class MultiAspectRating extends Model
         return $this->aspect1 + $this->aspect2 + $this->aspect3 + $this->aspect4 + $this->aspect5 + $this->aspect6 + $this->aspect7 + $this->aspect8 + $this->aspect9 + $this->aspect10;
     }
 
-    public static function getEmptyRatingArray()
+    /**
+     * @return array
+     */
+    public function getRatingArray() : array
+    {
+        return [
+            self::ASPECT1_COLUMN => $this->getAttribute(self::ASPECT1_COLUMN),
+            self::ASPECT2_COLUMN => $this->getAttribute(self::ASPECT2_COLUMN),
+            self::ASPECT3_COLUMN => $this->getAttribute(self::ASPECT3_COLUMN),
+            self::ASPECT4_COLUMN => $this->getAttribute(self::ASPECT4_COLUMN),
+            self::ASPECT5_COLUMN => $this->getAttribute(self::ASPECT5_COLUMN),
+            self::ASPECT6_COLUMN => $this->getAttribute(self::ASPECT6_COLUMN),
+            self::ASPECT7_COLUMN => $this->getAttribute(self::ASPECT7_COLUMN),
+            self::ASPECT8_COLUMN => $this->getAttribute(self::ASPECT8_COLUMN),
+            self::ASPECT9_COLUMN => $this->getAttribute(self::ASPECT9_COLUMN),
+            self::ASPECT10_COLUMN => $this->getAttribute(self::ASPECT10_COLUMN),
+        ];
+    }
+
+    /**
+     * @return array
+     */
+    public function getRatedAspects() : array
+    {
+        $aspects = $this->getRatingArray();
+        $aspects = array_map(function($key,  $item){
+            return ($item) ? $key : null;
+        }, array_keys($aspects), $aspects);
+        return array_filter($aspects, function($item){
+            return $item != null;
+        });
+    }
+
+    /**
+     * @return array
+     */
+    public static function getEmptyRatingArray() : array
     {
         return [
             self::ASPECT1_COLUMN => false,

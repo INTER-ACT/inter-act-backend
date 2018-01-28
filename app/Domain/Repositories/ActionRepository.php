@@ -15,16 +15,20 @@ use App\Comments\Comment;
 use App\Discussions\Discussion;
 use App\Domain\EntityRepresentations\CommentRatingRepresentation;
 use App\Domain\EntityRepresentations\MultiAspectRatingRepresentation;
+use App\Exceptions\CustomExceptions\InvalidValueException;
 use App\Http\Resources\GeneralResources\SearchResource;
 use App\Http\Resources\StatisticsResources\ActionStatisticsResource;
 use App\Http\Resources\StatisticsResources\ActionStatisticsResourceData;
 use App\Http\Resources\StatisticsResources\CommentRatingStatisticsResource;
 use App\Http\Resources\StatisticsResources\CommentRatingStatisticsResourceData;
 use App\Http\Resources\StatisticsResources\GeneralActivityStatisticsResource;
+use App\Http\Resources\StatisticsResources\GeneralActivityStatisticsResourceData;
 use App\Http\Resources\StatisticsResources\RatingStatisticsResource;
 use App\Http\Resources\StatisticsResources\RatingStatisticsResourceData;
 use App\Http\Resources\StatisticsResources\UserActivityStatisticsResource;
+use App\MultiAspectRating;
 use App\RatingAspectRating;
+use App\Reports\Report;
 use App\Tags\Tag;
 use App\User;
 use Carbon\Carbon;
@@ -93,26 +97,32 @@ class ActionRepository implements IRestRepository   //TODO: Exceptions missing?
         return new SearchResource($search_results);
     }
 
-    public function getGeneralActivityStatistics(Carbon $start_date = null, Carbon $end_date = null) : GeneralActivityStatisticsResource
+    /**
+     * @param null $start_date
+     * @param null $end_date
+     * @return GeneralActivityStatisticsResource
+     * @throws InvalidValueException
+     */
+    public function getGeneralActivityStatistics($start_date = null, $end_date = null) : GeneralActivityStatisticsResource
     {
-        $discussions = GeneralActivityStatisticsResource::transformCollectionToResourceDataArray(Discussion::select('id', 'created_at as date', 'user_id', 'title as extra')->with(['user'])->get());
-        $amendments = GeneralActivityStatisticsResource::transformCollectionToResourceDataArray(Amendment::select('id', 'discussion_id', 'created_at as date', 'user_id')->with(['user'])->get());
-        $sub_amendments = GeneralActivityStatisticsResource::transformCollectionToResourceDataArray(SubAmendment::select('id', 'amendment_id', 'created_at as date', 'user_id')->with(['user'])->get());
-        $comments = GeneralActivityStatisticsResource::transformCollectionToResourceDataArray(Comment::select('id', 'created_at as date', 'user_id')->with(['user'])->get());
-        $reports = GeneralActivityStatisticsResource::transformCollectionToResourceDataArray(Report::select('id', 'created_at as date', 'user_id')->with(['user'])->get());
-        //return RatingAspectRating::select('ratable_rating_aspect_id', 'created_at as date', 'user_id')->with(['user', 'ratable_rating_aspect:id,rating_aspect_id,ratable_id,ratable_type', 'ratable_rating_aspect.ratable', 'ratable_rating_aspect.rating_aspect:id,name'])->get();
-        $ratings_raw = RatingAspectRating::select('ratable_rating_aspect_id', 'created_at as date', 'user_id')->with(['user', 'ratable_rating_aspect:id,rating_aspect_id,ratable_id,ratable_type', 'ratable_rating_aspect.ratable', 'ratable_rating_aspect.rating_aspect:id,name'])->get()
-            ->transform(function($item, $key) {
-                return (new MultiAspectRatingRepresentation($item->date, $item->ratable_rating_aspect->ratable, $item->user, $item->ratable_rating_aspect->rating_aspect->name));
-            });
-        $ratings = GeneralActivityStatisticsResource::transformCollectionToResourceDataArray($ratings_raw);
-        $comment_ratings_raw = CommentRating::with(['user', 'comment'])->get()
-            ->transform(function($item, $key) {
-                return new CommentRatingRepresentation($item->created_at, $item->comment, $item->user, $item->rating_score);
-            });
-        $comment_ratings = GeneralActivityStatisticsResource::transformCollectionToResourceDataArray($comment_ratings_raw);
+        if(!isset($start_date))
+            $start_date = Carbon::createFromDate(2017, 1, 1, 2);
+        else
+            $start_date = Carbon::createFromFormat('Y-m-d', $start_date);
+        if(!isset($end_date))
+            $end_date = now();
+        else
+            $end_date = Carbon::createFromFormat('Y-m-d', $end_date);
+        if($start_date >= $end_date)
+            throw new InvalidValueException('The start_date has to be greater than the end_date.');
+        $discussions = $this->getDiscussionsBetweenDates($start_date, $end_date);
+        $amendments = $this->getDiscussionsBetweenDates($start_date, $end_date);
+        $sub_amendments = $this->getSubAmendmentsBetweenDates($start_date, $end_date);
+        $comments = $this->getCommentsBetweenDates($start_date, $end_date);
+        $reports = $this->getReportsBetweenDates($start_date, $end_date);
+        $comment_ratings = $this->getCommentRatingsBetweenDates($start_date, $end_date);
+        $ratings = $this->getMultiAspectRatingsBetweenDates($start_date, $end_date);
         $final_array = array_merge($discussions, $amendments, $sub_amendments, $comments, $reports, $ratings, $comment_ratings);
-        //return $final_array;
         return new GeneralActivityStatisticsResource($final_array);
     }
 
@@ -344,6 +354,94 @@ class ActionRepository implements IRestRepository   //TODO: Exceptions missing?
         return Comment::select(['id'])->whereHas('tags', function(Builder $query) use($search_term){
             $query->where('name', 'LIKE', '%' . $search_term . '%');
         })->get()->all();
+    }
+    //endregion
+
+    //region generalActivityHelpers
+    /**
+     * @param $start_date
+     * @param $end_date
+     * @return array
+     */
+    protected function getDiscussionsBetweenDates($start_date, $end_date) : array
+    {
+        $discussions = Discussion::select('id', 'created_at as date', 'user_id', 'title as extra')->where([['created_at', '>=', $start_date], ['created_at', '<=', $end_date]])->with(['user'])->get();
+        return GeneralActivityStatisticsResource::transformCollectionToResourceDataArray($discussions);
+    }
+
+    /**
+     * @param $start_date
+     * @param $end_date
+     * @return array
+     */
+    protected function getAmendmentsBetweenDates($start_date, $end_date) : array
+    {
+        $amendments = Amendment::select('id', 'discussion_id', 'created_at as date', 'user_id')->where([['created_at', '>=', $start_date], ['created_at', '<=', $end_date]])->with(['user'])->get();
+        return GeneralActivityStatisticsResource::transformCollectionToResourceDataArray($amendments);
+    }
+
+    /**
+     * @param $start_date
+     * @param $end_date
+     * @return array
+     */
+    protected function getSubAmendmentsBetweenDates($start_date, $end_date) : array
+    {
+        $sub_amendments = SubAmendment::select('id', 'amendment_id', 'created_at as date', 'user_id')->where([['created_at', '>=', $start_date], ['created_at', '<=', $end_date]])->with(['user'])->get();
+        return GeneralActivityStatisticsResource::transformCollectionToResourceDataArray($sub_amendments);
+    }
+
+    /**
+     * @param $start_date
+     * @param $end_date
+     * @return array
+     */
+    protected function getCommentsBetweenDates($start_date, $end_date) : array
+    {
+        $comments = Comment::select('id', 'created_at as date', 'user_id')->where([['created_at', '>=', $start_date], ['created_at', '<=', $end_date]])->with(['user'])->get();
+        return GeneralActivityStatisticsResource::transformCollectionToResourceDataArray($comments);
+    }
+
+    /**
+     * @param Carbon $start_date
+     * @param Carbon $end_date
+     * @return array
+     */
+    protected function getReportsBetweenDates(Carbon $start_date, Carbon $end_date) : array
+    {
+        $reports = Report::select('id', 'created_at as date', 'user_id')->where([['created_at', '>=', $start_date], ['created_at', '<=', $end_date]])->with(['user'])->get();
+        return GeneralActivityStatisticsResource::transformCollectionToResourceDataArray($reports);
+
+    }
+
+    /**
+     * @param $start_date
+     * @param $end_date
+     * @return array
+     */
+    protected function getCommentRatingsBetweenDates($start_date, $end_date) : array
+    {
+        $comment_ratings = CommentRating::where([['created_at', '>=', $start_date], ['created_at', '<=', $end_date]])->with(['user', 'comment'])->get();
+        return $comment_ratings->transform(function(CommentRating $item) {
+            /** @var User $user */
+            $user = $item->user;
+            return new GeneralActivityStatisticsResourceData(GeneralActivityStatisticsResource::getStatisticsType($item->getType()), $item->created_at, $user->getSex(), $user->postal_code, $user->job, $user->graduation, $user->getAge(), $item->getResourcePath(), $item->getApiFriendlyRating());
+        })->all();
+    }
+
+    /**
+     * @param $start_date
+     * @param $end_date
+     * @return array
+     */
+    protected function getMultiAspectRatingsBetweenDates($start_date, $end_date) : array
+    {
+        $ratings = MultiAspectRating::where([['created_at', '>=', $start_date], ['created_at', '<=', $end_date]])->with(['user', 'ratable'])->get();
+        return $ratings->transform(function(MultiAspectRating $item){
+            /** @var User $user */
+            $user = $item->user;
+            return new GeneralActivityStatisticsResourceData(GeneralActivityStatisticsResource::getStatisticsType($item->getType()), $item->created_at, $user->getSex(), $user->postal_code, $user->job, $user->graduation, $user->getAge(), $item->ratable->getRatingPath(), implode(',', $item->getRatedAspects()));
+        })->all();
     }
     //endregion
 }

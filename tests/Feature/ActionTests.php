@@ -670,4 +670,8 @@ class ActionTests extends FeatureTestCase
         }, $valid_array);
     }
     //endregion
+
+    //region get /statistics
+
+    //endregion
 }

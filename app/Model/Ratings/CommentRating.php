@@ -29,6 +29,17 @@ class CommentRating extends RestModel
         return 'comment_rating';
     }
 
+    public function getApiFriendlyRating() : string
+    {
+        $score = $this->rating_score;
+        return ($score > 0) ? 'positiv' : (($score == 0) ? 'neutral' : 'negativ');
+    }
+
+    public function setRatingScoreAttribute(int $value)
+    {
+        $this->attributes['rating_score'] = ($value > 0) ? 1 : ($value == 0) ? 0 : -1;  //ceil(1/$value)
+    }
+
     function user()
     {
         return $this->belongsTo(User::class, 'user_id');

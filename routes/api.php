@@ -110,7 +110,7 @@ Route::get('/tags/{tag_id}', 'TagController@show');
 //region actions
 Route::get('/search', 'ActionController@searchArticles');
 
-Route::get('/statistics', 'ActionController@getGeneralStatistics');
+Route::get('/statistics', 'ActionController@getGeneralActivityStatistics');
 
 Route::get('/statistics/user_activity', 'ActionController@getUserActivityStatistics');
 
