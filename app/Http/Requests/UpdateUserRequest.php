@@ -40,7 +40,8 @@ class UpdateUserRequest extends AUserRequest
     {
         $validator = Validator::make($this->request->all(),[
             'email' => 'sometimes|required|unique:users|max:256|email',
-            'password' => 'sometimes|required|min:8|string',// TODO implement more sophisticated password updates
+            'password' => 'sometimes|required|min:8|max:25|string',// TODO implement more sophisticated password updates
+            'old_password' => 'required_with:password|string|min:8|max:25',
             'postal_code' => 'sometimes|required|size:4|numeric',     // TODO check whether place exists
             'residence' => 'sometimes|required|string',
             'job' => 'sometimes|required',

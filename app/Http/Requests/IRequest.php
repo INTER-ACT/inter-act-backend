@@ -19,4 +19,13 @@ interface IRequest
      */
     public function validate();
 
+    /**
+     * Returns the data of the request,
+     * keys are modified, so that they are autofillable
+     * whenever possible
+     *
+     * @return array
+     */
+    public function getData();
+
 }

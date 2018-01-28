@@ -49,9 +49,9 @@ class CreateUserRequest extends AUserRequest
     private function checkFields()
     {
         $validator = Validator::make($this->request->all(),[
-            'username' => 'required|unique:users|min:3|max:30|string',
+            'username' => 'required|unique:users|min:3|max:64|string',
             'email' => 'required|unique:users|max:256|email',
-            'password' => 'required|min:8|string',
+            'password' => 'required|min:8|max:25|string',
             'first_name' => 'required|string',
             'last_name' => 'required|string',
             'sex' => ['required', 'string', 'size:1', new Gender],
