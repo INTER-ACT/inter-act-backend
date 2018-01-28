@@ -72,7 +72,16 @@ Route::get('/law_texts/{id}', 'DiscussionController@showLawText');//->middleware
 //endregion
 
 //region amendments
-
+Route::get('/discussions/{discussion_id}/amendments/{id}', 'AmendmentController@show');
+Route::delete('/discussions/{discussion_id}/amendments/{id}', 'AmendmentController@destroy')->middleware('auth:api');
+Route::get('/discussions/{discussion_id}/amendments/{id}/ratings', 'AmendmentController@showRating');
+Route::put('/discussions/{discussion_id}/amendments/{id}/ratings', 'AmendmentController@updateRating')->middleware('auth:api');
+Route::get('/discussions/{discussion_id}/amendments/{id}/changes', 'AmendmentController@listChanges');
+// Route::get('/discussions/{discussion_id}/amendments/{amendment_id}/changes/{id}', 'AmendmentController@')
+Route::get('/discussions/{discussion_id}/amendments/{id}/comments', 'AmendmentController@listComments');
+Route::post('/discussions/{discussion_id}/amendments/{id}/comments', 'AmendmentController@createComment')->middleware('auth:api');
+Route::get('/discussions/{discussion_id}/amendments/{id}/subamendments', 'AmendmentController@listSubAmendments');
+Route::post('/discussions/{discussion_id}/amendments/{id}/subamendments', 'AmendmentController@createSubAmendment')->middleware('auth:api');
 //endregion
 
 //region sub_amendments
