@@ -56,6 +56,8 @@ Route::delete('/discussions/{discussion_id}', 'DiscussionController@destroy')->m
 
 Route::get('/discussions/{discussion_id}/rating', 'DiscussionController@getRating');
 
+Route::put('/discussions/{discussion_id}/rating', 'DiscussionController@createRating')->middleware('auth:api');
+
 Route::get('/discussions/{discussion_id}/amendments', 'DiscussionController@listAmendments');
 
 Route::post('/discussions/{discussion_id}/amendments', 'DiscussionController@createAmendment')->middleware('auth:api');
@@ -108,7 +110,7 @@ Route::get('/tags/{tag_id}', 'TagController@show');
 //region actions
 Route::get('/search', 'ActionController@searchArticles');
 
-Route::get('/statistics', 'ActionController@getGeneralStatistics');
+Route::get('/statistics', 'ActionController@getGeneralActivityStatistics');
 
 Route::get('/statistics/user_activity', 'ActionController@getUserActivityStatistics');
 

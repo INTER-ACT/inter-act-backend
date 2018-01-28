@@ -2,12 +2,10 @@
 
 namespace App\Http\Resources\UserResources;
 
-use App\Http\Resources\RestResourceTrait;
-use Illuminate\Http\Resources\Json\ResourceCollection;
+use App\Http\Resources\ApiCollectionResource;
 
-class UserCollection extends ResourceCollection
+class UserCollection extends ApiCollectionResource
 {
-    use RestResourceTrait;
     /**
      * Transform the resource collection into an array.
      *

@@ -3,15 +3,14 @@
 namespace App\Http\Resources\DiscussionResources;
 
 use App\Http\Resources\AmendmentResources\AmendmentCollection;
+use App\Http\Resources\ApiResource;
 use App\Http\Resources\CommentResources\CommentCollection;
 use App\Http\Resources\PostResources\TagCollection;
 use App\Http\Resources\RestResourceTrait;
 use Illuminate\Http\Resources\Json\Resource;
 
-class DiscussionResource extends Resource
+class DiscussionResource extends ApiResource
 {
-    use RestResourceTrait;
-
     /**
      * Transform the resource into an array.
      *

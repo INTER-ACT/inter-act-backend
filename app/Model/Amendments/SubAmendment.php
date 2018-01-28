@@ -4,10 +4,10 @@ namespace App\Amendments;
 
 use App\Comments\Comment;
 use App\Comments\ICommentable;
+use App\Exceptions\CustomExceptions\InternalServerError;
 use App\Exceptions\CustomExceptions\NotAcceptedException;
 use App\IHasActivity;
-use App\IModel;
-use App\IRestResource;
+use App\Model\RestModelPrimary;
 use App\MultiAspectRating;
 use App\Reports\IReportable;
 use App\Reports\Report;
@@ -16,10 +16,8 @@ use App\Tags\Tag;
 use App\Traits\TTaggablePost;
 use App\User;
 use Carbon\Carbon;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Query\Builder;
 
-class SubAmendment extends Model implements ITaggable, IReportable, IRatable, ICommentable, IRestResource, IHasActivity
+class SubAmendment extends RestModelPrimary implements ITaggable, IReportable, IRatable, ICommentable, IHasActivity
 {
     use TTaggablePost;
 
@@ -29,24 +27,22 @@ class SubAmendment extends Model implements ITaggable, IReportable, IRatable, IC
 
     protected $fillable = ['updated_text', 'explanation'];
 
-    //region IRestResource
-    public function getIdProperty()
+    public function getApiFriendlyType() : string
     {
-        return $this->id;
-    }
-
-    public function getType()
-    {
-        return get_class($this);
+        return "subamendment";
     }
 
     public function getResourcePath()
     {
-        //return (string)$this->amendment_id;
-        $amendment = ($this->amendment === null) ? Amendment::find($this->amendment_id)->first(['id', 'discussion_id']) : $this->amendment;
-        return $amendment->getResourcePath() . '/subamendments/' . $this->id;
+        //$queryResult = \DB::selectOne('SELECT a.id as amendment_id, d.id as discussion_id from sub_amendments sa LEFT JOIN amendments a on sa.amendment_id = a.id LEFT JOIN discussions d ON a.discussion_id = d.id WHERE sa.id = :this_id', ['this_id' => $this->id]);
+        //$amendment = ($this->amendment === null) ? Amendment::find($this->getAttribute('amendment_id'))->first(['id', 'discussion_id']) : $this->amendment;
+        if(!$this->relationLoaded('amendment')) {
+            if(!array_key_exists('amendment_id', $this->attributes))
+                $this->setAttribute('amendment_id', \DB::selectOne('SELECT amendment_id as id FROM sub_amendments WHERE id = :this_id', ['this_id' => $this->id])->id);
+            $this->load('amendment');
+        }
+        return $this->amendment->getResourcePath() . '/subamendments/' . $this->id;
     }
-    //endregion
 
     //region Getters and Setters
     public function getChangesPath(){

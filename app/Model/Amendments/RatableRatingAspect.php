@@ -4,37 +4,24 @@ namespace App\Amendments;
 
 use App\IHasActivity;
 use App\IModel;
+use App\Model\RestModel;
 use App\User;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Mockery\Exception;
 
-class RatableRatingAspect extends Model implements IModel, IHasActivity
+class RatableRatingAspect extends RestModel implements IHasActivity
 {
     protected $table = "ratable_rating_aspects";
 
     protected $fillable = [];
     protected $appends = ['rating_sum'];
 
-    //region IModel
-
-    /**
-     * @return int
-     */
-    public function getIdProperty()
+    public function getApiFriendlyType(): string
     {
-        return $this->id;
+        return 'ratable_rating_aspect';
     }
-
-    /**
-     * @return string
-     */
-    public function getType()
-    {
-        return get_class($this);
-    }
-    //endregion
 
     //region Getters and Setters
     /**

@@ -1,11 +1,17 @@
 <?php
+/**
+ * Created by PhpStorm.
+ * User: danube
+ * Date: 27.01.18
+ * Time: 14:39
+ */
 
 namespace App\Http\Resources;
 
 
 trait RestResourceTrait
 {
-    public $customResourcePath = 'http://localhost/test';
+    public $customResourcePath;
 
     /**
      * @return mixed
@@ -33,8 +39,8 @@ trait RestResourceTrait
      */
     protected function getResourcePathIfNotNull(string $value_if_null)
     {
-        //return (!isset($this->customResourcePath) || trim($this->customResourcePath) === '') ? $value_if_null : $this->customResourcePath;
-        return $this->customResourcePath . $value_if_null;
+        return (!isset($this->customResourcePath) || trim($this->customResourcePath) === '') ? $value_if_null : $this->customResourcePath;
+        //return $this->customResourcePath . $value_if_null;
     }
 
     /**
@@ -43,12 +49,16 @@ trait RestResourceTrait
      * @param string $uri
      * @return string
      */
-    public function getUrl(string $uri)
+    public function getUrl(string $uri) : string
     {
         return config('app.url') . $uri;
     }
 
-    public function getUrlFromBase(string $uri)
+    /**
+     * @param string $uri
+     * @return string
+     */
+    public function getUrlFromBase(string $uri) : string
     {
         return url($uri);
     }

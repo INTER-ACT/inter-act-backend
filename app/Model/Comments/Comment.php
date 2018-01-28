@@ -4,8 +4,7 @@ namespace App\Comments;
 
 use App\CommentRating;
 use App\IHasActivity;
-use App\IModel;
-use App\IRestResource;
+use App\Model\RestModelPrimary;
 use App\Reports\IReportable;
 use App\Reports\Report;
 use App\Tags\Tag;
@@ -13,33 +12,23 @@ use App\Traits\TPost;
 use App\User;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
-use Mockery\Exception;
 
-class Comment extends Model implements IReportable, ICommentable, IRestResource, IHasActivity
+class Comment extends RestModelPrimary implements IReportable, ICommentable, IHasActivity
 {
     use TPost;
 
     protected $fillable = ['content'];
-    //protected $appends = ['rating_sum', 'user_rating'];
 
-    //region IRestResource
-    public function getIdProperty()
+    public function getApiFriendlyType() : string
     {
-        return $this->id;
-    }
-
-    public function getType()
-    {
-        return get_class($this);
+        return "comment";
     }
 
     public function getResourcePath()
     {
         return '/comments/' . $this->id;
     }
-    //endregion
 
     //region Getters and Setters
     /**

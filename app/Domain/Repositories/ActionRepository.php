@@ -8,7 +8,6 @@
 
 namespace App\Domain;
 
-
 use App\Amendments\Amendment;
 use App\Amendments\SubAmendment;
 use App\CommentRating;
@@ -16,26 +15,37 @@ use App\Comments\Comment;
 use App\Discussions\Discussion;
 use App\Domain\EntityRepresentations\CommentRatingRepresentation;
 use App\Domain\EntityRepresentations\MultiAspectRatingRepresentation;
+use App\Exceptions\CustomExceptions\InvalidValueException;
 use App\Http\Resources\GeneralResources\SearchResource;
-use App\Http\Resources\GeneralResources\SearchResourceData;
 use App\Http\Resources\StatisticsResources\ActionStatisticsResource;
 use App\Http\Resources\StatisticsResources\ActionStatisticsResourceData;
 use App\Http\Resources\StatisticsResources\CommentRatingStatisticsResource;
 use App\Http\Resources\StatisticsResources\CommentRatingStatisticsResourceData;
 use App\Http\Resources\StatisticsResources\GeneralActivityStatisticsResource;
+use App\Http\Resources\StatisticsResources\GeneralActivityStatisticsResourceData;
 use App\Http\Resources\StatisticsResources\RatingStatisticsResource;
 use App\Http\Resources\StatisticsResources\RatingStatisticsResourceData;
-use App\Http\Resources\StatisticsResources\StatisticsResource;
 use App\Http\Resources\StatisticsResources\UserActivityStatisticsResource;
+use App\MultiAspectRating;
 use App\RatingAspectRating;
+use App\Reports\Report;
 use App\Tags\Tag;
 use App\User;
 use Carbon\Carbon;
 use DB;
+use Illuminate\Database\Eloquent\Builder;
 
 class ActionRepository implements IRestRepository   //TODO: Exceptions missing?
 {
     use CustomPaginationTrait;
+
+    const SEARCH_TYPE_TAG = 'tag';
+    const SEARCH_TYPE_CONTENT = 'content';
+
+    const SEARCH_CONTENT_TYPE_DISCUSSIONS = 'discussions';
+    const SEARCH_CONTENT_TYPE_AMENDMENTS = 'amendments';
+    const SEARCH_CONTENT_TYPE_SUBAMENDMENTS = 'subamendments';
+    const SEARCH_CONTENT_TYPE_COMMENTS = 'comments';
 
     /**
      * @return string
@@ -65,44 +75,54 @@ class ActionRepository implements IRestRepository   //TODO: Exceptions missing?
      * @param string $text
      * @param PageRequest $pageRequest
      * @param string|null $type
-     * @param string|null $content_type
+     * @param array|null $content_types
      * @return SearchResource
      */
-    public function searchArticlesByText(string $text, PageRequest $pageRequest, string $type = null, string $content_type = null) : SearchResource
+    public function searchArticlesByText(string $text, PageRequest $pageRequest, string $type = null, array $content_types = null) : SearchResource
     {
-        $discussions = Discussion::where('title', 'LIKE', '%' . $text . '%')
-            ->orWhere('law_text', 'LIKE', '%' . $text . '%')
-            ->orWhere('law_explanation', 'LIKE', '%' . $text . '%')->get();
-        $amendments = Amendment::where('updated_text', 'LIKE', '%' . $text . '%')
-            ->orWhere('explanation', 'LIKE', '%' . $text . '%')->get();
-        $sub_amendments = SubAmendment::where('updated_text', 'LIKE', '%' . $text . '%')
-            ->orWhere('explanation', 'LIKE', '%' . $text . '%')->get();
-        $comments = Comment::where('content', 'LIKE', '%' . $text . '%')->get();
+        $all = $content_types === null || sizeof($content_types) == 0;
+        $search_discussions = $all || in_array(self::SEARCH_CONTENT_TYPE_DISCUSSIONS, $content_types);
+        $search_amendments = $all || in_array(self::SEARCH_CONTENT_TYPE_AMENDMENTS, $content_types);
+        $search_subamendments = $all || in_array(self::SEARCH_CONTENT_TYPE_SUBAMENDMENTS, $content_types);
+        $search_comments = $all || in_array(self::SEARCH_CONTENT_TYPE_COMMENTS, $content_types);
 
-        $data = new SearchResourceData($discussions, $amendments, $sub_amendments, $comments);
-        return new SearchResource($data);   //TODO: implement pagination, type and post_type
+        $search_results = [];
+        if($type != self::SEARCH_TYPE_CONTENT)
+            $search_results = array_merge($search_results, $this->getTagSearchResult($text, $search_discussions, $search_amendments, $search_subamendments, $search_comments));
+        if($type != self::SEARCH_TYPE_TAG)
+            $search_results = array_merge($search_results, $this->getContentSearchResult($text, $search_discussions, $search_amendments, $search_subamendments, $search_comments));
+        $search_results = array_map("unserialize", array_unique(array_map("serialize", $search_results)));
+        $search_results = $this->paginate(collect($search_results), $pageRequest->perPage, $pageRequest->pageNumber);
+        $search_results = $this->updatePagination($search_results);
+        return new SearchResource($search_results);
     }
 
-    public function getGeneralActivityStatistics(Carbon $start_date = null, Carbon $end_date = null) : GeneralActivityStatisticsResource
+    /**
+     * @param null $start_date
+     * @param null $end_date
+     * @return GeneralActivityStatisticsResource
+     * @throws InvalidValueException
+     */
+    public function getGeneralActivityStatistics($start_date = null, $end_date = null) : GeneralActivityStatisticsResource
     {
-        $discussions = GeneralActivityStatisticsResource::transformCollectionToResourceDataArray(Discussion::select('id', 'created_at as date', 'user_id', 'title as extra')->with(['user'])->get());
-        $amendments = GeneralActivityStatisticsResource::transformCollectionToResourceDataArray(Amendment::select('id', 'discussion_id', 'created_at as date', 'user_id')->with(['user'])->get());
-        $sub_amendments = GeneralActivityStatisticsResource::transformCollectionToResourceDataArray(SubAmendment::select('id', 'amendment_id', 'created_at as date', 'user_id')->with(['user'])->get());
-        $comments = GeneralActivityStatisticsResource::transformCollectionToResourceDataArray(Comment::select('id', 'created_at as date', 'user_id')->with(['user'])->get());
-        $reports = GeneralActivityStatisticsResource::transformCollectionToResourceDataArray(Report::select('id', 'created_at as date', 'user_id')->with(['user'])->get());
-        //return RatingAspectRating::select('ratable_rating_aspect_id', 'created_at as date', 'user_id')->with(['user', 'ratable_rating_aspect:id,rating_aspect_id,ratable_id,ratable_type', 'ratable_rating_aspect.ratable', 'ratable_rating_aspect.rating_aspect:id,name'])->get();
-        $ratings_raw = RatingAspectRating::select('ratable_rating_aspect_id', 'created_at as date', 'user_id')->with(['user', 'ratable_rating_aspect:id,rating_aspect_id,ratable_id,ratable_type', 'ratable_rating_aspect.ratable', 'ratable_rating_aspect.rating_aspect:id,name'])->get()
-            ->transform(function($item, $key) {
-                return (new MultiAspectRatingRepresentation($item->date, $item->ratable_rating_aspect->ratable, $item->user, $item->ratable_rating_aspect->rating_aspect->name));
-            });
-        $ratings = GeneralActivityStatisticsResource::transformCollectionToResourceDataArray($ratings_raw);
-        $comment_ratings_raw = CommentRating::with(['user', 'comment'])->get()
-            ->transform(function($item, $key) {
-                return new CommentRatingRepresentation($item->created_at, $item->comment, $item->user, $item->rating_score);
-            });
-        $comment_ratings = GeneralActivityStatisticsResource::transformCollectionToResourceDataArray($comment_ratings_raw);
+        if(!isset($start_date))
+            $start_date = Carbon::createFromDate(2017, 1, 1, 2);
+        else
+            $start_date = Carbon::createFromFormat('Y-m-d', $start_date);
+        if(!isset($end_date))
+            $end_date = now();
+        else
+            $end_date = Carbon::createFromFormat('Y-m-d', $end_date);
+        if($start_date > $end_date)
+            throw new InvalidValueException('The start_date has to be greater than the end_date.');
+        $discussions = $this->getDiscussionsBetweenDates($start_date, $end_date);
+        $amendments = $this->getDiscussionsBetweenDates($start_date, $end_date);
+        $sub_amendments = $this->getSubAmendmentsBetweenDates($start_date, $end_date);
+        $comments = $this->getCommentsBetweenDates($start_date, $end_date);
+        $reports = $this->getReportsBetweenDates($start_date, $end_date);
+        $comment_ratings = $this->getCommentRatingsBetweenDates($start_date, $end_date);
+        $ratings = $this->getMultiAspectRatingsBetweenDates($start_date, $end_date);
         $final_array = array_merge($discussions, $amendments, $sub_amendments, $comments, $reports, $ratings, $comment_ratings);
-        //return $final_array;
         return new GeneralActivityStatisticsResource($final_array);
     }
 
@@ -214,4 +234,214 @@ class ActionRepository implements IRestRepository   //TODO: Exceptions missing?
 
         return new ActionStatisticsResource($header, $action_resource_data);
     }
+
+    //region searchHelpers
+    /**
+     * @param string $search_term
+     * @param bool $search_discussions
+     * @param bool $search_amendments
+     * @param bool $search_subamendments
+     * @param bool $search_comments
+     * @return array
+     */
+    protected function getContentSearchResult(string $search_term, bool $search_discussions = true, bool $search_amendments = true, bool $search_subamendments = true, bool $search_comments = true) : array
+    {
+        if($search_discussions) $search_result = $this->searchDiscussionsByContent($search_term);
+        else $search_result = [];
+        if($search_amendments) $search_result = isset($search_result) ? array_merge($search_result, $this->searchAmendmentsByContent($search_term)) : $this->searchAmendmentsByContent($search_term);
+        if($search_subamendments) $search_result = isset($search_result) ? array_merge($search_result, $this->searchSubAmendmentsByContent($search_term)) : $this->searchSubAmendmentsByContent($search_term);
+        if($search_comments) $search_result = isset($search_result) ? array_merge($search_result, $this->searchCommentsByContent($search_term)) : $this->searchCommentsByContent($search_term);
+        return $search_result;
+    }
+
+    /**
+     * @param string $search_term
+     * @param bool $search_discussions
+     * @param bool $search_amendments
+     * @param bool $search_subamendments
+     * @param bool $search_comments
+     * @return array
+     */
+    protected function getTagSearchResult(string $search_term, bool $search_discussions = true, bool $search_amendments = true, bool $search_subamendments = true, bool $search_comments = true) : array
+    {
+        if($search_discussions) $search_result = $this->searchDiscussionsByTag($search_term);
+        else $search_result = [];
+        if($search_amendments) $search_result = isset($search_result) ? array_merge($search_result, $this->searchAmendmentsByTag($search_term)) : $this->searchAmendmentsByTag($search_term);
+        if($search_subamendments) $search_result = isset($search_result) ? array_merge($search_result, $this->searchSubAmendmentsByTag($search_term)) : $this->searchSubAmendmentsByTag($search_term);
+        if($search_comments) $search_result = isset($search_result) ? array_merge($search_result, $this->searchCommentsByTag($search_term)) : $this->searchCommentsByTag($search_term);
+        return $search_result;
+    }
+
+    /**
+     * @param string $search_term
+     * @return array
+     */
+    protected function searchDiscussionsByContent(string $search_term) : array
+    {
+        return Discussion::select(['id'])->where('title', 'LIKE', '%' . $search_term . '%')
+            ->orWhere('law_text', 'LIKE', '%' . $search_term . '%')
+            ->orWhere('law_explanation', 'LIKE', '%' . $search_term . '%')->get()->all()    ;
+    }
+
+    /**
+     * @param string $search_term
+     * @return array
+     */
+    protected function searchDiscussionsByTag(string $search_term) : array
+    {
+        return Discussion::select(['id'])->whereHas('tags', function(Builder $query) use($search_term){
+            $query->where('name', 'LIKE', '%' . $search_term . '%');
+        })->get()->all();
+    }
+
+    /**
+     * @param string $search_term
+     * @return array
+     */
+    protected function searchAmendmentsByContent(string $search_term) : array
+    {
+        return Amendment::select(['id'])->where('updated_text', 'LIKE', '%' . $search_term . '%')
+            ->orWhere('explanation', 'LIKE', '%' . $search_term . '%')->get()->all();
+    }
+
+    /**
+     * @param string $search_term
+     * @return array
+     */
+    protected function searchAmendmentsByTag(string $search_term) : array
+    {
+        return Amendment::select(['id'])->whereHas('tags', function(Builder $query) use($search_term){
+            $query->where('name', 'LIKE', '%' . $search_term . '%');
+        })->get()->all();
+    }
+
+    /**
+     * @param string $search_term
+     * @return array
+     */
+    protected function searchSubAmendmentsByContent(string $search_term) : array
+    {
+        return SubAmendment::select(['id'])->where('updated_text', 'LIKE', '%' . $search_term . '%')
+            ->orWhere('explanation', 'LIKE', '%' . $search_term . '%')->get()->all();
+    }
+
+    /**
+     * @param string $search_term
+     * @return array
+     */
+    protected function searchSubAmendmentsByTag(string $search_term) : array
+    {
+        return SubAmendment::select(['id'])->whereHas('tags', function(Builder $query) use($search_term){
+            $query->where('name', 'LIKE', '%' . $search_term . '%');
+        })->get()->all();
+    }
+
+    /**
+     * @param string $search_term
+     * @return array
+     */
+    protected function searchCommentsByContent(string $search_term) : array
+    {
+        return Comment::select(['id'])->where('content', 'LIKE', '%' . $search_term . '%')->get()->all();
+    }
+
+    /**
+     * @param string $search_term
+     * @return array
+     */
+    protected function searchCommentsByTag(string $search_term) : array
+    {
+        return Comment::select(['id'])->whereHas('tags', function(Builder $query) use($search_term){
+            $query->where('name', 'LIKE', '%' . $search_term . '%');
+        })->get()->all();
+    }
+    //endregion
+
+    //region generalActivityHelpers
+    /**
+     * @param $start_date
+     * @param $end_date
+     * @return array
+     */
+    protected function getDiscussionsBetweenDates($start_date, $end_date) : array
+    {
+        $discussions = Discussion::select('id', 'created_at as date', 'user_id', 'title as extra')->where([['created_at', '>=', $start_date], ['created_at', '<=', $end_date]])->with(['user'])->get();
+        return GeneralActivityStatisticsResource::transformCollectionToResourceDataArray($discussions);
+    }
+
+    /**
+     * @param $start_date
+     * @param $end_date
+     * @return array
+     */
+    protected function getAmendmentsBetweenDates($start_date, $end_date) : array
+    {
+        $amendments = Amendment::select('id', 'discussion_id', 'created_at as date', 'user_id')->where([['created_at', '>=', $start_date], ['created_at', '<=', $end_date]])->with(['user'])->get();
+        return GeneralActivityStatisticsResource::transformCollectionToResourceDataArray($amendments);
+    }
+
+    /**
+     * @param $start_date
+     * @param $end_date
+     * @return array
+     */
+    protected function getSubAmendmentsBetweenDates($start_date, $end_date) : array
+    {
+        $sub_amendments = SubAmendment::select('id', 'amendment_id', 'created_at as date', 'user_id')->where([['created_at', '>=', $start_date], ['created_at', '<=', $end_date]])->with(['user'])->get();
+        return GeneralActivityStatisticsResource::transformCollectionToResourceDataArray($sub_amendments);
+    }
+
+    /**
+     * @param $start_date
+     * @param $end_date
+     * @return array
+     */
+    protected function getCommentsBetweenDates($start_date, $end_date) : array
+    {
+        $comments = Comment::select('id', 'created_at as date', 'user_id')->where([['created_at', '>=', $start_date], ['created_at', '<=', $end_date]])->with(['user'])->get();
+        return GeneralActivityStatisticsResource::transformCollectionToResourceDataArray($comments);
+    }
+
+    /**
+     * @param Carbon $start_date
+     * @param Carbon $end_date
+     * @return array
+     */
+    protected function getReportsBetweenDates(Carbon $start_date, Carbon $end_date) : array
+    {
+        $reports = Report::select('id', 'created_at as date', 'user_id')->where([['created_at', '>=', $start_date], ['created_at', '<=', $end_date]])->with(['user'])->get();
+        return GeneralActivityStatisticsResource::transformCollectionToResourceDataArray($reports);
+
+    }
+
+    /**
+     * @param $start_date
+     * @param $end_date
+     * @return array
+     */
+    protected function getCommentRatingsBetweenDates($start_date, $end_date) : array
+    {
+        $comment_ratings = CommentRating::where([['created_at', '>=', $start_date], ['created_at', '<=', $end_date]])->with(['user', 'comment'])->get();
+        return $comment_ratings->transform(function(CommentRating $item) {
+            /** @var User $user */
+            $user = $item->user;
+            return new GeneralActivityStatisticsResourceData(GeneralActivityStatisticsResource::getStatisticsType($item->getType()), $item->created_at, $user->getSex(), $user->postal_code, $user->job, $user->graduation, $user->getAge(), $item->getResourcePath(), $item->getApiFriendlyRating());
+        })->all();
+    }
+
+    /**
+     * @param $start_date
+     * @param $end_date
+     * @return array
+     */
+    protected function getMultiAspectRatingsBetweenDates($start_date, $end_date) : array
+    {
+        $ratings = MultiAspectRating::where([['created_at', '>=', $start_date], ['created_at', '<=', $end_date]])->with(['user', 'ratable'])->get();
+        return $ratings->transform(function(MultiAspectRating $item){
+            /** @var User $user */
+            $user = $item->user;
+            return new GeneralActivityStatisticsResourceData(GeneralActivityStatisticsResource::getStatisticsType($item->getType()), $item->created_at, $user->getSex(), $user->postal_code, $user->job, $user->graduation, $user->getAge(), $item->ratable->getRatingPath(), implode(',', $item->getRatedAspects()));
+        })->all();
+    }
+    //endregion
 }

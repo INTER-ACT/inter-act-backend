@@ -15,6 +15,7 @@ use App\Exceptions\CustomExceptions\NotAuthorizedException;
 use App\Http\Requests\CreateAmendmentRequest;
 use App\Http\Requests\CreateCommentRequest;
 use App\Http\Requests\CreateDiscussionRequest;
+use App\Http\Requests\CreateMultiAspectRatingRequest;
 use App\Http\Requests\DeleteDiscussionRequest;
 use App\Http\Requests\ListLawTextsRequest;
 use App\Http\Requests\ShowLawTextRequest;
@@ -107,9 +108,24 @@ class DiscussionController extends Controller
         return new NoContentResource($request);
     }
 
+    /**
+     * @param Request $request
+     * @param int $id
+     * @return MultiAspectRatingResource
+     */
     public function getRating(Request $request, int $id) : MultiAspectRatingResource //TODO: care that id is passed or just leave InternalServerError?
     {
         return $this->repository->getRating($id);
+    }
+
+    /**
+     * @param CreateMultiAspectRatingRequest $request
+     * @param int $id
+     * @return \App\Http\Resources\SuccessfulCreationResourceNoId
+     */
+    public function createRating(CreateMultiAspectRatingRequest $request, int $id)
+    {
+        return DiscussionManipulator::createRating($id, \Auth::id(), $request->all());
     }
 
     /**

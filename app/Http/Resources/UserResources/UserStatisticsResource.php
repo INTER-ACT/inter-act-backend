@@ -2,13 +2,10 @@
 
 namespace App\Http\Resources\UserResources;
 
-use App\Http\Resources\RestResourceTrait;
-use Illuminate\Http\Resources\Json\Resource;
+use App\Http\Resources\ApiResource;
 
-class UserStatisticsResource extends Resource
+class UserStatisticsResource extends ApiResource
 {
-    use RestResourceTrait;
-
     /**
      * Transform the resource into an array.
      *

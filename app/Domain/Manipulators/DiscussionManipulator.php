@@ -17,6 +17,8 @@ use App\Exceptions\CustomExceptions\ApiException;
 use App\Exceptions\CustomExceptions\ApiExceptionMeta;
 use App\Exceptions\CustomExceptions\InternalServerError;
 use App\Http\Resources\SuccessfulCreationResource;
+use App\Http\Resources\SuccessfulCreationResourceNoId;
+use App\MultiAspectRating;
 use App\User;
 use Log;
 
@@ -65,6 +67,26 @@ class DiscussionManipulator //TODO: request not validated here. remove this if d
         $discussion->archived_at = now();
         if(!$discussion->save())
             throw new InternalServerError('Discussion with id ' . $id . 'could not be deleted.');
+    }
+
+    /**
+     * @param int $id
+     * @param int $user_id
+     * @param array $data
+     * @return SuccessfulCreationResourceNoId
+     * @throws InternalServerError
+     */
+    public static function createRating(int $id, int $user_id, array $data) : SuccessfulCreationResourceNoId
+    {
+        $discussion = DiscussionRepository::getDiscussionByIdOrThrowError($id);
+        $rating = $discussion->ratings()->where('user_id', '=', $user_id)->first();
+        if(!isset($rating))
+            $rating = new MultiAspectRating();
+        $rating->fill($data);
+        $rating->user_id = $user_id;
+        if(!$discussion->ratings()->save($rating))
+            throw new InternalServerError('Rating could not be created.');
+        return new SuccessfulCreationResourceNoId($discussion);
     }
 
     /**

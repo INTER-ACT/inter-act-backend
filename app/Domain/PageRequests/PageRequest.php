@@ -33,25 +33,14 @@ class PageRequest
      * @throws InvalidValueException
      * @throws PayloadTooLargeException
      */
-    public function __construct(int $per_page = null, int $page_number = null)
+    public function __construct(int $per_page = self::DEFAULT_PER_PAGE, int $page_number = self::DEFAULT_PAGE_NUMBER)
     {
-        $per_page = (int)$per_page;
-        $page_number = (int)$page_number;
-        if(!isset($per_page))
-            $this->perPage = self::DEFAULT_PER_PAGE;
-
-        else if($per_page <= 0)
+        if($per_page <= 0)
             throw new InvalidPaginationException("The given count for the pagination has to be greater than 0.");
-        else if($per_page > self::MAX_PER_PAGE)
+        if($per_page > self::MAX_PER_PAGE)
             throw new PayloadTooLargeException("The given count for the pagination was too big (max: 100).");
-        else
-            $this->perPage = $per_page;
 
-        if(!isset($page_number))
-            $this->pageNumber = self::DEFAULT_PAGE_NUMBER;
-        else if(!is_int($page_number))
-            throw new InvalidPaginationException("The given page number for the pagination was not valid");
-        else
-            $this->pageNumber = $page_number;
+        $this->perPage = $per_page;
+        $this->pageNumber = $page_number;
     }
 }

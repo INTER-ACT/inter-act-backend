@@ -2,14 +2,10 @@
 
 namespace App\Http\Resources\RatingResources;
 
-use App\Http\Resources\RestResourceTrait;
-use Illuminate\Http\Resources\Json\Resource;
-use phpDocumentor\Reflection\Types\Null_;
+use App\Http\Resources\ApiResource;
 
-class CommentRatingResource extends Resource
+class CommentRatingResource extends ApiResource
 {
-    use RestResourceTrait;
-
     /**
      * Transform the rating of a comment into an array.
      *

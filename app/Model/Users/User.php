@@ -6,14 +6,13 @@ use App\Amendments\Amendment;
 use App\Amendments\SubAmendment;
 use App\Comments\Comment;
 use App\Discussions\Discussion;
+use App\Model\AuthRestModel;
 use App\Reports\Report;
 use Carbon\Carbon;
-use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Passport\HasApiTokens;
-use Mockery\Exception;
 
-class User extends Authenticatable implements IRestResource
+class User extends AuthRestModel
 {
     use Notifiable;
     use HasApiTokens;
@@ -36,27 +35,19 @@ class User extends Authenticatable implements IRestResource
         'password', 'remember_token',
     ];
 
-    //region IRestResource
-    function getIdProperty()    //TODO: Class instead of IModel interface
-    {
-        return $this->id;
-    }
-
     public function getSex(){
         return $this->is_male ? 'm' : 'f';
     }
-
-    public function getType()
-    {
-        return get_class($this);
-    }
-
 
     public function getResourcePath()
     {
         return '/users/' . $this->id;
     }
-    //endregion
+
+    public function getApiFriendlyType(): string
+    {
+        return 'user';
+    }
 
     //region relations
     public function role()

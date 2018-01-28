@@ -18,7 +18,7 @@ class TagTests extends TestCase
     {
         $tag = Tag::getNutzungFremderInhalte();
 
-        $resourcePath = $this->baseURI . $tag->getResourcePath();
+        $resourcePath = $this->getUrl($tag->getResourcePath());
         $response = $this->get($resourcePath);
         $response->assertJson([
             'href' => $resourcePath,
@@ -34,7 +34,7 @@ class TagTests extends TestCase
         $tag1 = Tag::getNutzungFremderInhalte();
         $tag2 = Tag::getSozialeMedien();
 
-        $resourcePath = $this->baseURI . '/tags';
+        $resourcePath = $this->getUrl('/tags');
         $response = $this->get($resourcePath);
         $response->assertJson([
             'href' => $resourcePath,

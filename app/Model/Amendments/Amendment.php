@@ -6,8 +6,7 @@ use App\Comments\Comment;
 use App\Comments\ICommentable;
 use App\Discussions\Discussion;
 use App\IHasActivity;
-use App\IModel;
-use App\IRestResource;
+use App\Model\RestModelPrimary;
 use App\MultiAspectRating;
 use App\Reports\IReportable;
 use App\Reports\Report;
@@ -16,12 +15,9 @@ use App\Tags\Tag;
 use App\Traits\TTaggablePost;
 use App\User;
 use Carbon\Carbon;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
-use Mockery\Exception;
 
-class Amendment extends Model implements ITaggable, IReportable, IRatable, ICommentable, IRestResource, IHasActivity
+class Amendment extends RestModelPrimary implements ITaggable, IReportable, IRatable, ICommentable, IHasActivity
 {
     use TTaggablePost;
 
@@ -29,21 +25,16 @@ class Amendment extends Model implements ITaggable, IReportable, IRatable, IComm
     protected $appends = ['activity'];
 
     //region IRestResource
-    public function getIdProperty()
+    public function getApiFriendlyType() : string
     {
-        $this->getType();
-        return $this->id;
-    }
-
-    public function getType()
-    {
-        return get_class($this);
+        return "amendment";
     }
 
     public function getResourcePath()
     {
-        $discussion_id = ($this->discussion_id === null) ? DB::selectOne('SELECT discussion_id from amendments WHERE id = ?', $this->id)->discussion_id : $this->discussion_id;
-        return '/discussions/' . $discussion_id . '/amendments/' . $this->id;
+        if(!array_key_exists('discussion_id', $this->attributes))
+            $this->setAttribute('discussion_id', \DB::selectOne('SELECT discussion_id as id FROM amendments WHERE id = :this_id', ['this_id' => $this->id])->id);
+        return '/discussions/' . $this->discussion_id . '/amendments/' . $this->id;
     }
     //endregion
 

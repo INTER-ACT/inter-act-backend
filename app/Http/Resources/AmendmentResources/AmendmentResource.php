@@ -2,12 +2,10 @@
 
 namespace App\Http\Resources\AmendmentResources;
 
-use App\Http\Resources\RestResourceTrait;
-use Illuminate\Http\Resources\Json\Resource;
+use App\Http\Resources\ApiResource;
 
-class AmendmentResource extends Resource
+class AmendmentResource extends ApiResource
 {
-    use RestResourceTrait;
     /**
      * Transform the resource into an array.
      *

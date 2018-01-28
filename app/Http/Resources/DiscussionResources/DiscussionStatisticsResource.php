@@ -2,9 +2,9 @@
 
 namespace App\Http\Resources\DiscussionResources;
 
-use Illuminate\Http\Resources\Json\Resource;
+use App\Http\Resources\ApiResource;
 
-class DiscussionStatisticsResource extends Resource
+class DiscussionStatisticsResource extends ApiResource
 {
     /**
      * Transform the resource into an array.

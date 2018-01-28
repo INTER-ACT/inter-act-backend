@@ -2,14 +2,10 @@
 
 namespace App\Http\Resources\AmendmentResources;
 
-use App\Amendments\Amendment;
-use App\Http\Resources\RestResourceTrait;
-use Illuminate\Http\Resources\Json\Resource;
-use Illuminate\Http\Resources\Json\ResourceCollection;
+use App\Http\Resources\ApiCollectionResource;
 
-class ChangeCollection extends Resource
+class ChangeCollection extends ApiCollectionResource
 {
-    use RestResourceTrait;
     /**
      * Transform the resource collection into an array.
      *

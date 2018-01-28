@@ -15,6 +15,7 @@ class CreateMultiAspectRatingsTable extends Migration
     public function up()
     {
         Schema::create(MultiAspectRating::TABLE_NAME, function (Blueprint $table) {
+            $table->increments('id');
             $table->integer('user_id')->unsigned();
             $table->morphs('ratable');
             $table->boolean(MultiAspectRating::ASPECT1_COLUMN);
@@ -29,7 +30,7 @@ class CreateMultiAspectRatingsTable extends Migration
             $table->boolean(MultiAspectRating::ASPECT10_COLUMN);
             $table->timestamps();
 
-            $table->primary(['user_id', 'ratable_id', 'ratable_type']);
+            //$table->primary(['user_id', 'ratable_id', 'ratable_type']);
             $table->foreign('user_id', 'ma_rating_user_id_foreign')->references('id')->on('users');
         });
     }

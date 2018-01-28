@@ -143,7 +143,7 @@ class DiscussionRepository implements IRestRepository   //TODO: Exceptions missi
      * @return IPaginator
      */
     protected function queryToPaginatedCollection(Builder $query, PageRequest $pageRequest, string $sort_by, string $sort_dir) : IPaginator
-    {\Log::info($sort_by);
+    {
         $sort_dir = (strtoupper($sort_dir) == 'ASC') ? $sort_dir : self::DEFAULT_SORT_DIRECTION;
         $sort_by = (strtolower($sort_by) == 'chronological') ? 'created_at' : self::DEFAULT_SORT_FIELD;
 

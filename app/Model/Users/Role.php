@@ -2,11 +2,10 @@
 
 namespace App;
 
+use App\Model\RestModel;
 use Exception;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Log;
 
-class Role extends Model implements IModel
+class Role extends RestModel
 {
     const ADMIN_NAME = 'admin';
     const EXPERT_NAME = 'expert';
@@ -64,17 +63,10 @@ class Role extends Model implements IModel
     }
     //endregion
 
-    //region IModel
-    function getIdProperty()
+    public function getApiFriendlyType(): string
     {
-        return $this->id;
+        return 'role';
     }
-
-    public function getType()
-    {
-        return get_class($this);
-    }
-    //endregion
 
     //region relations
     public function permissions()

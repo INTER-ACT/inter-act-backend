@@ -2,12 +2,10 @@
 
 namespace App\Http\Resources\PostResources;
 
-use App\Http\Resources\RestResourceTrait;
-use Illuminate\Http\Resources\Json\Resource;
+use App\Http\Resources\ApiResource;
 
-class TagResource extends Resource
+class TagResource extends ApiResource
 {
-    use RestResourceTrait;
     /**
      * Transform the resource into an array.
      *

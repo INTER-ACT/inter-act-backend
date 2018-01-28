@@ -2,10 +2,8 @@
 
 namespace App\Http\Resources\UserResources;
 
-use App\Http\Resources\RestResourceTrait;
+use App\Http\Resources\ApiResource;
 use App\Role;
-use Illuminate\Http\Resources\Json\Resource;
-use Illuminate\Routing\ResourceRegistrar;
 
 
 /**
@@ -13,9 +11,8 @@ use Illuminate\Routing\ResourceRegistrar;
  *
  * @package App\Http\Resources\UserResources
  */
-class ShortUserResource extends Resource
+class ShortUserResource extends ApiResource
 {
-    use RestResourceTrait;
     /**
      * Transform the resource into an array.
      *

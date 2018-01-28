@@ -2,15 +2,12 @@
 
 namespace App\Http\Resources\PostResources;
 
-use App\Http\Resources\RestResourceTrait;
+use App\Http\Resources\ApiCollectionResource;
 use App\Tags\Tag;
-use Illuminate\Http\Resources\Json\ResourceCollection;
 use Illuminate\Support\Collection;
 
-class TagCollection extends ResourceCollection
+class TagCollection extends ApiCollectionResource
 {
-    use RestResourceTrait;
-
     /**
      * Transform the resource collection into an array.
      *
