@@ -10,16 +10,16 @@ use App\Model\RestModelPrimary;
 class Tag extends RestModelPrimary
 {
     //region constants
-    const NUTZUNG_FREMDER_INHALTE_NAME = "Lizenz";
-    const SOZIALE_MEDIEN_NAME = "Soziale Medien";
-    const KULTURELLES_ERBE_NAME = "Kuturelles Erbe";
+    const NUTZUNG_FREMDER_INHALTE_NAME = "Nutzung fremder Inhalte";
+    const SOZIALE_MEDIEN_NAME = "soziale Medien";
+    const KULTURELLES_ERBE_NAME = "kuturelles Erbe";
     const BILDUNG_UND_WISSENSCHAFT_NAME = "Bildung & Wissenschaft";
     const FREIHEITEN_DER_NUTZER_NAME = "Freiheiten der Nutzer";
-    const RESPEKT_UND_ANERKENNUNG_NAME = "Respekt und Anerkennung";
+    const RESPEKT_UND_ANERKENNUNG_NAME = "Respekt & Anerkennung";
     const RECHTEINHABERSCHAFT_NAME = "Rechteinhaberschaft";
-    const DOWNLOAD_UND_STREAMING_NAME = "Download und Streaming";
-    const WIRTSCHAFTLICHE_INTERESSEN_NAME = "Wirtschaftliche Interessen";
-    const USER_GENERATED_CONTENT_NAME = "User Generated Content";
+    const DOWNLOAD_UND_STREAMING_NAME = "Download & Streaming";
+    const WIRTSCHAFTLICHE_INTERESSEN_NAME = "wirtschaftliche Interessen";
+    const USER_GENERATED_CONTENT_NAME = "User-Generated-Content";
     //endregion
 
     protected $fillable = [

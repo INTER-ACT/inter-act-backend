@@ -87,6 +87,7 @@ class ActionRepository implements IRestRepository   //TODO: Exceptions missing?
             $search_results = array_merge($search_results, $this->getTagSearchResult($text, $search_discussions, $search_amendments, $search_subamendments, $search_comments));
         if($type != self::SEARCH_TYPE_TAG)
             $search_results = array_merge($search_results, $this->getContentSearchResult($text, $search_discussions, $search_amendments, $search_subamendments, $search_comments));
+        $search_results = array_map("unserialize", array_unique(array_map("serialize", $search_results)));
         $search_results = $this->paginate(collect($search_results), $pageRequest->perPage, $pageRequest->pageNumber);
         $search_results = $this->updatePagination($search_results);
         return new SearchResource($search_results);
