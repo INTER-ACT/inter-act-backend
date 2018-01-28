@@ -12,12 +12,19 @@ use App\Amendments\Amendment;
 use App\Amendments\SubAmendment;
 use App\Comments\Comment;
 use App\Discussions\Discussion;
+use App\Domain\ActionRepository;
 use App\Domain\PageRequest;
 use App\Exceptions\CustomExceptions\InvalidPaginationException;
+use App\Exceptions\CustomExceptions\InvalidValueException;
+use App\Exceptions\CustomExceptions\NotAuthorizedException;
+use App\Exceptions\CustomExceptions\NotPermittedException;
 use App\Exceptions\CustomExceptions\PayloadTooLargeException;
 use App\Model\ModelFactory;
 use App\Role;
 use App\Tags\Tag;
+use Carbon\Carbon;
+use Illuminate\Foundation\Testing\TestResponse;
+use Laravel\Passport\Passport;
 use Tests\FeatureTestCase;
 
 class ActionTests extends FeatureTestCase
@@ -672,6 +679,127 @@ class ActionTests extends FeatureTestCase
     //endregion
 
     //region get /statistics
+    /** @test */
+    public function testGeneralActivityStatisticsNoParameters()
+    {
+        Passport::actingAs(ModelFactory::CreateUser(Role::getAdmin()), ['*']);
+        $user = \Auth::user();
+        $discussion = ModelFactory::CreateDiscussion($user, null, [], Carbon::createFromDate(2017, 01, 01));
+        $amendment = ModelFactory::CreateAmendment($user, $discussion, [], Carbon::createFromDate(2017, 07, 25));
+        $sub_amendment = ModelFactory::CreateSubAmendment($user, $amendment, []);
+        $comment = ModelFactory::CreateComment($user, $sub_amendment, [], Carbon::createFromDate(2017, 01, 01));
+        ModelFactory::CreateCommentRating($user, $comment, 1);
+        $rating = ModelFactory::CreateMultiAspectRating($user, $sub_amendment);
 
+        $request_path = $this->getUrl('/statistics');
+        $response = $this->get($request_path);
+        $response->assertStatus(200);
+    }
+
+    /** @test */
+    public function testGeneralActivityStatisticsAllParameters()
+    {
+        Passport::actingAs(ModelFactory::CreateUser(Role::getScientist()), ['*']);
+        $response = $this->getGeneralActivityStatisticsTestResponse(Carbon::createFromDate(2017, 1, 1), Carbon::createFromDate(2018, 1,1));
+        $response->assertStatus(200);
+    }
+
+    /** @test */
+    public function testGeneralActivityStatisticsNotAuthenticated()
+    {
+        $user = ModelFactory::CreateUser(Role::getAdmin());
+        $discussion = ModelFactory::CreateDiscussion($user, null, [], Carbon::createFromDate(2017, 01, 01));
+        $amendment = ModelFactory::CreateAmendment($user, $discussion, [], Carbon::createFromDate(2017, 07, 25));
+        $sub_amendment = ModelFactory::CreateSubAmendment($user, $amendment, []);
+        $comment = ModelFactory::CreateComment($user, $sub_amendment, [], Carbon::createFromDate(2017, 01, 01));
+        ModelFactory::CreateCommentRating($user, $comment, 1);
+        $rating = ModelFactory::CreateMultiAspectRating($user, $sub_amendment);
+
+        $request_path = $this->getUrl('/statistics');
+        $response = $this->get($request_path);
+        $response->assertStatus(NotAuthorizedException::HTTP_CODE)->assertJson(['code' => NotAuthorizedException::ERROR_CODE]);
+    }
+
+    /** @test */
+    public function testGeneralActivityStatisticsNotPermitted()
+    {
+        Passport::actingAs(ModelFactory::CreateUser(Role::getExpert()), ['*']);
+        $user = \Auth::user();
+        $discussion = ModelFactory::CreateDiscussion($user, null, [], Carbon::createFromDate(2017, 01, 01));
+        $amendment = ModelFactory::CreateAmendment($user, $discussion, [], Carbon::createFromDate(2017, 07, 25));
+        $sub_amendment = ModelFactory::CreateSubAmendment($user, $amendment, []);
+        $comment = ModelFactory::CreateComment($user, $sub_amendment, [], Carbon::createFromDate(2017, 01, 01));
+        ModelFactory::CreateCommentRating($user, $comment, 1);
+        $rating = ModelFactory::CreateMultiAspectRating($user, $sub_amendment);
+
+        $request_path = $this->getUrl('/statistics');
+        $response = $this->get($request_path);
+        $response->assertStatus(NotPermittedException::HTTP_CODE)->assertJson(['code' => NotPermittedException::ERROR_CODE]);
+    }
+
+    /** @test */
+    public function testGeneralActivityStatisticsBeginGreaterThanEnd()
+    {
+        Passport::actingAs(ModelFactory::CreateUser(Role::getScientist()), ['*']);
+        $response = $this->getGeneralActivityStatisticsTestResponse(Carbon::createFromDate(2018, 1, 1), Carbon::createFromDate(2017, 1,1));
+        $response->assertStatus(InvalidValueException::HTTP_CODE)->assertJson(['code' => InvalidValueException::ERROR_CODE]);
+    }
+
+    /**
+     * @param Carbon $begin
+     * @param Carbon $end
+     * @return TestResponse
+     */
+    public function getGeneralActivityStatisticsTestResponse(Carbon $begin, Carbon $end) : TestResponse
+    {
+        $user = \Auth::user();
+        $discussion = ModelFactory::CreateDiscussion($user, null, [], Carbon::createFromDate(2017, 01, 01));
+        $amendment = ModelFactory::CreateAmendment($user, $discussion, [], Carbon::createFromDate(2017, 07, 25));
+        $sub_amendment = ModelFactory::CreateSubAmendment($user, $amendment, []);
+        $comment = ModelFactory::CreateComment($user, $sub_amendment, [], Carbon::createFromDate(2017, 01, 01));
+        ModelFactory::CreateCommentRating($user, $comment, 1);
+        $rating = ModelFactory::CreateMultiAspectRating($user, $sub_amendment);
+
+        $params = '?begin=' . $begin->toDateString() . '&end=' . $end->toDateString();
+        $request_path = $this->getUrl('/statistics' . $params);
+        $response = $this->get($request_path);
+        return $response;
+    }
+    //endregion
+
+    //region get /statistics/ratings
+
+    //endregion
+
+    //region get /statistics/comment_ratings
+
+    //endregion
+
+    //region get /job_list
+    /** @test */
+    public function testJobList()
+    {
+        $requestPath = $this->getUrl('/job_list');
+        $response = $this->get($requestPath);
+        $response->assertStatus(200)
+            ->assertJson([
+                'href' => $requestPath,
+                'jobs' => ActionRepository::JOB_LIST
+            ]);
+    }
+    //endregion
+
+    //region get /graduation_list
+    /** @test */
+    public function testGraduationList()
+    {
+        $requestPath = $this->getUrl('/graduation_list');
+        $response = $this->get($requestPath);
+        $response->assertStatus(200)
+            ->assertJson([
+                'href' => $requestPath,
+                'graduations' => ActionRepository::GRADUATION_LIST
+            ]);
+    }
     //endregion
 }

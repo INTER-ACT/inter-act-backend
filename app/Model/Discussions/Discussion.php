@@ -7,7 +7,7 @@ use App\Amendments\IRatable;
 use App\Comments\Comment;
 use App\Comments\ICommentable;
 use App\IHasActivity;
-use App\Model\RestModelPrimary;
+use App\Model\RestModel;
 use App\MultiAspectRating;
 use App\Tags\ITaggable;
 use App\Tags\Tag;
@@ -15,7 +15,7 @@ use App\Traits\TTaggablePost;
 use App\User;
 use Carbon\Carbon;
 
-class Discussion extends RestModelPrimary implements ITaggable, ICommentable, IHasActivity, IRatable
+class Discussion extends RestModel implements ITaggable, ICommentable, IHasActivity, IRatable
 {
     use TTaggablePost;
 
@@ -26,7 +26,12 @@ class Discussion extends RestModelPrimary implements ITaggable, ICommentable, IH
         return "discussion";
     }
 
-    public function getResourcePath()
+    public function getApiFriendlyTypeGer() : string
+    {
+        return "Diskussion";
+    }
+
+    public function getResourcePath() : string
     {
         return '/discussions/' . $this->id;
     }

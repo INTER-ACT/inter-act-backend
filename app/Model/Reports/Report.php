@@ -2,10 +2,10 @@
 
 namespace App\Reports;
 
-use App\Model\RestModelPrimary;
+use App\Model\RestModel;
 use App\User;
 
-class Report extends RestModelPrimary
+class Report extends RestModel
 {
     protected $fillable = ['explanation'];
 
@@ -14,7 +14,12 @@ class Report extends RestModelPrimary
         return "report";
     }
 
-    public function getResourcePath()
+    public function getApiFriendlyTypeGer() : string
+    {
+        return "Meldung";
+    }
+
+    public function getResourcePath() : string
     {
         return '/reports/' . $this->id;
     }

@@ -7,6 +7,7 @@ use App\Comments\ICommentable;
 use App\Exceptions\CustomExceptions\InternalServerError;
 use App\Exceptions\CustomExceptions\NotAcceptedException;
 use App\IHasActivity;
+use App\Model\RestModel;
 use App\Model\RestModelPrimary;
 use App\MultiAspectRating;
 use App\Reports\IReportable;
@@ -17,7 +18,7 @@ use App\Traits\TTaggablePost;
 use App\User;
 use Carbon\Carbon;
 
-class SubAmendment extends RestModelPrimary implements ITaggable, IReportable, IRatable, ICommentable, IHasActivity
+class SubAmendment extends RestModel implements ITaggable, IReportable, IRatable, ICommentable, IHasActivity
 {
     use TTaggablePost;
 
@@ -32,7 +33,12 @@ class SubAmendment extends RestModelPrimary implements ITaggable, IReportable, I
         return "subamendment";
     }
 
-    public function getResourcePath()
+    public function getApiFriendlyTypeGer() : string
+    {
+        return "Sub-Änderungsvorschlag";
+    }
+
+    public function getResourcePath() : string
     {
         //$queryResult = \DB::selectOne('SELECT a.id as amendment_id, d.id as discussion_id from sub_amendments sa LEFT JOIN amendments a on sa.amendment_id = a.id LEFT JOIN discussions d ON a.discussion_id = d.id WHERE sa.id = :this_id', ['this_id' => $this->id]);
         //$amendment = ($this->amendment === null) ? Amendment::find($this->getAttribute('amendment_id'))->first(['id', 'discussion_id']) : $this->amendment;

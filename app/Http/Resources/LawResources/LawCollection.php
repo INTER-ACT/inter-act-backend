@@ -15,7 +15,12 @@ class LawCollection extends ApiCollectionResource
         return [
             'href' => url($request->getRequestUri()),
             'law_texts' => $this->collection->transform(function($item){
-                return $item->toArray();
+                return [
+                    "id" => $item->id,
+                    "href" => $this->getUrl($item->url),
+                    "articleOrParagraph" => $item->articleParagraphUnit,
+                    "title" => $item->title
+                ];
             })
         ];
     }

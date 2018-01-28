@@ -9,25 +9,25 @@
 namespace App\Domain;
 
 use App\Amendments\Amendment;
+use App\Amendments\IRatable;
 use App\Amendments\SubAmendment;
 use App\CommentRating;
 use App\Comments\Comment;
 use App\Discussions\Discussion;
-use App\Domain\EntityRepresentations\CommentRatingRepresentation;
-use App\Domain\EntityRepresentations\MultiAspectRatingRepresentation;
 use App\Exceptions\CustomExceptions\InvalidValueException;
 use App\Http\Resources\GeneralResources\SearchResource;
+use App\Http\Resources\GraduationListResource;
+use App\Http\Resources\JobListResource;
 use App\Http\Resources\StatisticsResources\ActionStatisticsResource;
 use App\Http\Resources\StatisticsResources\ActionStatisticsResourceData;
 use App\Http\Resources\StatisticsResources\CommentRatingStatisticsResource;
 use App\Http\Resources\StatisticsResources\CommentRatingStatisticsResourceData;
 use App\Http\Resources\StatisticsResources\GeneralActivityStatisticsResource;
 use App\Http\Resources\StatisticsResources\GeneralActivityStatisticsResourceData;
-use App\Http\Resources\StatisticsResources\RatingStatisticsResource;
-use App\Http\Resources\StatisticsResources\RatingStatisticsResourceData;
+use App\Http\Resources\StatisticsResources\MultiAspectRatingStatisticsResource;
+use App\Http\Resources\StatisticsResources\MultiAspectRatingStatisticsResourceData;
 use App\Http\Resources\StatisticsResources\UserActivityStatisticsResource;
 use App\MultiAspectRating;
-use App\RatingAspectRating;
 use App\Reports\Report;
 use App\Tags\Tag;
 use App\User;
@@ -38,6 +38,9 @@ use Illuminate\Database\Eloquent\Builder;
 class ActionRepository implements IRestRepository   //TODO: Exceptions missing?
 {
     use CustomPaginationTrait;
+
+    const JOB_LIST = ['Universitäts-Professor', 'Lehrer', 'Schüler'];
+    const GRADUATION_LIST = ['Grund-/Volksschule', 'Pflichtschule', 'Reife- und Diplomprüfung', 'Bachelor-Studium', 'Master-Studium', 'Doktor'];
 
     const SEARCH_TYPE_TAG = 'tag';
     const SEARCH_TYPE_CONTENT = 'content';
@@ -101,20 +104,10 @@ class ActionRepository implements IRestRepository   //TODO: Exceptions missing?
      * @param null $start_date
      * @param null $end_date
      * @return GeneralActivityStatisticsResource
-     * @throws InvalidValueException
      */
     public function getGeneralActivityStatistics($start_date = null, $end_date = null) : GeneralActivityStatisticsResource
     {
-        if(!isset($start_date))
-            $start_date = Carbon::createFromDate(2017, 1, 1, 2);
-        else
-            $start_date = Carbon::createFromFormat('Y-m-d', $start_date);
-        if(!isset($end_date))
-            $end_date = now();
-        else
-            $end_date = Carbon::createFromFormat('Y-m-d', $end_date);
-        if($start_date > $end_date)
-            throw new InvalidValueException('The start_date has to be greater than the end_date.');
+        self::mapDateInputToDates($start_date, $end_date);
         $discussions = $this->getDiscussionsBetweenDates($start_date, $end_date);
         $amendments = $this->getDiscussionsBetweenDates($start_date, $end_date);
         $sub_amendments = $this->getSubAmendmentsBetweenDates($start_date, $end_date);
@@ -126,40 +119,21 @@ class ActionRepository implements IRestRepository   //TODO: Exceptions missing?
         return new GeneralActivityStatisticsResource($final_array);
     }
 
-    public function getUserActivityStatisticsResource(int $user_id = null) : UserActivityStatisticsResource
+    /**
+     * @param null $start_date
+     * @param null $end_date
+     * @return MultiAspectRatingStatisticsResource
+     */
+    public function getRatingStatisticsResource($start_date = null, $end_date = null) : MultiAspectRatingStatisticsResource
     {
-        $amendment_count = DB::select('SELECT users.id as user_id, discussions.id as discussion_id, COUNT(*) from amendments
-          JOIN discussions on amendments.discussion_id = discussions.id
-          JOIN users on amendments.user_id = users.id
-          GROUP BY users.id, discussions.id');
-        $users = User::select('id')->get()->transform(function($item){
-            return $item->getResourcePath();
-        });
-        $discussions = Discussion::select('id', 'title')->get()->transform(function($item){
-            return [$item->getResourcePath(), $item->title];
-        });
-        $total_array = [];
-        foreach ($users as $user)
-        {
-            foreach ($discussions as $discussion)
-            {
-                $total_array = array_merge($total_array, [[$user, $discussion[0], $discussion[1], 9]]);
-            }
-        }
-        /*$users->transform(function($item){
-            return new UserActivityStatisticsResourceData($item->user->getResourcePath(), $item->discussion->getResourcePath, $item->discussion->title, 10);
-        });*/
-        return new UserActivityStatisticsResource($total_array);
-    }
-
-    public function getRatingStatisticsResource() : RatingStatisticsResource
-    {
-        $ratings = RatingAspectRating::select('ratable_rating_aspect_id', 'created_at as date', 'user_id')->with(['user', 'ratable_rating_aspect:id,rating_aspect_id,ratable_id,ratable_type', 'ratable_rating_aspect.ratable', 'ratable_rating_aspect.rating_aspect:id,name'])->get()
-            ->transform(function($item, $key) {
-                return (new RatingStatisticsResourceData($item->date, $item->user, $item->ratable_rating_aspect->ratable->getResourcePath(), $item->ratable_rating_aspect->rating_aspect->name))->toArray();
-            })->toArray();
-
-        return new RatingStatisticsResource($ratings);
+        self::mapDateInputToDates($start_date, $end_date);
+        $ratings = MultiAspectRating::where([['created_at', '>=', $start_date], ['created_at', '<=', $end_date]])->with(['user', 'ratable'])->get();
+        $ratings = $ratings->transform(function(MultiAspectRating $item){
+            /** @var IRatable $ratable */
+            $ratable = $item->ratable;
+            return (new MultiAspectRatingStatisticsResourceData($item->created_at, $item->user, $ratable->getId(), $ratable->getApiFriendlyTypeGer(), $ratable->getResourcePath(), $item->getRatedAspects()))->toArray();
+        })->all();
+        return new MultiAspectRatingStatisticsResource($ratings);
     }
 
     public function getCommentRatingStatisticsResource() : CommentRatingStatisticsResource
@@ -214,6 +188,32 @@ class ActionRepository implements IRestRepository   //TODO: Exceptions missing?
         return new CommentRatingStatisticsResource($comments);
     }
 
+    public function getUserActivityStatisticsResource(int $user_id = null) : UserActivityStatisticsResource
+    {
+        $amendment_count = DB::select('SELECT users.id as user_id, discussions.id as discussion_id, COUNT(*) from amendments
+          JOIN discussions on amendments.discussion_id = discussions.id
+          JOIN users on amendments.user_id = users.id
+          GROUP BY users.id, discussions.id');
+        $users = User::select('id')->get()->transform(function($item){
+            return $item->getResourcePath();
+        });
+        $discussions = Discussion::select('id', 'title')->get()->transform(function($item){
+            return [$item->getResourcePath(), $item->title];
+        });
+        $total_array = [];
+        foreach ($users as $user)
+        {
+            foreach ($discussions as $discussion)
+            {
+                $total_array = array_merge($total_array, [[$user, $discussion[0], $discussion[1], 9]]);
+            }
+        }
+        /*$users->transform(function($item){
+            return new UserActivityStatisticsResourceData($item->user->getResourcePath(), $item->discussion->getResourcePath, $item->discussion->title, 10);
+        });*/
+        return new UserActivityStatisticsResource($total_array);
+    }
+
     public function getObjectActivityStatisticsResource() : ActionStatisticsResource
     {
         $discussions = Discussion::select('id', 'title')->get()->transform(function($item){
@@ -233,6 +233,22 @@ class ActionRepository implements IRestRepository   //TODO: Exceptions missing?
         $action_resource_data = array_merge($discussions, $tags);
 
         return new ActionStatisticsResource($header, $action_resource_data);
+    }
+
+    /**
+     * @return JobListResource
+     */
+    public function getJobList() : JobListResource
+    {
+        return new JobListResource(self::JOB_LIST);
+    }
+
+    /**
+     * @return GraduationListResource
+     */
+    public function getGraduationList() : GraduationListResource
+    {
+        return new GraduationListResource(self::GRADUATION_LIST);
     }
 
     //region searchHelpers
@@ -444,4 +460,18 @@ class ActionRepository implements IRestRepository   //TODO: Exceptions missing?
         })->all();
     }
     //endregion
+
+    protected function mapDateInputToDates(&$start_date, &$end_date)
+    {
+        if(!isset($start_date))
+            $start_date = Carbon::createFromDate(2017, 1, 1, 2);
+        else
+            $start_date = Carbon::createFromFormat('Y-m-d', $start_date);
+        if(!isset($end_date))
+            $end_date = now();
+        else
+            $end_date = Carbon::createFromFormat('Y-m-d', $end_date);
+        if($start_date > $end_date)
+            throw new InvalidValueException('The start_date has to be greater than the end_date.');
+    }
 }

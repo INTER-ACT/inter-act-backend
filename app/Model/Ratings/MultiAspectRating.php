@@ -51,6 +51,11 @@ class MultiAspectRating extends RestModel
         return 'multi-aspect-rating';
     }
 
+    public  function getApiFriendlyTypeGer(): string
+    {
+        return 'Multi-Aspect-Rating';
+    }
+
     public function getResourcePath() : string
     {
         return $this->ratable->getResourcePath() . '/rating';

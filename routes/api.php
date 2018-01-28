@@ -119,7 +119,7 @@ Route::get('/tags/{tag_id}', 'TagController@show');
 //region actions
 Route::get('/search', 'ActionController@searchArticles');
 
-Route::get('/statistics', 'ActionController@getGeneralActivityStatistics');
+Route::get('/statistics', 'ActionController@getGeneralActivityStatistics')->middleware('auth:api');
 
 Route::get('/statistics/user_activity', 'ActionController@getUserActivityStatistics');
 
@@ -128,4 +128,8 @@ Route::get('/statistics/ratings', 'ActionController@getRatingStatistics');
 Route::get('/statistics/comment_ratings', 'ActionController@getCommentRatingStatistics');
 
 Route::get('/statistics/object_activity', 'ActionController@getObjectActivityStatistics');
+
+Route::get('/job_list', 'ActionController@getJobList');
+
+Route::get('/graduation_list', 'ActionController@getGraduationList');
 //endregion

@@ -22,5 +22,10 @@ abstract class RestModel extends Model implements IRestResource
         return get_class($this);
     }
 
+    public function getResourcePath() : string
+    {
+        return '/';
+    }
+
     public abstract function getApiFriendlyType() : string;
 }

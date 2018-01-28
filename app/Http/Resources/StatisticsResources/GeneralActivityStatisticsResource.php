@@ -33,7 +33,7 @@ class GeneralActivityStatisticsResource extends CustomArrayResource
     {
         $header = [
             'Typ',
-            'Datum',
+            'Erstellungsdatum',
             'Geschlecht',
             'PLZ',
             'Job',

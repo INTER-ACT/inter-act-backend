@@ -12,13 +12,13 @@ namespace App\Domain;
 class LawResourceShort
 {
     /** @var string */
-    protected $id;
+    public $id;
     /** @var string */
-    protected $url;
+    public $url;
     /** @var string */
-    protected $title;
+    public $title;
     /** @var string */
-    protected $articleParagraphUnit;    //je nach typ
+    public $articleParagraphUnit;    //je nach typ
 
     /**
      * LawResourceShort constructor.
@@ -33,20 +33,5 @@ class LawResourceShort
         $this->url = $url;
         $this->title = $title;
         $this->articleParagraphUnit = $articleParagraphUnit;
-    }
-
-
-    //region Getters and Setters
-
-    //endregion
-
-    public function toArray()
-    {
-        return[
-            "id" => $this->id,
-            "href" => $this->url,
-            "articleOrParagraph" => $this->articleParagraphUnit,
-            "title" => $this->title
-        ];
     }
 }

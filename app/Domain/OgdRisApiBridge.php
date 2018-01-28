@@ -9,6 +9,8 @@
 namespace App\Domain;
 
 
+use DOMDocument;
+use DOMXPath;
 use GuzzleHttp\Client;
 use SimpleXMLElement;
 
@@ -47,6 +49,57 @@ class OgdRisApiBridge
      */
     public static function getParagraphFromId(string $id) : LawInformation
     {
+        $header = self::getTitleById($id);
+        $client = new Client();
+        $fetch_path = self::DOC_FETCH_PATH. '/' . $id . '/' . $id . '.html';
+        $res = $client->get($fetch_path);
+        $content = $res->getBody()->getContents();
+        /*$d = new DOMDocument;
+        $mock = new DOMDocument;
+        $d->loadHTML($content);
+        $body = $d->getElementsByTagName('body')->item(0);
+        foreach ($body->childNodes as $child){
+            $mock->appendChild($mock->importNode($child, true));
+        }
+        $domx = new DOMXPath($mock);
+        $items = $domx->query("//*[@class]");
+        foreach($items as $item) {
+            $item->removeAttribute("class");
+        }
+        $content = $mock->saveHTML();
+        preg_replace("/<([a-z][a-z0-9]*)[^>]*?(\/?)>/i",'<$1$2>', $bodyOnly);   //https://stackoverflow.com/questions/3026096/remove-all-attributes-from-an-html-tag
+        */
+        return new LawInformation($id, '/law_texts/' . $id, $header, $content);
+    }
+
+    public static function test(string $id) : string
+    {
+        $header = self::getTitleById($id);
+        $client = new Client();
+        $fetch_path = self::DOC_FETCH_PATH. '/' . $id . '/' . $id . '.html';
+        $res = $client->get($fetch_path);
+        $content = $res->getBody()->getContents();
+        $d = new DOMDocument;
+        $mock = new DOMDocument;
+        $d->loadHTML($content);
+        $body = $d->getElementsByTagName('body')->item(0);
+        foreach ($body->childNodes as $child){
+            $mock->appendChild($mock->importNode($child, true));
+        }
+        $domx = new DOMXPath($mock);
+        $items = $domx->query("//*[@class]");
+        foreach($items as $item) {
+            $item->removeAttribute("class");
+        }
+        return $mock->saveHTML();
+    }
+
+    /**
+     * @param string $id
+     * @return string
+     */
+    protected static function getTitleById(string $id) : string
+    {
         $client = new Client();
         $fetch_path = self::DOC_FETCH_PATH. '/' . $id . '/' . $id . '.xml';
         $res = $client->get($fetch_path);
@@ -55,27 +108,9 @@ class OgdRisApiBridge
         $doc->registerXPathNamespace('a', 'http://www.bka.gv.at');
         $headerElements = $doc->xpath('//a:ueberschrift[@typ="para"]');
         if(sizeof($headerElements) > 0)
-            $header = (string)$headerElements[0];
+            return (string)$headerElements[0];
         else
-            $header = '-';
-        $contentElements = $doc->xpath('//a:absatz[@typ="abs"]');
-        $content = '';
-        foreach ($contentElements as $element)
-        {
-            $content .= (string)$element . "\r\n ";
-        }
-        /*$content = [];
-        $xmlElements = $doc->xpath('//a:*[@ct="text"]');
-        foreach ($xmlElements as $element)
-        {
-            $contentString .= (string)$element . "\r\n";
-            $identifier = "content";
-            if($element->getName() == 'ueberschrift')
-                $identifier = 'header';
-            array_push($content, [$identifier => (string)$element]);
-            //$content[$identifier] = (string)$element;
-        }*/
-        return new LawInformation($id, url('/law_texts/' . $id), $header, $content);
+            return '-';
     }
 
     /**
@@ -102,11 +137,10 @@ class OgdRisApiBridge
     {
         $metadata = $document["Data"]["Metadaten"]["Bundes-Landesnormen"];
         $id = $document["Data"]["Metadaten"]["Technisch"]["ID"];
-        //$url = $document["Data"]["Dokumentliste"]["ContentReference"]["Urls"]["ContentUrl"][1]["Url"];
-        $url = url('/law_texts/' . $id);
+        $url = '/law_texts/' . $id;
         $articleParagraphUnit = $metadata["ArtikelParagraphAnlage"];
-        $paragraph = self::getParagraphFromId($id);
+        $title = self::getTitleById($id);
 
-        return new LawResourceShort($id, $url, $paragraph->title, $articleParagraphUnit);
+        return new LawResourceShort($id, $url, $title, $articleParagraphUnit);
     }
 }

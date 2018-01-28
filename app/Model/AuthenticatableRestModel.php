@@ -10,7 +10,7 @@ namespace App\Model;
 
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
-abstract class AuthRestModel extends Authenticatable implements IRestResourcePrimary
+abstract class AuthRestModel extends Authenticatable implements IRestResource
 {
     function getId() : int
     {
@@ -20,6 +20,11 @@ abstract class AuthRestModel extends Authenticatable implements IRestResourcePri
     public function getType() : string
     {
         return get_class($this);
+    }
+
+    public function getResourcePath() : string
+    {
+        return '/';
     }
 
     public abstract function getApiFriendlyType() : string;

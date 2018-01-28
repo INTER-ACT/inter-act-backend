@@ -29,8 +29,8 @@ use App\Http\Resources\StatisticsResources\GeneralActivityStatisticsResource;
 use App\Http\Resources\StatisticsResources\GeneralActivityStatisticsResourceData;
 use App\Http\Resources\StatisticsResources\ArrayOfActionStatisticsResourceData;
 use App\Http\Resources\RatingResources\CommentRatingResource;
-use App\Http\Resources\StatisticsResources\RatingStatisticsResource;
-use App\Http\Resources\StatisticsResources\RatingStatisticsResourceData;
+use App\Http\Resources\StatisticsResources\MultiAspectRatingStatisticsResource;
+use App\Http\Resources\StatisticsResources\MultiAspectRatingStatisticsResourceData;
 use App\Http\Resources\StatisticsResources\StatisticsResource;
 use App\Http\Resources\StatisticsResources\StatisticsResourceData;
 use App\Http\Resources\StatisticsResources\UserActivityStatisticsResource;
@@ -247,10 +247,10 @@ Route::get('/statistics/general_activity', function(){
 Route::get('/statistics/ratings', function(){
     $ratings = RatingAspectRating::select('ratable_rating_aspect_id', 'created_at as date', 'user_id')->with(['user', 'ratable_rating_aspect:id,rating_aspect_id,ratable_id,ratable_type', 'ratable_rating_aspect.ratable', 'ratable_rating_aspect.rating_aspect:id,name'])->get()
         ->transform(function($item, $key) {
-            return (new RatingStatisticsResourceData($item->date, $item->user, $item->ratable_rating_aspect->ratable->getResourcePath(), $item->ratable_rating_aspect->rating_aspect->name))->toArray();
+            return (new MultiAspectRatingStatisticsResourceData($item->date, $item->user, $item->ratable_rating_aspect->ratable->getResourcePath(), $item->ratable_rating_aspect->rating_aspect->name))->toArray();
         })->toArray();
 
-    $resource = new RatingStatisticsResource($ratings);
+    $resource = new MultiAspectRatingStatisticsResource($ratings);
     $data = $resource->toArray();
     return new StreamedResponse(
         function() use($data)

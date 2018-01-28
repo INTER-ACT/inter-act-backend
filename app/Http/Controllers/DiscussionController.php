@@ -54,7 +54,7 @@ class DiscussionController extends Controller
 
     public function test(string $id) : string
     {
-        return OgdRisApiBridge::getParagraphFromId($id);
+        return OgdRisApiBridge::test($id);
     }
 
     /**

@@ -19,7 +19,7 @@ class CommentRating extends RestModel
         return null;
     }
 
-    function getResourcePath()
+    function getResourcePath() : string
     {
         return '/comments/' . $this->comment_id;
     }
@@ -27,6 +27,11 @@ class CommentRating extends RestModel
     public function getApiFriendlyType(): string
     {
         return 'comment_rating';
+    }
+
+    public function getApiFriendlyTypeGer(): string
+    {
+        return 'Kommentar-Bewertung';
     }
 
     public function getApiFriendlyRating() : string

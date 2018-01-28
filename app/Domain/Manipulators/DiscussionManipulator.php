@@ -22,7 +22,7 @@ use App\MultiAspectRating;
 use App\User;
 use Log;
 
-class DiscussionManipulator //TODO: request not validated here. remove this if done elsewhere
+class DiscussionManipulator
 {
     /**
      * @param User $user

@@ -13,6 +13,7 @@ use App\Discussions\Discussion;
 use App\Exceptions\CustomExceptions\ApiException;
 use App\Exceptions\CustomExceptions\ApiExceptionMeta;
 use App\Exceptions\CustomExceptions\InvalidValueException;
+use App\Exceptions\CustomExceptions\NotPermittedException;
 use App\Exceptions\CustomExceptions\ResourceNotFoundException;
 use App\Http\Resources\AmendmentResources\AmendmentCollection;
 use App\Http\Resources\CommentResources\CommentCollection;
@@ -158,10 +159,13 @@ class DiscussionRepository implements IRestRepository   //TODO: Exceptions missi
 
     /**
      * @param $id
+     * @param bool $is_admin
      * @return Discussion
-     * @throws ApiException
+     * @throws InvalidValueException
+     * @throws NotPermittedException
+     * @throws ResourceNotFoundException
      */
-    public static function getDiscussionByIdOrThrowError($id) : Discussion
+    public static function getDiscussionByIdOrThrowError($id, bool $is_admin = false) : Discussion
     {
         if(!isset($id) or !is_numeric($id))
             throw new InvalidValueException("The given id was invalid.");
@@ -169,6 +173,8 @@ class DiscussionRepository implements IRestRepository   //TODO: Exceptions missi
         $discussion = Discussion::find($id);
         if($discussion === null)
             throw new ResourceNotFoundException('Discussion with id ' . $id . ' not found.');
+        if(!$discussion->isActive() and !$is_admin)
+            throw new NotPermittedException('The logged in user is not permitted to interact with archived discussions.');
         return $discussion;
     }
 }

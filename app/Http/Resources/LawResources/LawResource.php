@@ -13,7 +13,7 @@ class LawResource extends ApiResource
     public function toArray($request)
     {
         return [
-            'href' => $this->href,
+            'href' => $this->getUrl($this->href),
             'id' => $this->id,
             'title' => $this->title,
             'content' => $this->content

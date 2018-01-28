@@ -5,9 +5,9 @@ namespace App\Tags;
 use App\Amendments\Amendment;
 use App\Amendments\SubAmendment;
 use App\Discussions\Discussion;
-use App\Model\RestModelPrimary;
+use App\Model\RestModel;
 
-class Tag extends RestModelPrimary
+class Tag extends RestModel
 {
     //region constants
     const NUTZUNG_FREMDER_INHALTE_NAME = "Nutzung fremder Inhalte";
@@ -122,7 +122,12 @@ class Tag extends RestModelPrimary
         return 'tag';
     }
 
-    public function getResourcePath()
+    function getApiFriendlyTypeGer(): string
+    {
+        return 'Tag';
+    }
+
+    public function getResourcePath() : string
     {
         return '/tags/' . $this->id;
     }

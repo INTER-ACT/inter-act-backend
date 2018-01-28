@@ -8,10 +8,9 @@
 
 namespace App\Http\Resources\StatisticsResources;
 
-
 use Illuminate\Database\Eloquent\Collection;
 
-class RatingStatisticsResource extends CustomArrayResource
+class MultiAspectRatingStatisticsResource extends CustomArrayResource
 {
     /**
      * StatisticsResource constructor.
@@ -26,8 +25,10 @@ class RatingStatisticsResource extends CustomArrayResource
             'Job',
             'Höchster Bildungsabschluss',
             'Alter',
+            'Beitrags-ID',
+            'Beitrags-Typ',
             'Bewerteter Beitrag',
-            'Rating-Aspect'
+            'Bewertete Aspekte'
         ];
         parent::__construct($header, $data);
     }

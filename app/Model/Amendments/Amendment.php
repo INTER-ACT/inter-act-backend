@@ -6,6 +6,7 @@ use App\Comments\Comment;
 use App\Comments\ICommentable;
 use App\Discussions\Discussion;
 use App\IHasActivity;
+use App\Model\RestModel;
 use App\Model\RestModelPrimary;
 use App\MultiAspectRating;
 use App\Reports\IReportable;
@@ -17,7 +18,7 @@ use App\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
-class Amendment extends RestModelPrimary implements ITaggable, IReportable, IRatable, ICommentable, IHasActivity
+class Amendment extends RestModel implements ITaggable, IReportable, IRatable, ICommentable, IHasActivity
 {
     use TTaggablePost;
 
@@ -30,7 +31,12 @@ class Amendment extends RestModelPrimary implements ITaggable, IReportable, IRat
         return "amendment";
     }
 
-    public function getResourcePath()
+    public function getApiFriendlyTypeGer() : string
+    {
+        return "Änderungsvorschlag";
+    }
+
+    public function getResourcePath() : string
     {
         if(!array_key_exists('discussion_id', $this->attributes))
             $this->setAttribute('discussion_id', \DB::selectOne('SELECT discussion_id as id FROM amendments WHERE id = :this_id', ['this_id' => $this->id])->id);

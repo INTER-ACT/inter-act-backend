@@ -39,7 +39,7 @@ class User extends AuthRestModel
         return $this->is_male ? 'm' : 'f';
     }
 
-    public function getResourcePath()
+    public function getResourcePath() : string
     {
         return '/users/' . $this->id;
     }
@@ -47,6 +47,11 @@ class User extends AuthRestModel
     public function getApiFriendlyType(): string
     {
         return 'user';
+    }
+
+    public function getApiFriendlyTypeGer(): string
+    {
+        return 'Benutzer';
     }
 
     //region relations

@@ -25,4 +25,14 @@ interface IRestResource
      * @return string
      */
     function getApiFriendlyType() : string;
+
+    /**
+     * @return string
+     */
+    function getApiFriendlyTypeGer() : string;
+
+    /**
+     * @return string
+     */
+    function getResourcePath() : string;
 }

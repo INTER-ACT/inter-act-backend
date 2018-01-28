@@ -3,8 +3,9 @@
 namespace App\Http\Requests;
 
 use App\Domain\ApiRequest;
+use App\Role;
 
-class ShowLawTextRequest extends ApiRequest
+class ViewStatisticsRequest extends ApiRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -14,6 +15,8 @@ class ShowLawTextRequest extends ApiRequest
     public function authorize()
     {
         return true;
+        //TODO: uncomment again
+        //return $this->user()->hasRole(Role::getScientist()) || $this->user()->hasRole(Role::getAdmin());
     }
 
     /**
@@ -24,7 +27,8 @@ class ShowLawTextRequest extends ApiRequest
     public function rules()
     {
         return [
-            //
+            'begin' => 'date_format:Y-m-d',
+            'end' => 'date_format:Y-m-d'
         ];
     }
 }
