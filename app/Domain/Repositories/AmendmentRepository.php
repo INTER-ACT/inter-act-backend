@@ -9,6 +9,7 @@ use App\Discussions\Discussion;
 use App\Exceptions\CustomExceptions\CannotResolveDependenciesException;
 use App\Exceptions\CustomExceptions\NotFoundException;
 use App\Http\Resources\AmendmentResources\AmendmentCollection;
+use App\Http\Resources\AmendmentResources\AmendmentResource;
 use App\Http\Resources\CommentResources\CommentCollection;
 use App\Http\Resources\PostResources\ReportCollection;
 use App\Http\Resources\RatingResources\MultiAspectRatingResource;
@@ -75,7 +76,7 @@ class AmendmentRepository implements IRestRepository
      * @return AmendmentCollection
      * @throws CannotResolveDependenciesException
      */
-    public function getAll(int $discussion_id, PageGetRequest $request, $sortDirection = SORT_DESC, $sortBy = SORT_BY_POPULARITY)
+    public function getAll(int $discussion_id, PageGetRequest $request, $sortDirection = SORT_DESC, $sortBy = self::SORT_BY_POPULARITY)
     {
         $discussion = Discussion::find($discussion_id);
         if ($discussion === Null)
@@ -105,12 +106,11 @@ class AmendmentRepository implements IRestRepository
 
     /**
      * @param int $id
-     * @param Request $request
-     * @return UserResource
+     * @return AmendmentResource
      */
-    public function getById(int $id, Request $request)
+    public function getById(int $id)
     {
-        return new UserResource(self::getByIdOrThrowError($id));
+        return new AmendmentResource(self::getByIdOrThrowError($id));
     }
 
     /**
@@ -159,7 +159,7 @@ class AmendmentRepository implements IRestRepository
     public function getComments(int $id, PageGetRequest $request)
     {
         $amendment = self::getByIdOrThrowError($id);
-        $comments = $this->paginate($amendment->comments()->sortBy('created_at', 'desc')->get(), $request->perPage, $request->pageNumber);
+        $comments = $this->paginate($amendment->comments()->orderBy('created_at', 'desc')->get(), $request->perPage, $request->pageNumber);
 
         return new CommentCollection($comments);
     }

@@ -4,6 +4,8 @@ namespace App\Http\Requests;
 
 
 use App\Exceptions\CustomExceptions\InvalidValueException;
+use App\Exceptions\CustomExceptions\NotAuthorizedException;
+use Auth;
 use Illuminate\Http\Request;
 use Validator;
 
@@ -18,6 +20,9 @@ class CreateAmendmentCommentRequest implements IRequest
     public function __construct(Request $request)
     {
         $this->request = $request;
+
+        $this->validate();
+        $this->authorize();
     }
 
     /**
@@ -40,10 +45,23 @@ class CreateAmendmentCommentRequest implements IRequest
     }
 
     /**
+     * Throws an Exception if the User is not logged in
+     */
+    public function authorize()
+    {
+        if(!Auth::check())
+            throw new NotAuthorizedException('You must be logged in to create a Comment.');
+    }
+
+    /**
      * @return array
      */
     public function getData()
     {
-        return $this->request->all();
+        $data = $this->request->all();
+        return [
+            'content' => $data['comment_text'],
+            'tags' => $data['tags']
+        ];
     }
 }

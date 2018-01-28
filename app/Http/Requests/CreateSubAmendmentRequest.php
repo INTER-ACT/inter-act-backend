@@ -4,6 +4,8 @@ namespace App\Http\Requests;
 
 
 use App\Exceptions\CustomExceptions\InvalidValueException;
+use App\Exceptions\CustomExceptions\NotAuthorizedException;
+use Auth;
 use Illuminate\Http\Request;
 use Validator;
 
@@ -18,6 +20,9 @@ class CreateSubAmendmentRequest implements IRequest
     public function __construct(Request $request)
     {
         $this->request = $request;
+
+        $this->validate();
+        $this->authorize();
     }
 
     /**
@@ -38,6 +43,12 @@ class CreateSubAmendmentRequest implements IRequest
 
         if($validator->fails())
             throw new InvalidValueException($validator->errors());
+    }
+
+    public function authorize()
+    {
+        if(!Auth::check())
+            throw new NotAuthorizedException('You must be logged in to create a new subamendment!');
     }
 
     public function getData()
