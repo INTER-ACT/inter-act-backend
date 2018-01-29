@@ -27,7 +27,7 @@ class CreateCommentRequest extends ApiRequest
         return [
             'content' => 'required|string',
             'tags' => 'array',
-            'tags.*' => 'integer'
+            'tags.*' => 'required|integer|exists:tags,id|distinct'
         ];
     }
 }
