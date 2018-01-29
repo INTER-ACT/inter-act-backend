@@ -2,22 +2,23 @@
 
 namespace App\Http\Resources;
 
+use App\Amendments\IRatable;
 use App\Discussions\Discussion;
 use App\MultiAspectRating;
 use Illuminate\Http\Resources\Json\Resource;
 
 class MultiAspectRatingResource extends ApiResource
 {
-    protected $discussion;
+    protected $ratable;
 
     /**
      * MultiAspectRatingResource constructor.
-     * @param Discussion $discussion
+     * @param IRatable $ratable
      */
-    public function __construct(Discussion $discussion)
+    public function __construct(IRatable $ratable)
     {
-        $this->discussion = $discussion;
-        parent::__construct($discussion);
+        $this->ratable = $ratable;
+        parent::__construct($ratable);
     }
 
     /**
@@ -28,11 +29,11 @@ class MultiAspectRatingResource extends ApiResource
      */
     public function toArray($request)
     {
-        $thisUrl = $this->getUrl($this->discussion->getRatingPath());
+        $thisUrl = $this->getUrl($this->ratable->getRatingPath());
         return [
             'href' => $thisUrl,
-            'user_rating' => $this->when(\Auth::check(), $this->getUserRatingRepresentation($this->discussion->user_rating)),
-            'total_rating' => $this->discussion->rating_sum
+            'user_rating' => $this->when(\Auth::check(), $this->getUserRatingRepresentation($this->ratable->user_rating)),  // TODO move authentication out of this class
+            'total_rating' => $this->ratable->rating_sum
         ];
     }
 
