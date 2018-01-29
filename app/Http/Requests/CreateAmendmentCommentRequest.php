@@ -46,6 +46,8 @@ class CreateAmendmentCommentRequest implements IRequest
 
     /**
      * Throws an Exception if the User is not logged in
+     *
+     * @throws NotAuthorizedException
      */
     public function authorize()
     {
@@ -54,6 +56,8 @@ class CreateAmendmentCommentRequest implements IRequest
     }
 
     /**
+     * Returns a Representation of the request data, that can be autofilled as good as possible
+     *
      * @return array
      */
     public function getData()
