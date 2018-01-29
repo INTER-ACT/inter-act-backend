@@ -7,18 +7,16 @@ use App\Amendments\SubAmendment;
 use App\Comments\Comment;
 use App\Discussions\Discussion;
 use App\User;
+use Hash;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Laravel\Passport\Passport;
-use PHPUnit\ExampleExtension\TestCaseTrait;
 use Tests\TestCase;
-use Illuminate\Foundation\Testing\WithFaker;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class UserTests extends TestCase
 {
     use DatabaseMigrations;
 
-    // GET /users
+    //region GET /users
     public function testGettingUsersStatus()
     {
         factory(User::class, 5)->create();
@@ -27,8 +25,9 @@ class UserTests extends TestCase
 
         $response->assertStatus(200);
     }
+    //endregion
 
-    // POST /users
+    //region POST /users
 
     /**
      * Tests that the creation of a user returns the correct response
@@ -53,10 +52,11 @@ class UserTests extends TestCase
 
         $response->assertStatus(201);
 
-        $data = (array)json_decode($response->content());
+        $data = $response->decodeResponseJson();
         $this->assertArrayHasKey('href', $data);
         $this->assertArrayHasKey('id', $data);
     }
+
 
     /**
      * Tests that the user and all his values are saved to the database,
@@ -99,8 +99,9 @@ class UserTests extends TestCase
         $this->assertEquals($userData['highest_education'], $user->graduation);
         $this->assertEquals($userData['year_of_birth'], $user->year_of_birth);
     }
+    //endregion
 
-    // GET /users/{id}
+    //region GET /users/{id}
 
     public function testGettingUserAsGuestStatus()
     {
@@ -110,28 +111,53 @@ class UserTests extends TestCase
 
         $response->assertStatus(200);
     }
+    //endregion
 
-    // PATCH /users/{id}
+    //region PATCH /users/{id}
 
     /**
-     * Tests that the authenticated user can update his properties
+     * Tests that the authenticated user can update his properties,
+     * and that the values are changed accordingly
+     *
+     * With correct data only
      */
-    public function testUpdatingUserStatus()
+    public function testUpdatingUser()
     {
-        $user = factory(User::class)->create();
+        $firstPassword = '123!xyzz';
+        $user = factory(User::class)->create([
+            'password' => Hash::make($firstPassword)
+        ]);
+
+        $newMail = 'mymail@me.com';
+        $newPassword = 'abcc123!';
+        $newLastName = 'Santana';
+        $newResicence = 'Wien';
+        $newJob = 'Dunno';
+        $newHighestEducation = 'Forschungszentrum für Bildungsbekämpfung, Krems';
 
         Passport::actingAs($user);
 
-        $response = $this->patch($user->getResourcePath(),[
-            'email' => 'mymail@me.com',
-            'password' => 'abcc123!',
-            'last_name' => 'Santana',
-            'residence' => 'Wien',
-            'job' => 'Anwalt',
-            'highest_education' => 3
+        $response = $this->patch($user->getResourcePath(), [
+            'email' => $newMail,
+            'password' => $newPassword,
+            'old_password' => $firstPassword,
+            'last_name' => $newLastName,
+            'residence' => $newResicence,
+            'job' => $newJob,
+            'highest_education' => $newHighestEducation
         ]);
 
         $response->assertStatus(204);
+
+        $updatedUser = User::find($user->id);
+        self::assertNotNull($updatedUser);
+
+        self::assertEquals($newMail, $updatedUser->email);
+        self::assertTrue(Hash::check($newPassword, $updatedUser->password));
+        self::assertEquals($newLastName, $updatedUser->last_name);
+        self::assertEquals($newResicence, $updatedUser->city);
+        self::assertEquals($newJob, $updatedUser->job);
+        self::assertEquals($newHighestEducation, $updatedUser->graduation);
     }
 
     /**
@@ -175,8 +201,48 @@ class UserTests extends TestCase
         $response->assertStatus(403);
     }
 
+    /**
+     * Tests that a User cannot change his password without providing his old one
+     */
+    public function testUpdatingPasswordWithoutOldPassword()
+    {
+        $user = factory(User::class)->create();
 
-    // DELETE /users/{id}
+        $newPassword = 'abcc123!';
+
+        Passport::actingAs($user);
+
+        $response = $this->patch($user->getResourcePath(), [
+            'password' => $newPassword,
+        ]);
+
+        $response->assertStatus(400);
+    }
+
+    /**
+     * Tests that a User cannot change his password with a wrong old password
+     */
+    public function testUpdatingPasswordWithWrongOldPassword()
+    {
+        $firstPassword = '123!xyzz';
+        $user = factory(User::class)->create([
+            'password' => $firstPassword
+        ]);
+
+        $newPassword = 'abcc123!';
+
+        Passport::actingAs($user);
+
+        $response = $this->patch($user->getResourcePath(), [
+            'password' => $newPassword,
+            'old_password' => $firstPassword . '!',
+        ]);
+
+        $response->assertStatus(400);
+    }
+    //endregion
+
+    //region DELETE /users/{id}
     /**
      * Tests that the authenticated user can delete his account
      */
@@ -291,8 +357,9 @@ class UserTests extends TestCase
 
         $response->assertStatus(403);
     }
+    //endregion
 
-    // PUT /users/{id}/role
+    //region PUT /users/{id}/role
     /**
      * Tests that an authenticated Admin can change a user's role
      */
@@ -309,8 +376,9 @@ class UserTests extends TestCase
 
         $response->assertStatus(204);
     }
+    //endregion
 
-    // GET /users/{id}/amendments
+    //region GET /users/{id}/amendments
     /**
      * Tests that a user can get the amendments of a user
      */
@@ -325,6 +393,7 @@ class UserTests extends TestCase
 
         $response->assertStatus(200);
     }
+    //endregion
 
     // GET /users/{id}/subamendments
     /**
