@@ -129,15 +129,15 @@ Route::get('/tags/{tag_id}', 'TagController@show');
 //region actions
 Route::get('/search', 'ActionController@searchArticles');
 
-Route::get('/statistics', 'ActionController@getGeneralActivityStatistics')->middleware('auth:api');
+Route::get('/statistics', 'ActionController@getGeneralActivityStatistics');//->middleware('auth:api');
 
-Route::get('/statistics/user_activity', 'ActionController@getUserActivityStatistics');
+Route::get('/statistics/user_activity', 'ActionController@getUserActivityStatistics');//->middleware('auth:api');
 
-Route::get('/statistics/ratings', 'ActionController@getRatingStatistics');
+Route::get('/statistics/ratings', 'ActionController@getRatingStatistics');//->middleware('auth:api');
 
-Route::get('/statistics/comment_ratings', 'ActionController@getCommentRatingStatistics');
+Route::get('/statistics/comment_ratings', 'ActionController@getCommentRatingStatistics');//->middleware('auth:api');
 
-Route::get('/statistics/object_activity', 'ActionController@getObjectActivityStatistics');
+Route::get('/statistics/object_activity', 'ActionController@getObjectActivityStatistics');//->middleware('auth:api');
 
 Route::get('/job_list', 'ActionController@getJobList');
 

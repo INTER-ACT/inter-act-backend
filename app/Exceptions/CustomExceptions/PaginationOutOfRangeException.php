@@ -6,7 +6,7 @@ namespace App\Exceptions\CustomExceptions;
 class PaginationOutOfRangeException extends ApiException
 {
     public const HTTP_CODE = 400;
-    public const ERROR_CODE = "Request_03";
+    public const ERROR_CODE = 2;
 
     public function __construct($details = null)
     {

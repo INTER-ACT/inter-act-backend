@@ -164,7 +164,7 @@ class ActionController extends Controller
             200,
             [
                 'Content-type' => 'text/csv',
-                'Content-Disposition' => 'attachment; filename=CommentRatingStatistics.csv'
+                'Content-Disposition' => 'attachment; filename=ObjectActivityStatistics.csv'
             ]
         );
     }

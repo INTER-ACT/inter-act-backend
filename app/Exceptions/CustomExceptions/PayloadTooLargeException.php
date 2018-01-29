@@ -6,7 +6,7 @@ namespace App\Exceptions\CustomExceptions;
 class PayloadTooLargeException extends ApiException
 {
     public const HTTP_CODE = 413;
-    public const ERROR_CODE = "Request_06";
+    public const ERROR_CODE = 4;
 
     public function __construct($details = null)
     {

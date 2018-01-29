@@ -15,6 +15,8 @@ use Carbon\Carbon;
 
 class GeneralActivityStatisticsResourceData
 {
+    /** @var int */
+    protected $id;
     /** @var string */
     protected $type;
     /** @var string */
@@ -36,6 +38,7 @@ class GeneralActivityStatisticsResourceData
 
     /**
      * GeneralActivityStatisticsResourceData constructor.
+     * @param $id
      * @param string $type
      * @param string $date
      * @param string $gender
@@ -46,8 +49,9 @@ class GeneralActivityStatisticsResourceData
      * @param string $resourcePath
      * @param $extraInformation
      */
-    public function __construct($type, $date, $gender, $postal_code, $job, $education, $age, $resourcePath, $extraInformation)
+    public function __construct($id, $type, $date, $gender, $postal_code, $job, $education, $age, $resourcePath, $extraInformation)
     {
+        $this->id = $id;
         $this->type = $type;
         $this->date = $date;
         $this->gender = $gender;
@@ -208,6 +212,7 @@ class GeneralActivityStatisticsResourceData
     public function toArray()
     {
         return [
+            $this->id,
             $this->type,
             $this->date,
             $this->gender,

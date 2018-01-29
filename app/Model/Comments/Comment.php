@@ -52,18 +52,64 @@ class Comment extends RestModel implements IReportable, ICommentable, IHasActivi
     public function getActivity(Carbon $start_date = null, Carbon $end_date = null): int
     {
         if(!isset($start_date)) {
-            $start_date = now(2)->subMonths(3);
+            $start_date = now()->subYears(5);
         }
         if(!isset($end_date)) {
-            $end_date = now(2);
+            $end_date = now();
         }
+        if($this->created_at > $end_date)
+            return 0;
         $this->load(['comments' => function($query){
-            return $query->select('id', 'commentable_id', 'commentable_type');
+            return $query->select('id', 'commentable_id', 'commentable_type', 'created_at');
         }]);
-        $comment_sum = $this->comments->sum(function($comment) use($start_date, $end_date){
+        $comment_sum = $this->comments->sum(function(Comment $comment) use($start_date, $end_date){
             return $comment->getActivity($start_date, $end_date);
         });
-        return (int)($comment_sum) + $this->rating_sum() + 1;
+        $own = ($this->created_at >= $start_date) ? 1 : 0;
+        return (int)($comment_sum) + $this->ratings()->where([['created_at', '>=', $start_date], ['created_at', '<=', $end_date]])->count() + $own;
+    }
+
+    /**
+     * @return array
+     */
+    public function getAllCommentIdsRecursive() : array
+    {
+        $ids = [$this->id];
+        $this->comments->each(function(Comment $item) use(&$ids){
+            $ids = array_merge($ids, $item->getAllCommentIdsRecursive());
+        });
+        return $ids;
+    }
+
+    /**
+     * @param Carbon|null $start_date
+     * @param Carbon|null $end_date
+     * @param array $blacklist
+     * @return int
+     */
+    public function getActivityBlacklisted(Carbon $start_date = null, Carbon $end_date = null, array &$blacklist) : int
+    {
+        if(in_array($this->id, $blacklist))
+            return 0;
+        else
+            array_push($blacklist, $this->id);
+        if(!isset($start_date)) {
+            $start_date = now()->subYears(5);
+        }
+        if(!isset($end_date)) {
+            $end_date = now();
+        }
+        if($this->created_at > $end_date)
+            return 0;
+        $this->load(['comments' => function($query){
+            return $query->select('id', 'commentable_id', 'commentable_type', 'created_at');
+        }]);
+        $comment_sum = $this->comments->sum(function(Comment $comment) use($start_date, $end_date, &$blacklist){
+            return $comment->getActivityBlacklisted($start_date, $end_date, $blacklist);
+        });
+        //$blacklist = array_merge($blacklist, $this->comments()->pluck('id')->all());
+        $own = ($this->created_at >= $start_date) ? 1 : 0;
+        return (int)($comment_sum) + $this->ratings()->where([['created_at', '>=', $start_date], ['created_at', '<=', $end_date]])->count() + $own;
     }
 
 //    /**
@@ -160,23 +206,23 @@ class Comment extends RestModel implements IReportable, ICommentable, IHasActivi
     }
 
     //returns the sum of all rating_scores related to this comment
-    public function rating_sum()
-    {//TODO update left join?
-        $rating_sum = DB::selectOne('select sum(cr.rating_score) as rating_sum from users 
-                                left join comment_ratings cr on users.id = cr.user_id
-                                WHERE cr.comment_id = :comment_id
-                                GROUP BY cr.comment_id;', ['comment_id' => $this->id]);
-        return ($rating_sum === null) ? 0 : (int)$rating_sum->rating_sum;
-
-        /*return $this->belongsToMany(User::class, 'comment_ratings', 'user_id', 'comment_id')
-            ->selectRaw('sum(comment_ratings.rating_score) as rating_sum, count(comment_ratings.user_id) as rating_count')
-            ->groupBy('pivot_comment_id');*/
-    }
-
-    public function getRatingSumAttribute()
-    {
-        return $this->rating_sum();
-    }
+//    public function rating_sum()
+//    {//TODO update left join?
+//        $rating_sum = DB::selectOne('select sum(cr.rating_score) as rating_sum from users
+//                                left join comment_ratings cr on users.id = cr.user_id
+//                                WHERE cr.comment_id = :comment_id
+//                                GROUP BY cr.comment_id;', ['comment_id' => $this->id]);
+//        return ($rating_sum === null) ? 0 : (int)$rating_sum->rating_sum;
+//
+//        /*return $this->belongsToMany(User::class, 'comment_ratings', 'user_id', 'comment_id')
+//            ->selectRaw('sum(comment_ratings.rating_score) as rating_sum, count(comment_ratings.user_id) as rating_count')
+//            ->groupBy('pivot_comment_id');*/
+//    }
+//
+//    public function getRatingSumAttribute()
+//    {
+//        return $this->rating_sum();
+//    }
     //endregion
 
     public function scopeBetweenDates(Builder $query, Carbon $start_date, Carbon $end_date)

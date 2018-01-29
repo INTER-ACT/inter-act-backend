@@ -81,8 +81,10 @@ class CommentRepository implements IRestRepository   //TODO: Exceptions missing?
      */
     public function getComments(int $id, PageRequest $pageRequest) : CommentCollection
     {
-        $parent = Comment::select('id', 'created_at')->with('comments')->find($id);
-        $comments = $parent->comments()->orderBy(self::SUB_COMMENT_SORT_FIELD, self::SUB_COMMENT_SORT_DIRECTION)->paginate($pageRequest->perPage, ['*'], 'start', $pageRequest->pageNumber);
+        $parent = self::getCommentByIdOrThrowError($id);
+        $comments = $parent->comments()
+            ->orderBy(self::SUB_COMMENT_SORT_FIELD, self::SUB_COMMENT_SORT_DIRECTION)
+            ->paginate($pageRequest->perPage, ['*'], 'start', $pageRequest->pageNumber);
         return new CommentCollection($this->updatePagination($comments));
     }
 

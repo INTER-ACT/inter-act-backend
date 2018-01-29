@@ -109,7 +109,7 @@ class ActionRepository implements IRestRepository   //TODO: Exceptions missing?
     {
         self::mapDateInputToDates($start_date, $end_date);
         $discussions = $this->getDiscussionsBetweenDates($start_date, $end_date);
-        $amendments = $this->getDiscussionsBetweenDates($start_date, $end_date);
+        $amendments = $this->getAmendmentsBetweenDates($start_date, $end_date);
         $sub_amendments = $this->getSubAmendmentsBetweenDates($start_date, $end_date);
         $comments = $this->getCommentsBetweenDates($start_date, $end_date);
         $reports = $this->getReportsBetweenDates($start_date, $end_date);
@@ -127,7 +127,7 @@ class ActionRepository implements IRestRepository   //TODO: Exceptions missing?
     public function getRatingStatisticsResource($start_date = null, $end_date = null) : MultiAspectRatingStatisticsResource
     {
         self::mapDateInputToDates($start_date, $end_date);
-        $ratings = MultiAspectRating::where([['created_at', '>=', $start_date], ['created_at', '<=', $end_date]])->with(['user', 'ratable'])->get();
+        $ratings = MultiAspectRating::where([['created_at', '>=', $start_date], ['created_at', '<=', $end_date]])->orderBy('created_at', 'desc')->with(['user', 'ratable'])->get();
         $ratings = $ratings->transform(function(MultiAspectRating $item){
             /** @var IRatable $ratable */
             $ratable = $item->ratable;
@@ -144,41 +144,29 @@ class ActionRepository implements IRestRepository   //TODO: Exceptions missing?
     public function getCommentRatingStatisticsResource($start_date = null, $end_date = null) : CommentRatingStatisticsResource
     {
         self::mapDateInputToDates($start_date, $end_date);
-        $comments = Comment::where([['created_at', '>=', $start_date], ['created_at', '<=', $end_date]])->select('id', 'sentiment', 'created_at')->with(['rating_users:id,year_of_birth'])->orderBy('created_at')->get();
+        $comments = Comment::where([['created_at', '>=', $start_date], ['created_at', '<=', $end_date]])->orderBy('created_at', 'desc')->select('id', 'sentiment', 'created_at')->with(['rating_users:id,year_of_birth'])->orderBy('created_at')->get();
         $comments = $comments->transform(function($item){
             $rating_users = $item->rating_users;
             $pos_ratings = $rating_users->filter(function($user, $key){
                 return $user->pivot->rating_score == 1;
             })->pluck('year_of_birth')->toArray();
-            rsort($pos_ratings);
             $neg_ratings = $rating_users->filter(function($user, $key){
                 return $user->pivot->rating_score <= 0;
             })->pluck('year_of_birth')->toArray();
-            rsort($neg_ratings);
             $current_year = (int)(date("Y"));
+            $pos_ratings = array_map(function($item) use($current_year){
+                return $current_year - $item;
+            }, $pos_ratings);
+            $neg_ratings = array_map(function($item) use($current_year){
+                return $current_year - $item;
+            }, $neg_ratings);
+            sort($pos_ratings);
+            sort($neg_ratings);
             $pos_rating_count = sizeof($pos_ratings);
             $neg_rating_count = sizeof($neg_ratings);
-            if($pos_rating_count == 0) {
-                $age_q1_pos = 0;
-                $age_q2_pos = 0;
-                $age_q3_pos = 0;
-            }
-            else {
-                $age_q1_pos = $current_year - $this->getQuartile($pos_ratings, 0.25);
-                $age_q2_pos = $current_year - $this->getQuartile($pos_ratings, 0.5);
-                $age_q3_pos = $current_year - $this->getQuartile($pos_ratings, 0.75);
-            }
-            if($neg_rating_count == 0) {
-                $age_q1_neg = 0;
-                $age_q2_neg = 0;
-                $age_q3_neg = 0;
-            }
-            else {
-                $age_q1_neg = $current_year - $this->getQuartile($neg_ratings, 0.25);
-                $age_q2_neg = $current_year - $this->getQuartile($neg_ratings, 0.5);
-                $age_q3_neg = $current_year - $this->getQuartile($neg_ratings, 0.75);
-            }
-            return (new CommentRatingStatisticsResourceData($item->getResourcePath(), $item->created_at, $pos_rating_count, $neg_rating_count, $item->sentiment, $age_q1_pos, $age_q2_pos, $age_q3_pos, $age_q1_neg, $age_q2_neg, $age_q3_neg))->toArray();
+            $q_pos = $this->getQuartiles($pos_ratings);
+            $q_neg = $this->getQuartiles($neg_ratings);
+            return (new CommentRatingStatisticsResourceData($item->getResourcePath(), $item->created_at, $pos_rating_count, $neg_rating_count, $item->sentiment, $q_pos[0], $q_pos[1], $q_pos[2], $q_neg[0], $q_neg[1], $q_neg[2]))->toArray();
         })->toArray();
         return new CommentRatingStatisticsResource($comments);
     }
@@ -211,23 +199,15 @@ class ActionRepository implements IRestRepository   //TODO: Exceptions missing?
 
     public function getObjectActivityStatisticsResource() : ActionStatisticsResource
     {
-        $discussions = Discussion::select('id', 'title')->get()->transform(function($item){
-            return (new ActionStatisticsResourceData($item->getResourcePath(), $item->title, [4, 1, 2, 6]))->toArray();
+        $discussions = Discussion::select('id', 'title', 'created_at')->get()->transform(function(Discussion $item){
+            return (new ActionStatisticsResourceData($item->getResourcePath(), $item->title, $item->activity, $item->getActivity(now()->subMonth(), now())))->toArray();
         })->toArray();
-        $tags = Tag::select('id', 'name')->get()->transform(function($item){
-            return (new ActionStatisticsResourceData($item->getResourcePath(), $item->name, [5, 3, 1, 0]))->toArray();
+        $tags = Tag::select('id', 'name', 'created_at')->get()->transform(function(Tag $item){
+            return (new ActionStatisticsResourceData($item->getResourcePath(), $item->name, $item->activity, $item->getActivity(now()->subMonth(), now())))->toArray();
         })->toArray();
-        $header = [
-            'Diskussion/Tag',
-            'Titel/Name',
-            'Quartal 1 2017',
-            'Quartal 2 2017',
-            'Quartal 3 2017',
-            'Quartal 4 2017'
-        ];
         $action_resource_data = array_merge($discussions, $tags);
 
-        return new ActionStatisticsResource($header, $action_resource_data);
+        return new ActionStatisticsResource($action_resource_data);
     }
 
     /**
@@ -376,7 +356,7 @@ class ActionRepository implements IRestRepository   //TODO: Exceptions missing?
      */
     protected function getDiscussionsBetweenDates($start_date, $end_date) : array
     {
-        $discussions = Discussion::select('id', 'created_at as date', 'user_id', 'title as extra')->where([['created_at', '>=', $start_date], ['created_at', '<=', $end_date]])->with(['user'])->get();
+        $discussions = Discussion::select('id', 'created_at as date', 'user_id')->where([['created_at', '>=', $start_date], ['created_at', '<=', $end_date]])->with(['user'])->get();
         return GeneralActivityStatisticsResource::transformCollectionToResourceDataArray($discussions);
     }
 
@@ -420,9 +400,12 @@ class ActionRepository implements IRestRepository   //TODO: Exceptions missing?
      */
     protected function getReportsBetweenDates(Carbon $start_date, Carbon $end_date) : array
     {
-        $reports = Report::select('id', 'created_at as date', 'user_id')->where([['created_at', '>=', $start_date], ['created_at', '<=', $end_date]])->with(['user'])->get();
-        return GeneralActivityStatisticsResource::transformCollectionToResourceDataArray($reports);
-
+        $reports = Report::where([['created_at', '>=', $start_date], ['created_at', '<=', $end_date]])->with(['user', 'reportable:id'])->get();
+        return $reports->transform(function(Report $item){
+            /** @var User $user */
+            $user = $item->user;
+            return (new GeneralActivityStatisticsResourceData($item->getId(), $item->getApiFriendlyTypeGer(), $item->created_at, $user->getSex(), $user->postal_code, $user->job, $user->graduation, $user->getAge(), $item->getResourcePath(), $item->reportable->getResourcePath()));
+        })->all();
     }
 
     /**
@@ -436,7 +419,7 @@ class ActionRepository implements IRestRepository   //TODO: Exceptions missing?
         return $comment_ratings->transform(function(CommentRating $item) {
             /** @var User $user */
             $user = $item->user;
-            return new GeneralActivityStatisticsResourceData(GeneralActivityStatisticsResource::getStatisticsType($item->getType()), $item->created_at, $user->getSex(), $user->postal_code, $user->job, $user->graduation, $user->getAge(), $item->getResourcePath(), $item->getApiFriendlyRating());
+            return new GeneralActivityStatisticsResourceData($item->getId(), $item->getApiFriendlyTypeGer(), $item->created_at, $user->getSex(), $user->postal_code, $user->job, $user->graduation, $user->getAge(), $item->getResourcePath(), $item->getApiFriendlyRating());
         })->all();
     }
 
@@ -451,20 +434,38 @@ class ActionRepository implements IRestRepository   //TODO: Exceptions missing?
         return $ratings->transform(function(MultiAspectRating $item){
             /** @var User $user */
             $user = $item->user;
-            return new GeneralActivityStatisticsResourceData(GeneralActivityStatisticsResource::getStatisticsType($item->getType()), $item->created_at, $user->getSex(), $user->postal_code, $user->job, $user->graduation, $user->getAge(), $item->ratable->getRatingPath(), implode(',', $item->getRatedAspects()));
+            return new GeneralActivityStatisticsResourceData($item->getId(), $item->getApiFriendlyTypeGer(), $item->created_at, $user->getSex(), $user->postal_code, $user->job, $user->graduation, $user->getAge(), $item->ratable->getRatingPath(), implode(',', $item->getRatedAspects()));
         })->all();
     }
     //endregion
 
     //region commentRatingHelpers
-    protected function getQuartile(array $array, float $factor) : float
+    public function getQuartiles(array $array) : array
     {
         $size = sizeof($array);
         if($size == 0)
-            return 0;
-        $size -= 1;
-        $float_index = $size * $factor;
-        return ($array[(int)floor($float_index)] + $array[(int)ceil($float_index)]) / 2;
+            return [0, 0, 0];
+        if($size % 2 == 0) {
+            $size += 1;
+            $half = $size * 0.5 - 1;
+            $quarterIndex = (int)(floor($half) * 0.5);
+            $q1 = $array[$quarterIndex];
+            $q2 = ($array[(int)floor($half)] + $array[(int)ceil($half)]) * 0.5;
+            $q3 = $array[$size - $quarterIndex - 2];
+        }
+        else {
+            if($size == 1)
+                return [$array[0], $array[0], $array[0]];
+            if($size == 3)
+                return [$array[0], $array[1], $array[2]];
+            $size += 1;
+            $q1Float = ($size) * 0.25;
+            $q1 = ($array[(int)floor($q1Float) - 1] + $array[(int)ceil($q1Float) - 1]) * 0.5;
+            $q2 = $array[(int)(($size) * 0.5) - 1];
+            $q3Float = ($size) * 0.75;
+            $q3 = ($array[(int)floor($q3Float) - 1] + $array[(int)ceil($q3Float) - 1]) * 0.5;
+        }
+        return [$q1, $q2, $q3];
     }
     //endregion
 

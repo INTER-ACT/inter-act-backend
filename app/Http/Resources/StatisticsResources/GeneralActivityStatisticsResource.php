@@ -32,6 +32,7 @@ class GeneralActivityStatisticsResource extends CustomArrayResource
     public function __construct(array $data)
     {
         $header = [
+            'ID',
             'Typ',
             'Erstellungsdatum',
             'Geschlecht',
@@ -78,7 +79,7 @@ class GeneralActivityStatisticsResource extends CustomArrayResource
     {
         if($item === null)
             throw new Exception('Item is null!');
-        return new GeneralActivityStatisticsResourceData(self::$type_array[get_class($item)], $item->date, $item->user->getSex(), $item->user->postal_code, $item->user->job, $item->user->graduation, $item->user->getAge(), $item->getResourcePath(), $item->extra);
+        return new GeneralActivityStatisticsResourceData($item->getId(), $item->getApiFriendlyTypeGer(), $item->date, $item->user->getSex(), $item->user->postal_code, $item->user->job, $item->user->graduation, $item->user->getAge(), $item->getResourcePath(), $item->extra);
     }
 
     /**
@@ -94,7 +95,7 @@ class GeneralActivityStatisticsResource extends CustomArrayResource
             throw new Exception('Item: ' . $element);
         }
 
-        $item = new GeneralActivityStatisticsResourceData(self::$type_array[get_class($item)], $item->date, $item->user->getSex(), $item->user->postal_code, $item->user->job, $item->user->graduation, $item->user->getAge(), $item->getResourcePath(), $item->extra);
+        $item = new GeneralActivityStatisticsResourceData($item->getId(), self::$type_array[get_class($item)], $item->date, $item->user->getSex(), $item->user->postal_code, $item->user->job, $item->user->graduation, $item->user->getAge(), $item->getResourcePath(), $item->extra);
     }
 
     /**

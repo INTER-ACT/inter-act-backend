@@ -6,7 +6,7 @@ namespace App\Exceptions\CustomExceptions;
 class MissingArgumentException extends ApiException
 {
     public const HTTP_CODE = 400;
-    public const ERROR_CODE = "Creation_01";
+    public const ERROR_CODE = 8;
 
     public function __construct($details = null)
     {

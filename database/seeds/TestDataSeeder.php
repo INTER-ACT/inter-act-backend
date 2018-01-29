@@ -115,7 +115,7 @@ class TestDataSeeder extends Seeder
         //endregion
 
         //region MA-Ratings
-        ModelFactory::CreateMultiAspectRating($users[0], $discussions[0]);
+        $rating = ModelFactory::CreateMultiAspectRating($users[0], $discussions[0], Carbon::createFromDate(2016, 10, 10));
         ModelFactory::CreateMultiAspectRating($users[1], $discussions[0]);
         ModelFactory::CreateMultiAspectRating($users[2], $discussions[0]);
         ModelFactory::CreateMultiAspectRating($users[3], $discussions[0]);

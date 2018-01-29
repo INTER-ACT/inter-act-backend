@@ -17,11 +17,16 @@ class ActionStatisticsResource extends CustomArrayResource
 {
     /**
      * StatisticsResource constructor.
-     * @param array $header
      * @param array $data
      */
-    public function __construct(array $header, array $data)
+    public function __construct(array $data)
     {
+        $header = [
+            'Diskussion/Tag',
+            'Titel/Name',
+            'Aktivität Gesamt',
+            'Aktivität letzter Monat'
+        ];
         parent::__construct($header, $data);
     }
 }

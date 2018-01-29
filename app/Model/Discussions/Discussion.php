@@ -52,6 +52,7 @@ class Discussion extends RestModel implements ITaggable, ICommentable, IHasActiv
      */
     public function getActivityAttribute() : int
     {
+        \Log::info($this->created_at);
         return $this->getActivity(Carbon::parse($this->created_at), now());
     }
 
@@ -63,29 +64,63 @@ class Discussion extends RestModel implements ITaggable, ICommentable, IHasActiv
     public function getActivity(Carbon $start_date = null, Carbon $end_date = null) : int
     {
         if(!isset($start_date)) {
-            $start_date = now(2)->subMonths(3);
+            $start_date = now()->subYears(5);
         }
         if(!isset($end_date)) {
-            $end_date = now(2);
+            $end_date = now();
         }
-        //$this->loadMissing(['comments', 'amendments']);
+        if($this->created_at > $end_date)
+            return 0;
         $this->load(['comments' => function($query){
-            return $query->select('id', 'commentable_id', 'commentable_type');
+            return $query->select('id', 'commentable_id', 'commentable_type', 'created_at');
         }]);
         $this->load(['amendments' => function($query){
-            return $query->select('id', 'discussion_id');
+            return $query->select('id', 'discussion_id', 'created_at');
         }]);
         $this->load(['ratings' => function($query){
             return $query->select(['*']);
         }]);
-        $comment_sum = $this->comments->sum(function($comment) use($start_date, $end_date){
+        $comment_sum = $this->comments->sum(function(Comment $comment) use($start_date, $end_date){
             return $comment->getActivity($start_date, $end_date);
         });
-        $amendment_sum = $this->amendments->sum(function($amendment) use($start_date, $end_date){
+        $amendment_sum = $this->amendments->sum(function(Amendment $amendment) use($start_date, $end_date){
             return $amendment->getActivity($start_date, $end_date);
         });
-        $rating_sum = $this->ratings->count();
-        return (int)($comment_sum + $amendment_sum + $rating_sum) + 1;
+        $rating_sum = $this->ratings()->where([['created_at', '>=', $start_date],['created_at', '<=', $end_date]])->get()->count();
+        $own = ($this->created_at >= $start_date) ? 1 : 0;
+        return (int)($comment_sum + $amendment_sum + $rating_sum) + $own;
+    }
+
+    public function getActivityBlacklisted(Carbon $start_date = null, Carbon $end_date = null, array &$amendment_blacklist, array &$sub_amendment_blacklist, array &$comment_blacklist) : int
+    {
+        if(!isset($start_date)) {
+            $start_date = now()->subYears(5);
+        }
+        if(!isset($end_date)) {
+            $end_date = now();
+        }
+        if($this->created_at > $end_date)
+            return 0;
+        $this->load(['comments' => function($query){
+            return $query->select('id', 'commentable_id', 'commentable_type', 'created_at');
+        }]);
+        $this->load(['amendments' => function($query){
+            return $query->select('id', 'discussion_id', 'created_at');
+        }]);
+        $this->load(['ratings' => function($query){
+            return $query->select(['*']);
+        }]);
+        $comment_sum = $this->comments->sum(function(Comment $comment) use($start_date, $end_date, &$comment_blacklist){
+            return $comment->getActivityBlacklisted($start_date, $end_date, $comment_blacklist);
+        });
+        $amendment_sum = $this->amendments->sum(function(Amendment $amendment) use($start_date, $end_date, &$amendment_blacklist, &$sub_amendment_blacklist, &$comment_blacklist){
+            return $amendment->getActivityBlacklisted($start_date, $end_date, $amendment_blacklist, $sub_amendment_blacklist, $comment_blacklist);
+        });
+        //$amendment_blacklist = array_merge($amendment_blacklist, $this->amendments->pluck('id')->all());
+        //$comment_blacklist = array_merge($comment_blacklist, $this->comments->pluck('id')->all());
+        $rating_sum = $this->ratings()->where([['created_at', '>=', $start_date],['created_at', '<=', $end_date]])->get()->count();
+        $own = ($this->created_at >= $start_date) ? 1 : 0;
+        return (int)($comment_sum + $amendment_sum + $rating_sum) + $own;
     }
 
     public function getRatingSumAttribute()

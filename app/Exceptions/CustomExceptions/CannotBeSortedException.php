@@ -6,7 +6,7 @@ namespace App\Exceptions\CustomExceptions;
 class CannotBeSortedException extends ApiException
 {
     public const HTTP_CODE = 400;
-    public const ERROR_CODE = "Request_04";
+    public const ERROR_CODE = 2;
 
     public function __construct($details = null)
     {

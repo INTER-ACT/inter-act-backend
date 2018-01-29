@@ -6,7 +6,7 @@ namespace App\Exceptions\CustomExceptions;
 class LoginFailedException extends ApiException
 {
     public const HTTP_CODE = 400;
-    public const ERROR_CODE = "Request_07";
+    public const ERROR_CODE = 5;
 
     public function __construct($details = null)
     {

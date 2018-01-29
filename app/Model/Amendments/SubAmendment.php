@@ -74,13 +74,15 @@ class SubAmendment extends RestModel implements ITaggable, IReportable, IRatable
     function getActivity(Carbon $start_date = null, Carbon $end_date = null): int
     {
         if(!isset($start_date)) {
-            $start_date = now(2)->subMonths(3);
+            $start_date = now()->subYears(5);
         }
         if(!isset($end_date)) {
-            $end_date = now(2);
+            $end_date = now();
         }
+        if($this->created_at > $end_date)
+            return 0;
         $relationsToLoad = ['comments' => function($query){
-            return $query->select('id', 'commentable_id', 'commentable_type');
+            return $query->select('id', 'commentable_id', 'commentable_type', 'created_at');
         }, 'ratings' => function($query){
                 return $query->select();
         }];
@@ -93,8 +95,43 @@ class SubAmendment extends RestModel implements ITaggable, IReportable, IRatable
         $comment_sum = $this->comments->sum(function($comment) use($start_date, $end_date){
             return $comment->getActivity($start_date, $end_date);
         });
-        $rating_sum = $this->ratings()->count();
-        return (int)($comment_sum + $rating_sum) + 1;
+        $rating_sum = $this->ratings()->where([['created_at', '>=', $start_date],['created_at', '<=', $end_date]])->get()->count();
+        $own = ($this->created_at >= $start_date) ? 1 : 0;
+        return (int)($comment_sum + $rating_sum) + $own;
+    }
+
+    function getActivityBlacklisted(Carbon $start_date = null, Carbon $end_date = null, array &$sub_amendment_blacklist, array &$comment_blacklist): int
+    {
+        if(in_array($this->id, $sub_amendment_blacklist))
+            return 0;
+        else
+            array_push($sub_amendment_blacklist, $this->id);
+        if(!isset($start_date)) {
+            $start_date = now()->subYears(5);
+        }
+        if(!isset($end_date)) {
+            $end_date = now();
+        }
+        if($this->created_at > $end_date)
+            return 0;
+        $relationsToLoad = ['comments' => function($query){
+            return $query->select('id', 'commentable_id', 'commentable_type', 'created_at');
+        }, 'ratings' => function($query){
+            return $query->select();
+        }];
+        foreach ($relationsToLoad as $key => $item)
+        {
+            if($this->relationLoaded($key))
+                unset($relationsToLoad[$key]);
+        }
+        $this->load($relationsToLoad);
+        $comment_sum = $this->comments->sum(function(Comment $comment) use($start_date, $end_date, &$comment_blacklist){
+            return $comment->getActivityBlacklisted($start_date, $end_date, $comment_blacklist);
+        });
+        //$comment_blacklist = array_merge($comment_blacklist, $this->comments->pluck('id')->all());
+        $rating_sum = $this->ratings()->where([['created_at', '>=', $start_date],['created_at', '<=', $end_date]])->get()->count();
+        $own = ($this->created_at >= $start_date) ? 1 : 0;
+        return (int)($comment_sum + $rating_sum) + $own;
     }
 
     public function getRatingSumAttribute()

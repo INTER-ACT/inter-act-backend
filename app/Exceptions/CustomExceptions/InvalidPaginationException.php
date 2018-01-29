@@ -6,7 +6,7 @@ namespace App\Exceptions\CustomExceptions;
 class InvalidPaginationException extends ApiException
 {
     public const HTTP_CODE = 400;
-    public const ERROR_CODE = "Request_02";
+    public const ERROR_CODE = 1;
 
     public function __construct($details = null)
     {

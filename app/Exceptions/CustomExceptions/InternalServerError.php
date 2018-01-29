@@ -6,7 +6,7 @@ namespace App\Exceptions\CustomExceptions;
 class InternalServerError extends ApiException
 {
     public const HTTP_CODE = 500;
-    public const ERROR_CODE = "A_03";
+    public const ERROR_CODE = 12;
 
     public function __construct($details = null)
     {

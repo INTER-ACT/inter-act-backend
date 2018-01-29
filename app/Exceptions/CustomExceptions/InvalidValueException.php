@@ -6,7 +6,7 @@ namespace App\Exceptions\CustomExceptions;
 class InvalidValueException extends ApiException
 {
     public const HTTP_CODE = 400;
-    public const ERROR_CODE = "Request_05";
+    public const ERROR_CODE = 3;
 
     public function __construct($details = null)
     {

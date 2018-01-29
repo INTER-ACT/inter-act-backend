@@ -6,7 +6,7 @@ namespace App\Exceptions\CustomExceptions;
 class NotPermittedException extends ApiException
 {
     public const HTTP_CODE = 403;
-    public const ERROR_CODE = "Permission_02";
+    public const ERROR_CODE = 7;
 
     public function __construct($details = null)
     {

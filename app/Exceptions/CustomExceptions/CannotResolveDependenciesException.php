@@ -6,7 +6,7 @@ namespace App\Exceptions\CustomExceptions;
 class CannotResolveDependenciesException extends ApiException
 {
     public const HTTP_CODE = 404;
-    public const ERROR_CODE = "Creation_03";
+    public const ERROR_CODE = 9;
 
     public function __construct($details = null)
     {

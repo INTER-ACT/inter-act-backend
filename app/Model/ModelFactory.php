@@ -137,15 +137,18 @@ class ModelFactory
      * @param Amendment $amendment
      * @param array|null $tags
      * @param string $status
+     * @param Carbon|null $created_at
      * @return SubAmendment
      */
-    public static function CreateSubAmendment(User $user, Amendment $amendment, array $tags = null, string $status = SubAmendment::PENDING_STATUS)  //TODO: make sure that status cannot be wrong (enum or so)
+    public static function CreateSubAmendment(User $user, Amendment $amendment, array $tags = null, string $status = SubAmendment::PENDING_STATUS, Carbon $created_at = null)
     {
+        $created_at = (isset($created_at)) ? $created_at : now();
         /** @var SubAmendment $subAmendment */
         $subAmendment = factory(SubAmendment::class)->create([
             'user_id' => $user->id,
             'amendment_id' => $amendment->id,
-            'status' => $status
+            'status' => $status,
+            'created_at' => $created_at
         ]);
         if(isset($tags))
             $subAmendment->tags()->attach(array_map(function($item){return $item->id;}, $tags));
@@ -155,14 +158,18 @@ class ModelFactory
     /**
      * @param User $user
      * @param IRatable $ratable
+     * @param Carbon|null $created_at
      * @return MultiAspectRating
      */
-    public static function CreateMultiAspectRating(User $user, IRatable $ratable) : MultiAspectRating
+    public static function CreateMultiAspectRating(User $user, IRatable $ratable, Carbon $created_at = null) : MultiAspectRating
     {
+        if(!isset($created_at))
+            $created_at = now();
         $rating = factory(MultiAspectRating::class)->create([
             'user_id' => $user->id,
             'ratable_id' => $ratable->getId(),
-            'ratable_type' => $ratable->getType()
+            'ratable_type' => $ratable->getType(),
+            'created_at' => $created_at
         ]);
         return $rating;
     }
@@ -211,11 +218,14 @@ class ModelFactory
      * @param User $user
      * @param Comment $comment
      * @param int $rating
+     * @param Carbon|null $created_at
      * @return void
      */
-    public static function CreateCommentRating(User $user, Comment $comment, int $rating)
+    public static function CreateCommentRating(User $user, Comment $comment, int $rating, Carbon $created_at = null)
     {
-        $comment->rating_users()->attach($user->id, ['rating_score' => $rating]);
+        if(!isset($created_at))
+            $created_at = now();
+        $comment->rating_users()->attach($user->id, ['rating_score' => $rating, 'created_at' => $created_at]);
     }
 
     /**

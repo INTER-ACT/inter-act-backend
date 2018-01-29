@@ -4,10 +4,15 @@ namespace App\Tags;
 
 use App\Amendments\Amendment;
 use App\Amendments\SubAmendment;
+use App\Comments\Comment;
 use App\Discussions\Discussion;
+use App\IHasActivity;
 use App\Model\RestModel;
+use Carbon\Carbon;
+use function foo\func;
+use Illuminate\Support\Collection;
 
-class Tag extends RestModel
+class Tag extends RestModel implements IHasActivity
 {
     //region constants
     const NUTZUNG_FREMDER_INHALTE_NAME = "Nutzung fremder Inhalte";
@@ -132,6 +137,88 @@ class Tag extends RestModel
         return '/tags/' . $this->id;
     }
 
+    /**
+     * @return int
+     */
+    function getActivityAttribute(): int
+    {
+        return $this->getActivity();
+    }
+
+    /**
+     * @param Carbon|null $start_date
+     * @param Carbon|null $end_date
+     * @return int
+     */
+    function getActivity(Carbon $start_date = null, Carbon $end_date = null): int
+    {
+        if(!isset($start_date)) {
+            $start_date = now()->subYears(5);
+        }
+        if(!isset($end_date)) {
+            $end_date = now();
+        }
+        if($this->created_at > $end_date)
+            return 0;
+        $relationsToLoad = ['discussions' => function($query){
+            return $query->select('id', 'created_at');
+        }, 'amendments' => function($query){
+            return $query->select('id', 'discussion_id', 'created_at');
+        }, 'comments' => function($query){
+            return $query->select('id', 'commentable_id', 'commentable_type', 'created_at');
+        }, 'sub_amendments' => function($query){
+            return $query->select('id', 'amendment_id', 'created_at');
+        }];
+        foreach ($relationsToLoad as $key => $item)
+        {
+            if($this->relationLoaded($key))
+                unset($relationsToLoad[$key]);
+        }
+        $this->load($relationsToLoad);
+
+        $amendment_blacklist = [];
+        $sub_amendment_blacklist = [];
+        $comment_blacklist = [];
+        $discussion_sum = $this->getDiscussionsActivity($start_date, $end_date, $amendment_blacklist, $sub_amendment_blacklist, $comment_blacklist);
+        $amendment_sum = $this->getAmendmentActivity($start_date, $end_date, $amendment_blacklist, $sub_amendment_blacklist, $comment_blacklist);
+        $sub_amendment_sum = $this->getSubAmendmentActivity($start_date, $end_date, $sub_amendment_blacklist, $comment_blacklist);
+        $comment_sum = $this->getCommentActivity($start_date, $end_date, $comment_blacklist);
+        return (int)($discussion_sum + $amendment_sum + $sub_amendment_sum + $comment_sum);
+    }
+
+    protected function getDiscussionsActivity(Carbon $start_date, Carbon $end_date, array &$amendment_blacklist, array &$sub_amendment_blacklist, array &$comment_blacklist) : int
+    {
+        return $this->discussions->sum(function(Discussion $discussion) use($start_date, $end_date, &$amendment_blacklist, &$sub_amendment_blacklist, &$comment_blacklist){
+            return $discussion->getActivityBlacklisted($start_date, $end_date, $amendment_blacklist, $sub_amendment_blacklist, $comment_blacklist);
+        });
+    }
+
+    protected function getAmendmentActivity(Carbon $start_date, Carbon $end_date, array &$amendment_blacklist, array &$sub_amendment_blacklist, array &$comment_blacklist)
+    {
+        return $this->amendments->sum(function(Amendment $amendment) use($start_date, $end_date, &$amendment_blacklist, &$sub_amendment_blacklist, &$comment_blacklist){
+            return $amendment->getActivityBlacklisted($start_date, $end_date, $amendment_blacklist, $sub_amendment_blacklist, $comment_blacklist);
+        });
+    }
+
+    protected function getSubAmendmentActivity(Carbon $start_date, Carbon $end_date, array &$sub_amendment_blacklist, array &$comment_blacklist)
+    {
+        return $this->sub_amendments->sum(function(SubAmendment $subAmendment) use($start_date, $end_date, &$sub_amendment_blacklist, &$comment_blacklist){
+            return $subAmendment->getActivityBlacklisted($start_date, $end_date, $sub_amendment_blacklist, $comment_blacklist);
+        });
+    }
+
+    protected function getCommentActivity(Carbon $start_date, Carbon $end_date, array $comment_blacklist)
+    {
+        return $this->comments()->whereNotIn('id', $comment_blacklist)->get()->sum(function(Comment $comment) use($start_date, $end_date, &$comment_blacklist){
+            return $comment->getActivityBlacklisted($start_date, $end_date, $comment_blacklist);
+        });
+    }
+
+    protected function getCommentIdsRecursive(Comment $comment)
+    {
+        return $comment->getAllCommentIdsRecursive();
+    }
+
     //region relations
     public function taggables()
     {
@@ -151,6 +238,11 @@ class Tag extends RestModel
     public function sub_amendments()
     {
         return $this->morphedByMany(SubAmendment::class, 'taggable', 'taggables');
+    }
+
+    public function comments()
+    {
+        return $this->morphedByMany(Comment::class, 'taggable', 'taggables');
     }
     //endregion
 

@@ -16,7 +16,7 @@ class CommentRating extends RestModel
 
     public function getId(): int
     {
-        return null;
+        return 0;
     }
 
     function getResourcePath() : string

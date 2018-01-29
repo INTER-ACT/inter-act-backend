@@ -6,7 +6,7 @@ namespace App\Exceptions\CustomExceptions;
 class NotAuthorizedException extends ApiException
 {
     public const HTTP_CODE = 401;
-    public const ERROR_CODE = "Permission_01";
+    public const ERROR_CODE = 6;
 
     public function __construct($details = null)
     {
