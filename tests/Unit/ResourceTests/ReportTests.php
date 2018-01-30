@@ -5,6 +5,7 @@ namespace Tests\Unit;
 use App\Amendments\Amendment;
 use App\Amendments\SubAmendment;
 use App\Discussions\Discussion;
+use App\Model\ModelFactory;
 use App\Reports\Report;
 use App\User;
 use Tests\TestCase;
@@ -24,29 +25,21 @@ class ReportTests extends TestCase
         $discussion = factory(Discussion::class)->create([
             'user_id' => $user->id
         ]);
-        $amendment = factory(Amendment::class)->create([
-            'user_id' => $user->id,
-            'discussion_id' => $discussion->id
-        ]);
-        $report = factory(Report::class)->create([
-            'user_id' => $user->id,
-            'reportable_id' => $amendment->getIdProperty(),
-            'reportable_type' => get_class($amendment),
-            'explanation' => 'Test Description'
-        ]);
+        $amendment = ModelFactory::CreateAmendment($user, $discussion);
+        $report = ModelFactory::CreateReport($user, $amendment);
 
-        $resourcePath = $this->baseURI . $report->getResourcePath();
+        $resourcePath = $this->getUrl($report->getResourcePath());
         $response = $this->get($resourcePath);
         $response->assertJson([
             'href' => $resourcePath,
             'id' => $report->id,
 
             'user' => [
-                'href' => $this->baseURI . $report->user->getResourcePath(),
+                'href' => $this->getUrl($report->user->getResourcePath()),
                 'id' => $report->user->id
             ],
             'reported_item' => [
-                'href' => $this->baseURI . $report->reportable->getResourcePath(),
+                'href' => $this->getUrl($report->reportable->getResourcePath()),
                 'id' => $report->reportable->id,
                 'type' => get_class($report->reportable)
             ],
@@ -60,26 +53,18 @@ class ReportTests extends TestCase
     {
         $user = factory(User::class)->create();
         $this->be($user);
-        $discussion = factory(Discussion::class)->create([
-            'user_id' => $user->id
-        ]);
-        $amendment = factory(Amendment::class)->create([
-            'user_id' => $user->id,
-            'discussion_id' => $discussion->id
-        ]);
-        $subamendment = factory(SubAmendment::class)->create([
-            'user_id' => $user->id,
-            'amendment_id' => $amendment->id
-        ]);
+        $discussion = ModelFactory::CreateDiscussion($user);
+        $amendment = ModelFactory::CreateAmendment($user, $discussion);
+        $subamendment = ModelFactory::CreateSubAmendment($user, $amendment);
         $report1 = factory(Report::class)->create([
             'user_id' => $user->id,
-            'reportable_id' => $amendment->getIdProperty(),
+            'reportable_id' => $amendment->getId(),
             'reportable_type' => get_class($amendment),
             'explanation' => 'Test Description 1'
         ]);
         $report2 = factory(Report::class)->create([
             'user_id' => $user->id,
-            'reportable_id' => $subamendment->getIdProperty(),
+            'reportable_id' => $subamendment->getId(),
             'reportable_type' => $subamendment->getType(),
             'explanation' => 'Test Description 2'
         ]);
@@ -90,11 +75,11 @@ class ReportTests extends TestCase
             'href' => $resourcePath,
             'reports' => [
                 [
-                    'href' => $this->baseURI . $report1->getResourcePath(),
+                    'href' => $this->getUrl($report1->getResourcePath()),
                     'id' => $report1->id
                 ],
                 [
-                    'href' => $this->baseURI . $report2->getResourcePath(),
+                    'href' => $this->getUrl($report2->getResourcePath()),
                     'id' => $report2->id
                 ]
             ]

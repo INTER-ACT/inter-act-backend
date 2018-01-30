@@ -3,6 +3,7 @@
 namespace App\Http\Resources\PostResources;
 
 use App\Http\Resources\ApiCollectionResource;
+use App\Reports\Report;
 
 class ReportCollection extends ApiCollectionResource
 {
@@ -18,7 +19,7 @@ class ReportCollection extends ApiCollectionResource
 
         return [
             'href' => $thisURI,
-            'reports' => $this->collection->transform(function ($report) use($thisURI){
+            'reports' => $this->collection->transform(function(Report $report) use($thisURI){
                 return [
                     'href' => $this->getUrl($report->getResourcePath()),
                     'id' => $report->id

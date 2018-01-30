@@ -18,10 +18,9 @@ class CommentCollection extends ApiCollectionResource
 
         return [
             'href' => $thisUrl,
-            //'total' => $this->collection->count(),
             'comments' => $this->collection->transform(function ($comment){
                 return [
-                    'href' => url($comment->getResourcePath()),
+                    'href' => $this->getUrl($comment->getResourcePath()),
                     'id' => $comment->id
                 ];
             })

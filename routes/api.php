@@ -117,7 +117,11 @@ Route::post('tag_recommendations', 'CommentController@getTagsForText')->middlewa
 //endregion
 
 //region reports
+Route::get('/reports', 'ReportController@index')->middleware('auth:api');
 
+Route::get('/reports/{report_id}', 'ReportController@show')->middleware('auth:api');
+
+Route::post('/reports', 'ReportController@create');
 //endregion
 
 //region tags

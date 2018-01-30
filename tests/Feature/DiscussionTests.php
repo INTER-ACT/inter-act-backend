@@ -39,7 +39,7 @@ use Tests\Unit\ResourceTests\ResourceTestTrait;
 
 class DiscussionTests extends FeatureTestCase
 {
-    //region /discussions
+    //region get /discussions
     /** @test */
     public function testDiscussionsRouteResponseNoParametersSet()
     {

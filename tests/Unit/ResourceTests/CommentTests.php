@@ -29,7 +29,7 @@ class CommentTests extends TestCase
             'content' => 'TestTitle',
             'sentiment' => 1,
             'user_id' => $user->id,
-            'commentable_id' => $parent->getIdProperty(),
+            'commentable_id' => $parent->getId(),
             'commentable_type' => get_class($parent)
         ]);
 
@@ -42,7 +42,7 @@ class CommentTests extends TestCase
         $comment->rating_users()->attach(factory(User::class)->create()->id, ['rating_score' => -1]);
         $comment->rating_users()->attach(factory(User::class)->create()->id, ['rating_score' => 1]);
 
-        $resourcePath = $this->baseURI . $comment->getResourcePath();
+        $resourcePath = $this->getUrl($comment->getResourcePath());
         $response = $this->get($resourcePath);
         $response->assertJson([
             'href' => $resourcePath,
@@ -51,7 +51,7 @@ class CommentTests extends TestCase
             'created_at' => $comment->created_at->toAtomString(),
 
             'author' => [
-                'href' => $this->baseURI . $comment->user->getResourcePath(),
+                'href' => $this->getUrl($comment->user->getResourcePath()),
                 'id' => $comment->user->id
             ],
             'tags' => [
@@ -68,7 +68,7 @@ class CommentTests extends TestCase
             ],
             'comments' => ['href' => $resourcePath . '/comments'],
             'parent' => [
-                'href' => $this->baseURI . $parent->getResourcePath(),
+                'href' => $this->getUrl($parent->getResourcePath()),
                 'id' => $parent->id
             ],
             'positive_ratings' => 3,
@@ -88,28 +88,28 @@ class CommentTests extends TestCase
             'content' => 'TestTitle',
             'sentiment' => 1,
             'user_id' => $user->id,
-            'commentable_id' => $discussion1->getIdProperty(),
+            'commentable_id' => $discussion1->getId(),
             'commentable_type' => get_class($discussion1)
         ]);
         $comment2 = factory(Comment::class)->create([
             'content' => 'TestTitle',
             'sentiment' => 1,
             'user_id' => $user->id,
-            'commentable_id' => $discussion2->getIdProperty(),
+            'commentable_id' => $discussion2->getId(),
             'commentable_type' => get_class($discussion2)
         ]);
 
-        $resourcePath = $this->baseURI . '/comments';
+        $resourcePath = $this->getUrl('/comments');
         $response = $this->get($resourcePath);
         $response->assertJson([
             'href' => $resourcePath,
             'comments' => [
                 [
-                    'href' => $this->baseURI . $comment1->getResourcePath(),
+                    'href' => $this->getUrl($comment1->getResourcePath()),
                     'id' => $comment1->id
                 ],
                 [
-                    'href' => $this->baseURI . $comment2->getResourcePath(),
+                    'href' => $this->getUrl($comment2->getResourcePath()),
                     'id' => $comment2->id
                 ]
             ]

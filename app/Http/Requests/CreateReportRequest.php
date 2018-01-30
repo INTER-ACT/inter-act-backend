@@ -45,12 +45,12 @@ class CreateReportRequest implements IRequest
     private function checkFields()
     {
         $validator = Validator::make($this->request->all(), [
-            'reported_item' => [
+            'reported_type' => [
                 'required',
                 Rule::in(['comment', 'amendment', 'subamendment'])
             ],
-            'item_id' => 'required|numeric',
-            'description' => 'required|string',
+            'reported_id' => 'required|numeric',
+            'description' => 'required|string'
         ]);
 
         if($validator->fails())

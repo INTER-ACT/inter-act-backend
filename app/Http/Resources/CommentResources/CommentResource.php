@@ -25,15 +25,15 @@ class CommentResource extends ApiResource
             'content' => $this->content,
             'created_at' => $this->created_at->toAtomString(),
             'author' => [
-                'href' => url($this->user->getResourcePath()),
+                'href' => $this->getUrl($this->user->getResourcePath()),
                 'id' => $this->user->id
             ],
             'tags' => (new TagCollection($this->tags))->toSubResourceArray(),
             'comments' => [
-                'href' => url($this->getResourcePath() . '/comments')
+                'href' => $this->getUrl($this->getResourcePath() . '/comments')
             ],
             'parent' => [
-                'href' => url($this->parent->getResourcePath()),
+                'href' => $this->getUrl($this->parent->getResourcePath()),
                 'id' => $this->parent->id,
                 'type' => $this->parent->getApiFriendlyType()
             ],

@@ -94,7 +94,7 @@ class User extends AuthRestModel
 
     public function reports()
     {
-        return $this->hasMany(Report::class);
+        return $this->hasMany(Report::class, 'user_id', 'id');
     }
     //endregion
 

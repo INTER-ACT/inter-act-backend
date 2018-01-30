@@ -73,7 +73,7 @@ class DiscussionRepository implements IRestRepository   //TODO: Exceptions missi
             $query->whereHas('tags', function($tag) use($tag_id){
                 $tag->where('tag_id', '=', $tag_id);
             });
-        $query->with('amendments:id', 'comments:id' );
+        $query->with('amendments:id', 'comments:id');
 
         $discussions = $this->queryToPaginatedCollection($query, $pageRequest, $sort_by, $sort_dir);
         return new DiscussionCollection($discussions);

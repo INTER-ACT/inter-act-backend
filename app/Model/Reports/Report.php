@@ -7,7 +7,7 @@ use App\User;
 
 class Report extends RestModel
 {
-    protected $fillable = ['explanation'];
+    protected $fillable = ['reportable_id', 'reportable_type', 'explanation'];
 
     public function getApiFriendlyType() : string
     {

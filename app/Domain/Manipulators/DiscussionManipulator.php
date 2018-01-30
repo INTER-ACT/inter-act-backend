@@ -37,7 +37,7 @@ class DiscussionManipulator
         //Log::info(var_dump($data));
         $discussion->user_id = $user->id;
         if(!$discussion->save())
-            throw new InternalServerError("Could not create a discussion with the given data.");
+            throw new InternalServerError("Could not create a Discussion with the given data.");
         $discussion->tags()->attach($data['tags']);
         return new SuccessfulCreationResource($discussion);
     }

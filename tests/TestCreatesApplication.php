@@ -1,11 +1,19 @@
 <?php
+/**
+ * Created by PhpStorm.
+ * User: danube
+ * Date: 30.01.18
+ * Time: 16:35
+ */
 
 namespace Tests;
 
 use Illuminate\Contracts\Console\Kernel;
 
-trait CreatesApplication
+trait TestCreatesApplication
 {
+    public $envFilePath = '.env.test';
+
     /**
      * Creates the application.
      *
@@ -16,9 +24,9 @@ trait CreatesApplication
         $app = require __DIR__.'/../bootstrap/app.php';
 
         //<self-created-code>
-        if(file_exists(dirname(__DIR__) . '/.env'))
+        if(file_exists(dirname(__DIR__) . '/' . $this->envFilePath))
         {
-            (new \Dotenv\Dotenv(dirname(__DIR__), '.env'))->load();
+            (new \Dotenv\Dotenv(dirname(__DIR__), $this->envFilePath))->load();
         }
         //</self-created-code
 

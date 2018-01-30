@@ -26,7 +26,7 @@ class DiscussionTests extends TestCase
             'law_explanation' => 'TestLawExplanation',
             'user_id' => \Auth::id()
         ]);
-        $resourcePath = $this->baseURI . $discussion->getResourcePath();
+        $resourcePath = $this->getUrl($discussion->getResourcePath());
         $response = $this->get($resourcePath);
         $response->assertJson([
             'href' => $resourcePath,
@@ -37,7 +37,7 @@ class DiscussionTests extends TestCase
             'law_text' => $discussion->law_text,
             'law_explanation' => $discussion->law_explanation,
             'author' => [
-                'href' => $this->baseURI . $discussion->user->getResourcePath(),
+                'href' => $this->getUrl($discussion->user->getResourcePath()),
                 'id' => $discussion->user->id
             ],
             'amendments' => ['href' => $resourcePath . '/amendments'],
@@ -62,22 +62,21 @@ class DiscussionTests extends TestCase
         $this->be(factory(User::class)->create());
         $discussion1 = factory(Discussion::class)->create(['user_id' => \Auth::id()]);
         $discussion2 = factory(Discussion::class)->create(['user_id' => \Auth::id()]);
-        $resourcePath = $this->baseURI . '/discussions';
+        $resourcePath = $this->getUrl('/discussions');
         $requestPath = $resourcePath . '?start=' . $start . '&count=' . $perPage;
         $response = $this->get($requestPath);
         if($start == 0) $start = 1;
         $response->assertJson([
             "data" => [
                 'href' => $requestPath,
-                'total' => 2,
                 'discussions' => [
                     [
-                        'href' => $this->baseURI . $discussion1->getResourcePath(),
+                        'href' => $this->getUrl($discussion1->getResourcePath()),
                         'id' => $discussion1->id,
                         'title' => $discussion1->title
                     ],
                     [
-                        'href' => $this->baseURI . $discussion2->getResourcePath(),
+                        'href' => $this->getUrl($discussion2->getResourcePath()),
                         'id' => $discussion2->id,
                         'title' => $discussion2->title
                     ]
@@ -102,7 +101,7 @@ class DiscussionTests extends TestCase
     }
 
     /** @test */
-    public function testDiscussionCollectionPaginatedWithFiltersSortChronological() //TODO: finish test
+    public function testDiscussionCollectionPaginatedSortChronological()
     {
         $perPage = 8;
         $start = 0;
@@ -111,9 +110,9 @@ class DiscussionTests extends TestCase
         $this->be(factory(User::class)->create());
         $tag = Tag::getSozialeMedien();
         $discussion1 = ModelFactory::CreateDiscussion(\Auth::user(), null, [$tag], Carbon::createFromDate(2017, 1, 1, 2));
-        $discussion2 = ModelFactory::CreateDiscussion(\Auth::user(), null, [$tag], Carbon::createFromDate(2017, 1, 1, 2));
+        $discussion2 = ModelFactory::CreateDiscussion(\Auth::user(), null, [$tag], Carbon::createFromDate(2017, 1, 2, 2));
         $discussion3 = ModelFactory::CreateDiscussion(\Auth::user(), null, [Tag::getUserGeneratedContent()]);
-        $resourcePath = $this->baseURI . '/discussions';
+        $resourcePath = $this->getUrl('/discussions');
         $pathParams = 'count=' . $perPage . '&sorted_by=chronological&tag_id=' . $tag->id;
         $requestPath = $resourcePath . '?start=' . $start . '&' . $pathParams;
         $response = $this->get($requestPath);
@@ -121,15 +120,14 @@ class DiscussionTests extends TestCase
         $response->assertJson([
             "data" => [
                 'href' => $requestPath,
-                'total' => 2,
                 'discussions' => [
                     [
-                        'href' => $this->baseURI . $discussion2->getResourcePath(),
+                        'href' => $this->getUrl($discussion2->getResourcePath()),
                         'id' => $discussion2->id,
                         'title' => $discussion2->title
                     ],
                     [
-                        'href' => $this->baseURI . $discussion1->getResourcePath(),
+                        'href' => $this->getUrl($discussion1->getResourcePath()),
                         'id' => $discussion1->id,
                         'title' => $discussion1->title
                     ]
