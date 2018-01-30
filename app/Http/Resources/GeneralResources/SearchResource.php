@@ -26,7 +26,7 @@ class SearchResource extends ApiCollectionResource
 
         return [
             'href' => $thisURI,
-            'search_results' => $this->collection->transform(function(IRestResourcePrimary $item){
+            'search_results' => $this->collection->transform(function(IRestResource $item){
                 return [
                     'href' => $this->getUrl($item->getResourcePath()),
                     'id' => $item->getId(),

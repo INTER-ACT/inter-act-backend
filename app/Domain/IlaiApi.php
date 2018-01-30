@@ -8,24 +8,24 @@
 
 namespace App\Domain;
 
-
-use App\Tags\Tag;
 use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Request;
 
 class IlaiApi //TODO: add timeout for response
 {
+    const PRO_STRING = 'PRO';
+    const CONTRA_STRING = 'CONTRA';
+
     /**
      * @param string $text
      * @return array
      */
     public static function getTagsForText(string $text) : array
     {
-        return [Tag::getDownloadUndStreaming(), Tag::getSozialeMedien()];
+        //return [Tag::getDownloadUndStreaming(), Tag::getSozialeMedien()];
         $id = 1;
-        $client = new Client();
+
         $inputData = [
-            "auth_token" => env('ILAI_TOKEN'),
             "texts" => [
                 [
                     'text_id' => $id,
@@ -34,9 +34,9 @@ class IlaiApi //TODO: add timeout for response
             ],
             "threshold" => 60
         ];
-        $res = $client->request('POST', 'https://ilai.inter-act.at/tagging/predict', $inputData);
+        $res = self::getResponseForRequest('POST', 'https://ilai.inter-act.at/tagging/predict', $inputData);
         $responseData = \GuzzleHttp\json_decode($res->getBody(), true);
-        return $responseData[0]['tags'];    //TODO: convert tag-strings to Tags
+        return $responseData[0]['tags'];
     }
 
     /**
@@ -46,7 +46,6 @@ class IlaiApi //TODO: add timeout for response
      */
     public static function sendTags(string $text, array $tags) : void
     {
-        $request = new Request('POST', 'https://ilai.inter-act.at/datasets');
         $data = [
             'name' => 'tagging_dataset',
             'service' => 'tagging',
@@ -57,8 +56,7 @@ class IlaiApi //TODO: add timeout for response
                 ]
             ]
         ];
-        $client = new Client();
-        $client->send($request, $data);
+        $res = self::getResponseForRequest('POST', 'https://ilai.inter-act.at/datasets', $data);
     }
 
     /**
@@ -67,11 +65,8 @@ class IlaiApi //TODO: add timeout for response
      */
     public static function getSentimentForText(string $text) : int
     {
-        return 1;
         $id = 1;
-        $client = new Client();
         $inputData = [
-            "auth_token" => env('ILAI_TOKEN'),
             "texts" => [
                 [
                     'text_id' => $id,
@@ -80,8 +75,23 @@ class IlaiApi //TODO: add timeout for response
             ],
             "threshold" => 60
         ];
-        $res = $client->request('POST', 'https://ilai.inter-act.at/sentiment/predict', $inputData);
+        $res = self::getResponseForRequest('POST', 'https://ilai.inter-act.at/sentiment/predict', $inputData);
         $responseData = \GuzzleHttp\json_decode($res->getBody(), true);
-        return (int)$responseData[0]['tags'][0];
+        $sentiment_string = $responseData[0]['tags'][0];
+        return (int)($sentiment_string == self::PRO_STRING) ? 1 : ($sentiment_string == self::CONTRA_STRING) ? -1 : 0;
+    }
+
+    /**
+     * @param string $method
+     * @param string $url
+     * @param array $inputData
+     * @return mixed|\Psr\Http\Message\ResponseInterface
+     */
+    protected static function getResponseForRequest(string $method, string $url, array $inputData = [])
+    {
+        $client = new Client();
+        $token = config('app.ilai_token');
+        $request = new Request($method, $url, ['content-type' => 'application/json', 'Authorization' => 'Token ' . $token], $inputData);
+        return $client->send($request);
     }
 }

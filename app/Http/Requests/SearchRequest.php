@@ -24,7 +24,7 @@ class SearchRequest extends ApiRequest
     public function rules()
     {
         return [
-            'search_term' => 'required|string'
+            'search_term' => 'required|string|max:3000'
         ];
     }
 }

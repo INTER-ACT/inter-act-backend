@@ -23,7 +23,7 @@ class DiscussionPolicy
      */
     public function view(User $user, Discussion $discussion)
     {
-        if(!$discussion->isActive() and (!isset($user) or !$user->hasRole(Role::getAdmin())))
+        if(!$discussion->isActive())
             throw new NotPermittedException("Archived Discussions can only be fetched by Administrators.");
         return true;
     }
@@ -36,7 +36,7 @@ class DiscussionPolicy
      */
     public function create(User $user)
     {
-        return $user->hasRole(Role::getAdmin());
+        return false;
     }
 
     /**
@@ -48,7 +48,7 @@ class DiscussionPolicy
      */
     public function update(User $user, Discussion $discussion)
     {
-        return $user->hasRole(Role::getAdmin());
+        return false;
     }
 
     /**
@@ -59,6 +59,13 @@ class DiscussionPolicy
      */
     public function delete(User $user)
     {
-        return $user->hasRole(Role::getAdmin());
+        return false;
+    }
+
+    public function before(User $user, $ability)
+    {
+        if (isset($user) && $user->hasRole(Role::getAdmin())) {
+            return true;
+        }
     }
 }

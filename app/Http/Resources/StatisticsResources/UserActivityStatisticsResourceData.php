@@ -99,5 +99,15 @@ class UserActivityStatisticsResourceData
     {
         $this->activity_score = $activity_score;
     }
+
+    public function toArray()
+    {
+        return [
+            $this->user_path,
+            $this->entity_path,
+            $this->teaser,
+            $this->activity_score
+        ];
+    }
     //endregion
 }

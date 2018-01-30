@@ -58,8 +58,8 @@ class Handler extends ExceptionHandler
         //TODO: Change errors that have not been caught to Internal Server Error?
         if($exception instanceof AuthenticationException)
             throw new NotAuthorizedException('The user is not authenticated');
-        if($exception instanceof QueryException and $exception->getCode() == 23000) //TODO: is it safe like that?
-            throw new CannotResolveDependenciesException($exception->getMessage());
+        //if($exception instanceof QueryException and $exception->getCode() == 23000)
+        //    throw new CannotResolveDependenciesException($exception->getMessage());
 
         //if($exception instanceof \ErrorException)
         //    throw new InternalServerError("The server could not resolve your request.");

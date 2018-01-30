@@ -159,21 +159,21 @@ class DiscussionRepository implements IRestRepository   //TODO: Exceptions missi
 
     /**
      * @param $id
-     * @param bool $is_admin
      * @return Discussion
      * @throws InvalidValueException
      * @throws NotPermittedException
      * @throws ResourceNotFoundException
      */
-    public static function getDiscussionByIdOrThrowError($id, bool $is_admin = false) : Discussion
+    public static function getDiscussionByIdOrThrowError($id) : Discussion
     {
         if(!isset($id) or !is_numeric($id))
             throw new InvalidValueException("The given id was invalid.");
         $id = (int)$id;
+        /** @var Discussion $discussion */
         $discussion = Discussion::find($id);
         if($discussion === null)
             throw new ResourceNotFoundException('Discussion with id ' . $id . ' not found.');
-        if(!$discussion->isActive() and !$is_admin)
+        if(!$discussion->isActive() and (!\Auth::check() or !\Auth::user()->can('view', $discussion)))
             throw new NotPermittedException('The logged in user is not permitted to interact with archived discussions.');
         return $discussion;
     }

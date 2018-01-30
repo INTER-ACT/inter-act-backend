@@ -14,9 +14,7 @@ class ViewStatisticsRequest extends ApiRequest
      */
     public function authorize()
     {
-        return true;
-        //TODO: uncomment again
-        //return $this->user()->hasRole(Role::getScientist()) || $this->user()->hasRole(Role::getAdmin());
+        return true;//return $this->user()->hasRole(Role::getScientist()) || $this->user()->hasRole(Role::getAdmin());
     }
 
     /**

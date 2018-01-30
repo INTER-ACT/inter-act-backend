@@ -13,6 +13,8 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class CreateDiscussionRequest extends ApiRequest
 {
+    use RequestHasTagsTrait;
+
     /**
      * Determine if the user is authorized to make this request.
      * @return bool
@@ -37,7 +39,7 @@ class CreateDiscussionRequest extends ApiRequest
             'law_text' => 'required|string',
             'law_explanation' => 'required|string',
             'tags' => 'required|array',
-            'tags.*' => 'int'
+            'tags.*' => 'integer|exists:tags,id|distinct'
         ];
     }
 }

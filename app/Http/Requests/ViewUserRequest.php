@@ -2,12 +2,10 @@
 
 namespace App\Http\Requests;
 
-use App\Domain\ApiRequest;
+use Illuminate\Foundation\Http\FormRequest;
 
-class CreateCommentRequest extends ApiRequest
+class ViewUserRequest extends FormRequest
 {
-    use RequestHasTagsTrait;
-
     /**
      * Determine if the user is authorized to make this request.
      *
@@ -26,9 +24,7 @@ class CreateCommentRequest extends ApiRequest
     public function rules()
     {
         return [
-            'content' => 'required|string',
-            'tags' => 'required|array',
-            'tags.*' => 'integer|exists:tags,id|distinct'
+            //
         ];
     }
 }

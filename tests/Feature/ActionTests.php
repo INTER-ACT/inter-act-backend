@@ -768,11 +768,115 @@ class ActionTests extends FeatureTestCase
     //endregion
 
     //region get /statistics/ratings
+    /** @test */
+    public function testMultiAspectRatingStatisticsValid()
+    {
+        Passport::actingAs(ModelFactory::CreateUser(Role::getScientist()), ['*']);
+        $request_path = $this->getUrl('/statistics/ratings');
+        $response = $this->get($request_path);
+        $response->assertStatus(200);
+    }
 
+    /** @test */
+    public function testMultiAspectRatingStatisticsNotAuthenticated()
+    {
+        $request_path = $this->getUrl('/statistics/ratings');
+        $response = $this->get($request_path);
+        $response->assertStatus(NotAuthorizedException::HTTP_CODE)->assertJson(['code' => NotAuthorizedException::ERROR_CODE]);
+    }
+
+    /** @test */
+    public function testMultiAspectRatingStatisticsNotPermitted()
+    {
+        Passport::actingAs(ModelFactory::CreateUser(Role::getExpert()), ['*']);
+        $request_path = $this->getUrl('/statistics/ratings');
+        $response = $this->get($request_path);
+        $response->assertStatus(NotPermittedException::HTTP_CODE)->assertJson(['code' => NotPermittedException::ERROR_CODE]);
+    }
     //endregion
 
     //region get /statistics/comment_ratings
+    /** @test */
+    public function testCommentRatingStatisticsValid()
+    {
+        Passport::actingAs(ModelFactory::CreateUser(Role::getScientist()), ['*']);
+        $request_path = $this->getUrl('/statistics/comment_ratings');
+        $response = $this->get($request_path);
+        $response->assertStatus(200);
+    }
 
+    /** @test */
+    public function testCommentRatingStatisticsNotAuthenticated()
+    {
+        $request_path = $this->getUrl('/statistics/comment_ratings');
+        $response = $this->get($request_path);
+        $response->assertStatus(NotAuthorizedException::HTTP_CODE)->assertJson(['code' => NotAuthorizedException::ERROR_CODE]);
+    }
+
+    /** @test */
+    public function testCommentRatingStatisticsNotPermitted()
+    {
+        Passport::actingAs(ModelFactory::CreateUser(Role::getExpert()), ['*']);
+        $request_path = $this->getUrl('/statistics/comment_ratings');
+        $response = $this->get($request_path);
+        $response->assertStatus(NotPermittedException::HTTP_CODE)->assertJson(['code' => NotPermittedException::ERROR_CODE]);
+    }
+    //endregion
+
+    //region get /statistics/object_activity
+    /** @test */
+    public function testObjectActivityValid()
+    {
+        Passport::actingAs(ModelFactory::CreateUser(Role::getScientist()), ['*']);
+        $request_path = $this->getUrl('/statistics/object_activity');
+        $response = $this->get($request_path);
+        $response->assertStatus(200);
+    }
+
+    /** @test */
+    public function testObjectActivityNotAuthenticated()
+    {
+        $request_path = $this->getUrl('/statistics/object_activity');
+        $response = $this->get($request_path);
+        $response->assertStatus(NotAuthorizedException::HTTP_CODE)->assertJson(['code' => NotAuthorizedException::ERROR_CODE]);
+    }
+
+    /** @test */
+    public function testObjectActivityNotPermitted()
+    {
+        Passport::actingAs(ModelFactory::CreateUser(Role::getExpert()), ['*']);
+        $request_path = $this->getUrl('/statistics/object_activity');
+        $response = $this->get($request_path);
+        $response->assertStatus(NotPermittedException::HTTP_CODE)->assertJson(['code' => NotPermittedException::ERROR_CODE]);
+    }
+    //endregion
+
+    //region get /statistics/user_activity
+    /** @test */
+    public function testUserActivityValid()
+    {
+        Passport::actingAs(ModelFactory::CreateUser(Role::getScientist()), ['*']);
+        $request_path = $this->getUrl('/statistics/user_activity');
+        $response = $this->get($request_path);
+        $response->assertStatus(200);
+    }
+
+    /** @test */
+    public function testUserActivityNotAuthenticated()
+    {
+        $request_path = $this->getUrl('/statistics/user_activity');
+        $response = $this->get($request_path);
+        $response->assertStatus(NotAuthorizedException::HTTP_CODE)->assertJson(['code' => NotAuthorizedException::ERROR_CODE]);
+    }
+
+    /** @test */
+    public function testUserActivityNotPermitted()
+    {
+        Passport::actingAs(ModelFactory::CreateUser(Role::getExpert()), ['*']);
+        $request_path = $this->getUrl('/statistics/user_activity');
+        $response = $this->get($request_path);
+        $response->assertStatus(NotPermittedException::HTTP_CODE)->assertJson(['code' => NotPermittedException::ERROR_CODE]);
+    }
     //endregion
 
     //region get /job_list
@@ -800,6 +904,39 @@ class ActionTests extends FeatureTestCase
                 'href' => $requestPath,
                 'graduations' => ActionRepository::GRADUATION_LIST
             ]);
+    }
+    //endregion
+
+    //region get/users/{id}/relevant
+    /** @test */
+    public function testRelevantDiscussionsValid()
+    {
+        Passport::actingAs(ModelFactory::CreateUser(Role::getAdmin()), ['*']);
+        $requestPath = $this->getUrl('/users/' . \Auth::id() . '/relevant');
+        $response = $this->get($requestPath);
+        $response->assertStatus(200);
+        Passport::actingAs(ModelFactory::CreateUser(Role::getAdmin()), ['*']);
+        $response = $this->get($requestPath);
+        $response->assertStatus(200);
+    }
+
+    /** @test */
+    public function testRelevantDiscussionsNotAuthorized()
+    {
+        $user = ModelFactory::CreateUser(Role::getStandardUser());
+        $requestPath = $this->getUrl('/users/' . $user->id . '/relevant');
+        $response = $this->get($requestPath);
+        $response->assertStatus(NotAuthorizedException::HTTP_CODE)->assertJson(['code' => NotAuthorizedException::ERROR_CODE]);
+    }
+
+    /** @test */
+    public function testRelevantDiscussionsNotPermitted()
+    {
+        ModelFactory::CreateUser(Role::getStandardUser());
+        Passport::actingAs(ModelFactory::CreateUser(Role::getScientist()), ['*']);
+        $requestPath = $this->getUrl('/users/' . 1 . '/relevant');
+        $response = $this->get($requestPath);
+        $response->assertStatus(NotPermittedException::HTTP_CODE)->assertJson(['code' => NotPermittedException::ERROR_CODE]);
     }
     //endregion
 }

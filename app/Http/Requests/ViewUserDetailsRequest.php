@@ -3,11 +3,12 @@
 namespace App\Http\Requests;
 
 use App\Domain\ApiRequest;
+use App\Domain\DiscussionRepository;
+use App\Domain\UserRepository;
+use App\Role;
 
-class CreateCommentRequest extends ApiRequest
+class ViewUserDetailsRequest extends ApiRequest
 {
-    use RequestHasTagsTrait;
-
     /**
      * Determine if the user is authorized to make this request.
      *
@@ -15,7 +16,8 @@ class CreateCommentRequest extends ApiRequest
      */
     public function authorize()
     {
-        return true;
+        $user = UserRepository::getByIdOrThrowError($this->route('user_id'));
+        return $this->user()->hasRole(Role::getAdmin()) || $this->user()->id == $user->id;
     }
 
     /**
@@ -26,9 +28,7 @@ class CreateCommentRequest extends ApiRequest
     public function rules()
     {
         return [
-            'content' => 'required|string',
-            'tags' => 'required|array',
-            'tags.*' => 'integer|exists:tags,id|distinct'
+            //
         ];
     }
 }

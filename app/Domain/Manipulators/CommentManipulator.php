@@ -30,7 +30,7 @@ class CommentManipulator
     public static function update(int $id, array $tags) : NoContentResource
     {
         $comment = CommentRepository::getCommentByIdOrThrowError($id);
-        $comment->tags()->attach($tags);
+        $comment->tags()->sync($tags);
         return new NoContentResource();
     }
 
@@ -63,7 +63,7 @@ class CommentManipulator
         $sub_comment->sentiment = IlaiApi::getSentimentForText($sub_comment->content);
         if(!$comment->comments()->save($sub_comment))
             throw new InternalServerError("Could not create a comment with the given data.");
-        $sub_comment->tags()->attach($data['tags']);
+        $sub_comment->tags()->sync($data['tags']);
         return new SuccessfulCreationResource($sub_comment);
     }
 

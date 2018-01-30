@@ -8,6 +8,8 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class CreateAmendmentRequest extends ApiRequest
 {
+    use RequestHasTagsTrait;
+
     /**
      * Determine if the user is authorized to make this request.
      *
@@ -27,7 +29,10 @@ class CreateAmendmentRequest extends ApiRequest
     public function rules()
     {
         return [
-
+            'explanation' => 'required|string',
+            'updated_text' => 'required|string',
+            'tags' => 'required|array',
+            'tags.*' => 'integer|exists:tags,id|distinct'
         ];
     }
 }

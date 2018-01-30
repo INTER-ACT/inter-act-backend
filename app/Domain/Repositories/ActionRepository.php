@@ -14,7 +14,9 @@ use App\Amendments\SubAmendment;
 use App\CommentRating;
 use App\Comments\Comment;
 use App\Discussions\Discussion;
+use App\Domain\EntityRepresentations\RelevantDiscussion;
 use App\Exceptions\CustomExceptions\InvalidValueException;
+use App\Http\Resources\DiscussionResources\DiscussionCollection;
 use App\Http\Resources\GeneralResources\SearchResource;
 use App\Http\Resources\GraduationListResource;
 use App\Http\Resources\JobListResource;
@@ -27,6 +29,8 @@ use App\Http\Resources\StatisticsResources\GeneralActivityStatisticsResourceData
 use App\Http\Resources\StatisticsResources\MultiAspectRatingStatisticsResource;
 use App\Http\Resources\StatisticsResources\MultiAspectRatingStatisticsResourceData;
 use App\Http\Resources\StatisticsResources\UserActivityStatisticsResource;
+use App\Http\Resources\StatisticsResources\UserActivityStatisticsResourceData;
+use App\Model\RestModel;
 use App\MultiAspectRating;
 use App\Reports\Report;
 use App\Tags\Tag;
@@ -34,6 +38,7 @@ use App\User;
 use Carbon\Carbon;
 use DB;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
 
 class ActionRepository implements IRestRepository   //TODO: Exceptions missing?
 {
@@ -171,32 +176,67 @@ class ActionRepository implements IRestRepository   //TODO: Exceptions missing?
         return new CommentRatingStatisticsResource($comments);
     }
 
-    public function getUserActivityStatisticsResource(int $user_id = null) : UserActivityStatisticsResource
+    public function getUserActivityStatisticsResource(int $user_id = 0) : UserActivityStatisticsResource
     {
-        $amendment_count = DB::select('SELECT users.id as user_id, discussions.id as discussion_id, COUNT(*) from amendments
-          JOIN discussions on amendments.discussion_id = discussions.id
-          JOIN users on amendments.user_id = users.id
-          GROUP BY users.id, discussions.id');
-        $users = User::select('id')->get()->transform(function($item){
-            return $item->getResourcePath();
-        });
-        $discussions = Discussion::select('id', 'title')->get()->transform(function($item){
-            return [$item->getResourcePath(), $item->title];
-        });
-        $total_array = [];
-        foreach ($users as $user)
-        {
-            foreach ($discussions as $discussion)
-            {
-                $total_array = array_merge($total_array, [[$user, $discussion[0], $discussion[1], 9]]);
-            }
-        }
-        /*$users->transform(function($item){
-            return new UserActivityStatisticsResourceData($item->user->getResourcePath(), $item->discussion->getResourcePath, $item->discussion->title, 10);
-        });*/
-        return new UserActivityStatisticsResource($total_array);
+        if($user_id > 1)
+            $data = $this->getUserActivity($user_id);
+        else
+            $data = $this->getAllUserActivity();
+
+        return new UserActivityStatisticsResource($data);
     }
 
+    public function getRelevantDiscussions(int $user_id) : DiscussionCollection
+    {
+        $user = UserRepository::getByIdOrThrowError($user_id);
+        /** @var Collection $discussions1 */
+        $discussions1 = $user->discussions->transform(function(Discussion $item){
+            return new RelevantDiscussion($item->id, $item->getResourcePath(), $item->title, $item->created_at);
+        });
+        /** @var Collection $discussions2 */
+        $discussions2 = $user->amendments->transform(function(Amendment $item){
+            /** @var Discussion $discussion */
+            $discussion = $item->discussion;
+            return new RelevantDiscussion($discussion->id, $discussion->getResourcePath(), $discussion->title, $item->created_at);
+        });
+        /** @var Collection $discussions3 */
+        $discussions3 = $user->sub_amendments->transform(function(SubAmendment $item){
+            /** @var Discussion $discussion */
+            $discussion = $item->amendment->discussion;
+            return new RelevantDiscussion($discussion->id, $discussion->getResourcePath(), $discussion->title, $item->created_at);
+        });
+        /** @var Collection $discussions4 */
+        $discussions4 = $user->comments->transform(function(Comment $item){
+            $parent = $this->getDiscussionForPost($item);
+            return new RelevantDiscussion($parent->id, $parent->getResourcePath(), $parent->title, $item->created_at);
+        });
+        $all = $discussions1->merge($discussions2->merge($discussions3->merge($discussions4)));
+        $all->sort(function(RelevantDiscussion $a, RelevantDiscussion $b){
+            return $a->user_interaction_date > $b->user_interaction_date;
+        });
+        return new DiscussionCollection($all);
+    }
+
+    /**
+     * @param $post
+     * @return Discussion
+     */
+    protected function getDiscussionForPost($post) : Discussion
+    {
+        if($post instanceof Comment)
+            return $this->getDiscussionForPost($post->parent);
+        if($post instanceof SubAmendment)
+            return $post->amendment->discussion;
+        if($post instanceof Amendment)
+            return $post->discussion;
+        if($post instanceof Discussion)
+            return $post;
+        return null;
+    }
+
+    /**
+     * @return ActionStatisticsResource
+     */
     public function getObjectActivityStatisticsResource() : ActionStatisticsResource
     {
         $discussions = Discussion::select('id', 'title', 'created_at')->get()->transform(function(Discussion $item){
@@ -466,6 +506,85 @@ class ActionRepository implements IRestRepository   //TODO: Exceptions missing?
             $q3 = ($array[(int)floor($q3Float) - 1] + $array[(int)ceil($q3Float) - 1]) * 0.5;
         }
         return [$q1, $q2, $q3];
+    }
+    //endregion
+
+    //region userActivityHelpers
+    protected function getAllUserActivity() : array
+    {
+        $total = [];
+        $users = User::all();
+        foreach ($users as $user) {
+            $total = array_merge($total, array_merge($this->getUserActivityDiscussions($user->id), $this->getUserActivityTags($user->id)));
+        }
+        return $total;
+    }
+
+    protected function getUserActivity(int $user_id) : array
+    {
+        return array_merge($this->getUserActivityDiscussions($user_id), $this->getUserActivityTags($user_id));
+    }
+
+    protected function getUserActivityDiscussions(int $user_id) : array
+    {
+        //TODO: if time, add ratings as well.
+        /** @var User $user */
+        $user = UserRepository::getByIdOrThrowError($user_id);
+        $discussion_ids = [];
+        $discussion_ids = array_merge($discussion_ids, $user->discussions()->select('id')->pluck('id')->all());
+        $discussion_ids = array_merge($discussion_ids, $user->amendments()->select('id', 'discussion_id')->pluck('discussion_id')->all());
+        $discussion_ids = array_merge($discussion_ids, $user->sub_amendments()->select('id', 'amendment_id')->with('amendment:id,discussion_id')->get()
+            ->transform(function(SubAmendment $item) {
+                return $item->amendment->discussion_id;
+            })->all());
+        $discussion_ids = array_merge($discussion_ids, $user->comments()->select('id', 'commentable_id', 'commentable_type')->get()->transform(function(Comment $item){
+            $parent = $this->getDiscussionForPost($item);
+            return $parent->id;
+        })->all());
+        $ids_unique = array_unique($discussion_ids);
+        $discussion_sums = array_fill_keys($ids_unique, 0);
+        foreach ($discussion_ids as $id)
+        {
+            $discussion_sums[$id]++;
+        }
+        return array_map(function($key, $item) use($user){
+            $discussion = Discussion::select('id', 'title')->find($key);
+            return (new UserActivityStatisticsResourceData($user->getResourcePath(), $discussion->getResourcePath(), $discussion->title, $item))->toArray();
+        }, array_keys($discussion_sums), $discussion_sums);
+    }
+
+    protected function getUserActivityTags(int $user_id) : array
+    {
+        /** @var User $user */
+        $user = UserRepository::getByIdOrThrowError($user_id);
+        $tag_ids = [];
+        $tag_ids = array_merge($tag_ids, $user->discussions()->select('id')->get()
+            ->transform(function(Discussion $item){
+                return $item->tags()->pluck('id')->all();
+            })->flatten()->all());
+        $tag_ids = array_merge($tag_ids, $user->amendments()->select('id')->get()
+            ->transform(function(Amendment $item){
+                return $item->tags()->pluck('id')->all();
+            })->flatten()->all());
+        $tag_ids = array_merge($tag_ids, $user->sub_amendments()->select('id')->get()
+            ->transform(function(SubAmendment $item){
+                return $item->tags()->pluck('id')->all();
+            })->flatten()->all());
+        $tag_ids = array_merge($tag_ids, $user->comments()->select('id')->get()
+            ->transform(function(Comment $item){
+                return $item->tags()->pluck('id')->all();
+            })->flatten()->all());
+        $ids_unique = array_unique($tag_ids);
+        $tag_sums = array_fill_keys($ids_unique, 0);
+        foreach ($tag_ids as $id)
+        {
+            $tag_sums[$id]++;
+        }
+        return array_map(function($key, $item) use($user){
+            /** @var Tag $tag */
+            $tag = Tag::select('id', 'name')->find($key);
+            return (new UserActivityStatisticsResourceData($user->getResourcePath(), $tag->getResourcePath(), $tag->title, $item))->toArray();
+        }, array_keys($tag_sums), $tag_sums);
     }
     //endregion
 

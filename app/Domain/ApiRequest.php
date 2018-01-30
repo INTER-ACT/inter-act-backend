@@ -8,7 +8,6 @@
 
 namespace App\Domain;
 
-
 use App\Exceptions\CustomExceptions\InvalidValueException;
 use App\Exceptions\CustomExceptions\NotPermittedException;
 use Illuminate\Contracts\Validation\Validator;

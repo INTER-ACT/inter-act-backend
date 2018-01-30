@@ -437,20 +437,19 @@ class DiscussionTests extends FeatureTestCase
             ]
         ];
         $response = $this->json('POST', $requestPath, $inputData);
-        $response->assertStatus(InvalidValueException::HTTP_CODE)
-            ->assertJson(['code' => InvalidValueException::ERROR_CODE]);
+        $response->assertStatus(CannotResolveDependenciesException::HTTP_CODE)
+            ->assertJson(['code' => CannotResolveDependenciesException::ERROR_CODE]);
     }
 
     /** @test */
     public function testPostDiscussionSQLInjection()
     {
+        $tag_ids = Tag::all()->pluck('id');
         $inputData = [
             'title' => 'Titel',
             'law_text' => 'this and that',
             'law_explanation' => "new exp'; DROP TABLE DISCUSSIONS;'",
-            'tags' => [
-                1
-            ]
+            'tags' => $tag_ids
         ];
 
         Passport::actingAs(
@@ -475,7 +474,7 @@ class DiscussionTests extends FeatureTestCase
             'law_text' => 'this and that',
             'law_explanation' => "new exp",
             'tags' => [
-                12
+                101
             ]
         ];
 
@@ -535,9 +534,9 @@ class DiscussionTests extends FeatureTestCase
         );
         $requestPath = $this->getUrl('/discussions/' . 1);
         $response = $this->get($requestPath);
-        $response->assertStatus(404)
+        $response->assertStatus(ResourceNotFoundException::HTTP_CODE)
             ->assertJson([
-                "code" => "Request_01"
+                "code" => ResourceNotFoundException::ERROR_CODE
             ]);
     }
 
@@ -566,11 +565,11 @@ class DiscussionTests extends FeatureTestCase
     }
     //endregion
 
-    //region update /discussions/{id}
+    //region patch /discussions/{id}
     /** @test */
     public function testPatchDiscussionWithValidValuesAndAuthenticated()
     {
-        $new_tag_ids = [1, 3];
+        $new_tag_ids = [Tag::getWirtschaftlicheInteressen()->id, Tag::getUserGeneratedContent()->id];
         $new_law_explanation = "new explanation";
 
         Passport::actingAs(
@@ -596,6 +595,7 @@ class DiscussionTests extends FeatureTestCase
     /** @test */
     public function testPatchDiscussionWithInvalidValuesAndAuthenticated()
     {
+        Tag::getWirtschaftlicheInteressen();
         $new_tag_ids = [1, 3];
         $new_law_explanation = 1;
 
@@ -1011,7 +1011,7 @@ class DiscussionTests extends FeatureTestCase
     /** @test */
     public function testPostCommentsInvalidTags()
     {
-        $tag_ids = [12];
+        $tag_ids = [12, -10];
         $content = 'newly created comment content';
 
         Passport::actingAs(

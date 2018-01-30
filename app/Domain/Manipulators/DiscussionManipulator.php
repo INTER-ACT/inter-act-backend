@@ -53,7 +53,7 @@ class DiscussionManipulator
         if(!$discussion->update($data))
             throw new ApiException(ApiExceptionMeta::getAInternalServerError(), 'Discussion with id ' . $id . ' could not be updated.');
         $tag_ids = $data['tags'];
-        $discussion->tags()->attach($tag_ids);
+        $discussion->tags()->sync($tag_ids);
     }
 
     /**
@@ -104,7 +104,7 @@ class DiscussionManipulator
         $amendment->user_id = $user_id;
         if(!$discussion->amendments()->save($amendment))
             throw new InternalServerError("Could not create an amendment with the given data.");
-        $amendment->tags()->attach($data['tags']);
+        $amendment->tags()->sync($data['tags']);
         return new SuccessfulCreationResource($amendment);
     }
 
@@ -123,7 +123,7 @@ class DiscussionManipulator
         $comment->user_id = $user_id;
         if(!$discussion->comments()->save($comment))
             throw new InternalServerError("Could not create a comment with the given data.");
-        $comment->tags()->attach($data['tags']);
+        $comment->tags()->sync($data['tags']);
         return new SuccessfulCreationResource($comment);
     }
 }

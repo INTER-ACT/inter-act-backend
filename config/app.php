@@ -233,4 +233,13 @@ return [
         'XmlParser' => Orchestra\Parser\Xml\Facade::class,
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | ILAI-Token
+    |--------------------------------------------------------------------------
+    |
+    | Defines the token for communicating with the ILAI-API
+    |
+    */
+    'ilai_token' => env('ILAI_TOKEN', 'abcdef')
 ];

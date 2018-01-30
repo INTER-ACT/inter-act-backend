@@ -8,6 +8,8 @@ use App\Exceptions\CustomExceptions\NotPermittedException;
 
 class UpdateCommentRequest extends ApiRequest
 {
+    use RequestHasTagsTrait;
+
     /**
      * Determine if the user is authorized to make this request.
      * @return bool
@@ -30,7 +32,7 @@ class UpdateCommentRequest extends ApiRequest
     {
         return [
             'tags' => 'required|array',
-            'tags.*' => 'integer'
+            'tags.*' => 'integer|exists:tags,id|distinct'
         ];
     }
 }
