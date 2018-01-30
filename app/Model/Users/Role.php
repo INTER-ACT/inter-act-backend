@@ -73,6 +73,11 @@ class Role extends RestModel
         return 'Rolle';
     }
 
+    public function hasPermission(Permission $permission)
+    {
+        return $this->permissions()->where('id', '=', $permission->id)->count() >= 0;
+    }
+
     //region relations
     public function permissions()
     {

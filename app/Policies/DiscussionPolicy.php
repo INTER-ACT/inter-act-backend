@@ -4,6 +4,7 @@ namespace App\Policies;
 
 use App\Discussions\Discussion;
 use App\Exceptions\CustomExceptions\NotPermittedException;
+use App\Permission;
 use App\Role;
 use App\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
@@ -36,7 +37,7 @@ class DiscussionPolicy
      */
     public function create(User $user)
     {
-        return false;
+        return $user->hasPermission(Permission::getCreateDiscussions());
     }
 
     /**
@@ -48,7 +49,7 @@ class DiscussionPolicy
      */
     public function update(User $user, Discussion $discussion)
     {
-        return false;
+        return $user->hasPermission(Permission::getCreateExpertExplanations());   //TODO: test if expert can update discussions (or @ least the explanation)
     }
 
     /**

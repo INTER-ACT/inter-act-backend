@@ -53,7 +53,8 @@ class DiscussionManipulator
         if(!$discussion->update($data))
             throw new ApiException(ApiExceptionMeta::getAInternalServerError(), 'Discussion with id ' . $id . ' could not be updated.');
         $tag_ids = $data['tags'];
-        $discussion->tags()->sync($tag_ids);
+        if(isset($tag_ids)) //TODO: test if this works
+            $discussion->tags()->sync($tag_ids);
     }
 
     /**

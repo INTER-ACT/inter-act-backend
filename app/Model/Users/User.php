@@ -103,6 +103,11 @@ class User extends AuthRestModel
         return $this->role->id == $role->id;
     }
 
+    public function hasPermission(Permission $permission)
+    {
+        return $this->role->hasPermission($permission);
+    }
+
     //TODO: change in documentation (was planned as scope)
     public static function ofRole(Role $role)
     {

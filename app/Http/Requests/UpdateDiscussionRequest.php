@@ -37,7 +37,7 @@ class UpdateDiscussionRequest extends ApiRequest
     {
         return [
             'law_explanation' => 'string',
-            'tags' => 'array|required',
+            'tags' => 'array',
             'tags.*' => 'integer|exists:tags,id|distinct'
         ];
     }

@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Domain\ApiRequest;
+use App\Permission;
 use App\Role;
 
 class ViewStatisticsRequest extends ApiRequest
@@ -14,7 +15,7 @@ class ViewStatisticsRequest extends ApiRequest
      */
     public function authorize()
     {
-        return true;//return $this->user()->hasRole(Role::getScientist()) || $this->user()->hasRole(Role::getAdmin());
+        return $this->user()->hasPermission(Permission::getAnalyze());
     }
 
     /**

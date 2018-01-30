@@ -102,15 +102,17 @@ class CommentTests extends TestCase
         $resourcePath = $this->getUrl('/comments');
         $response = $this->get($resourcePath);
         $response->assertJson([
-            'href' => $resourcePath,
-            'comments' => [
-                [
-                    'href' => $this->getUrl($comment1->getResourcePath()),
-                    'id' => $comment1->id
-                ],
-                [
-                    'href' => $this->getUrl($comment2->getResourcePath()),
-                    'id' => $comment2->id
+            'data'=> [
+                'href' => $resourcePath,
+                'comments' => [
+                    [
+                        'href' => $this->getUrl($comment1->getResourcePath()),
+                        'id' => $comment1->id
+                    ],
+                    [
+                        'href' => $this->getUrl($comment2->getResourcePath()),
+                        'id' => $comment2->id
+                    ]
                 ]
             ]
         ]);

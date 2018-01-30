@@ -343,23 +343,15 @@ Route::get('/statistics/comment_ratings', function(){
 });
 
 Route::get('/statistics/action', function(){
-    $discussions = Discussion::select('id', 'title')->get()->transform(function($item){
-        return (new ActionStatisticsResourceData($item->getResourcePath(), $item->title, [4, 1, 2, 6]))->toArray();
+    $discussions = Discussion::select('id', 'title')->get()->transform(function(Discussion $item){
+        return (new ActionStatisticsResourceData($item->getResourcePath(), $item->title, 25, 10))->toArray();
     })->toArray();
-    $tags = Tag::select('id', 'name')->get()->transform(function($item){
-        return (new ActionStatisticsResourceData($item->getResourcePath(), $item->name, [5, 3, 1, 0]))->toArray();
+    $tags = Tag::select('id', 'name')->get()->transform(function(Tag $item){
+        return (new ActionStatisticsResourceData($item->getResourcePath(), $item->name, 120, 50))->toArray();
     })->toArray();
-    $header = [
-        'Diskussion/Tag',
-        'Titel/Name',
-        'Quartal 1 2017',
-        'Quartal 2 2017',
-        'Quartal 3 2017',
-        'Quartal 4 2017'
-    ];
     $action_resource_data = array_merge($discussions, $tags);
 
-    $resource = new ActionStatisticsResource($header, $action_resource_data);
+    $resource = new ActionStatisticsResource($action_resource_data);
     $data = $resource->toArray();
     return new StreamedResponse(
         function() use($data)
@@ -385,10 +377,10 @@ Route::get('/statistics/users', function(){
 JOIN discussions on amendments.discussion_id = discussions.id
 JOIN users on amendments.user_id = users.id
 GROUP BY users.id, discussions.id');
-    $users = User::select('id')->get()->transform(function($item){
+    $users = User::select('id')->get()->transform(function(User $item){
         return $item->getResourcePath();
     });
-    $discussions = Discussion::select('id', 'title')->get()->transform(function($item){
+    $discussions = Discussion::select('id', 'title')->get()->transform(function(Discussion $item){
         return [$item->getResourcePath(), $item->title];
     });
     $total_array = [];

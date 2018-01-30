@@ -135,7 +135,7 @@ Route::get('/search', 'ActionController@searchArticles');
 
 Route::get('/statistics', 'ActionController@getGeneralActivityStatistics')->middleware('auth:api');
 
-Route::get('/statistics/user_activity', 'ActionController@getUserActivityStatistics');//->middleware('auth:api');
+Route::get('/statistics/user_activity', 'ActionController@getUserActivityStatistics')->middleware('auth:api');
 
 Route::get('/statistics/ratings', 'ActionController@getRatingStatistics')->middleware('auth:api');
 
