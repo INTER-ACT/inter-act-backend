@@ -10,25 +10,26 @@ use App\Exceptions\CustomExceptions\InvalidValueException;
 use App\Exceptions\CustomExceptions\NotFoundException;
 use App\Http\Requests\CreateUserRequest;
 use App\Http\Requests\UpdateUserRoleRequest;
+use App\Mail\VerifyPasswordUpdate;
+use App\Mail\VerifyUser;
+use App\PendingUser;
 use App\Role;
 use App\User;
 use Hash;
+use Mail;
 
 class UserManipulator
 {
     /**
      * @param array $data
-     * @return User
+     * @return PendingUser
      * @throws InternalServerError
      */
-    public static function create(array $data)
+    public static function create(array $data) : PendingUser
     {
-        $user = new User();
-
-        // TODO move this to a more appropriate place
-
+        $user = new PendingUser();
+        $user->validation_token = PendingUser::getNewToken($data['username']);
         $user->fill($data);
-        $user->role_id = Role::getStandardUser()->id;
         $user->is_male = $data['sex'] == 'm';
         $user->city = $data['residence'];
         $user->graduation = $data['highest_education'];
@@ -37,6 +38,25 @@ class UserManipulator
         if(!$user->save())
             throw new InternalServerError('The User could not be saved.');
 
+        Mail::send(new VerifyUser($user));
+        return $user;
+    }
+
+    /**
+     * @param string $token
+     * @return User
+     * @throws InternalServerError
+     */
+    public static function verifyUser(string $token) : User
+    {
+        /** @var PendingUser $pendingUser */
+        $pendingUser = PendingUser::find($token);
+        if(!isset($pendingUser))
+            throw new InternalServerError('The given token is not valid.');
+        $user = $pendingUser->getUser();
+        if(!$user->save())
+            throw new InternalServerError('Could not verify the user.');
+        $pendingUser->delete();
         return $user;
     }
 
@@ -47,10 +67,31 @@ class UserManipulator
      */
     public static function update(int $id, array $data)
     {
+        /** @var User $user */
         $user = UserRepository::getByIdOrThrowError($id);
-
-        if(!$user->update($data))
+        $user->fill($data);
+        if(array_key_exists('pending_password', $data)) {
+            $user->pending_token = User::getNewToken($data['pending_password']);
+            $user->pending_password = Hash::make($data['pending_password']);
+        }
+        if(!$user->save())
             throw new InternalServerError("The User $id couldn't be updated.");
+        Mail::send(new VerifyPasswordUpdate($user));
+    }
+
+    public static function verifyPasswordUpdate(string $token) : User
+    {
+        $user = User::where('pending_token', '=', $token)->first();
+        if(!isset($user))
+            throw new InternalServerError('Password update failed: token not valid.');
+        if(!isset($user->pending_password))
+            throw new InternalServerError('Password update failed: no updated password available.');
+        $user->password = $user->pending_password;
+        $user->pending_password = null;
+        $user->pending_token = null;
+        if(!$user->save())
+            throw new InternalServerError("The User $id couldn't be updated.");
+        return $user;
     }
 
     public static function delete(int $id)

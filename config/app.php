@@ -241,5 +241,6 @@ return [
     | Defines the token for communicating with the ILAI-API
     |
     */
-    'ilai_token' => env('ILAI_TOKEN', 'abcdef')
+    'ilai_token' => env('ILAI_TOKEN', 'abcdef'),
+    'home_url' => env('HOME', 'www.inter-act.at')
 ];

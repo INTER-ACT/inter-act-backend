@@ -6,13 +6,21 @@ use App\Amendments\Amendment;
 use App\Amendments\SubAmendment;
 use App\Comments\Comment;
 use App\Discussions\Discussion;
+use App\Domain\Manipulators\UserManipulator;
+use App\Exceptions\CustomExceptions\NotFoundException;
+use App\Exceptions\CustomExceptions\ResourceNotFoundException;
+use App\Http\Resources\UserResources\ShortUserResource;
+use App\Http\Resources\UserResources\UserResource;
+use App\PendingUser;
 use App\User;
 use Hash;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Http\Request;
 use Laravel\Passport\Passport;
+use Tests\FeatureTestCase;
 use Tests\TestCase;
 
-class UserTests extends TestCase
+class UserTests extends FeatureTestCase
 {
     use DatabaseMigrations;
 
@@ -34,29 +42,60 @@ class UserTests extends TestCase
      */
     public function testCreationOfUserResponse()
     {
+        $username = 'Zederick_';
         $userData = [
-            'username' => 'TestUser00',
-            'email' => 'me12@me.com',
+            'username' => $username,
+            'email' => 'leazedev@gmail.com',
             'password' => 'abcd123!',
             'first_name' => 'Hans',
-            'last_name' => 'Nachname',
+            'last_name' => 'Wurst',
             'sex' => 'm',
             'postal_code' => 3500,
-            'residence' => 'Krems',
-            'job' => 'Maurer',
-            'highest_education' => 2,       //TODO use actual data, as soon as the graduation levels are known
-            'year_of_birth' => 1996
+            'residence' => 'Pfaffings',
+            'job' => 'Schüler',
+            'highest_education' => 2,
+            'year_of_birth' => 1999
         ];
 
-        $response = $this->post('/users', $userData);
-
-        $response->assertStatus(201);
-
-        $data = $response->decodeResponseJson();
-        $this->assertArrayHasKey('href', $data);
-        $this->assertArrayHasKey('id', $data);
+        $requestPath = $this->getUrl('/users');
+        $response = $this->post($requestPath, $userData);
+        $response->assertStatus(202);
     }
 
+    /**
+     * Tests that the creation of a user returns the correct response
+     */
+    public function testCreationOfUserAndValidation()
+    {
+        $username = 'Zederick_';
+        $userData = [
+            'username' => $username,
+            'email' => 'leazedev@gmail.com',
+            'password' => 'abcd123!',
+            'first_name' => 'Hans',
+            'last_name' => 'Wurst',
+            'sex' => 'm',
+            'postal_code' => 3500,
+            'residence' => 'Pfaffings',
+            'job' => 'Schüler',
+            'highest_education' => 2,
+            'year_of_birth' => 1999
+        ];
+        $pendingUser = UserManipulator::create($userData);
+        $token = $pendingUser->validation_token;
+        $requestPath = $this->getUrl('/users/1');
+        $user = $pendingUser->getUser();
+        $user->id = 1;
+        $response = $this->json('GET', $requestPath);
+        $response->assertStatus(NotFoundException::HTTP_CODE)->assertJson(['code' => NotFoundException::ERROR_CODE]);
+        $verificationPath = PendingUser::getVerificationUrlForToken($token);
+        $verificationResponse = $this->json('GET', $verificationPath);
+        $verificationResponse->assertStatus(302);   //redirect
+        $requestPath = $this->getUrl('/users/1');
+        $response = $this->get($requestPath);
+        $response->assertStatus(200)
+           ->assertJson((new ShortUserResource($user))->toArray(new Request()));
+    }
 
     /**
      * Tests that the user and all his values are saved to the database,
@@ -79,10 +118,10 @@ class UserTests extends TestCase
         ];
 
         $response = $this->post('/users', $userData);
-
-        $data = (array)json_decode($response->content());
-        $userId = $data['id'];
-
+        $response->assertStatus(202);
+        //already tested if in database in previous test
+        /*
+        $userId = 1;
         $user = User::find($userId);
 
         $this->assertNotNull($user, 'The does not exist in the database');
@@ -97,7 +136,7 @@ class UserTests extends TestCase
         $this->assertEquals($userData['residence'], $user->city);
         $this->assertEquals($userData['job'], $user->job);
         $this->assertEquals($userData['highest_education'], $user->graduation);
-        $this->assertEquals($userData['year_of_birth'], $user->year_of_birth);
+        $this->assertEquals($userData['year_of_birth'], $user->year_of_birth);*/
     }
     //endregion
 
@@ -121,17 +160,17 @@ class UserTests extends TestCase
      *
      * With correct data only
      */
-    public function testUpdatingUser()
+    public function testUpdatingUserAndValidate()
     {
         $firstPassword = '123!xyzz';
         $user = factory(User::class)->create([
             'password' => Hash::make($firstPassword)
         ]);
 
-        $newMail = 'mymail@me.com';
+        $newMail = 'nonexistent@nonexistent.com';
         $newPassword = 'abcc123!';
         $newLastName = 'Santana';
-        $newResicence = 'Wien';
+        $newResidence = 'Wien';
         $newJob = 'Dunno';
         $newHighestEducation = 'Forschungszentrum für Bildungsbekämpfung, Krems';
 
@@ -142,22 +181,56 @@ class UserTests extends TestCase
             'password' => $newPassword,
             'old_password' => $firstPassword,
             'last_name' => $newLastName,
-            'residence' => $newResicence,
+            'residence' => $newResidence,
             'job' => $newJob,
             'highest_education' => $newHighestEducation
         ]);
 
         $response->assertStatus(204);
-
+        /** @var User $updatedUser */
         $updatedUser = User::find($user->id);
         self::assertNotNull($updatedUser);
 
         self::assertEquals($newMail, $updatedUser->email);
-        self::assertTrue(Hash::check($newPassword, $updatedUser->password));
         self::assertEquals($newLastName, $updatedUser->last_name);
-        self::assertEquals($newResicence, $updatedUser->city);
+        self::assertEquals($newResidence, $updatedUser->city);
         self::assertEquals($newJob, $updatedUser->job);
         self::assertEquals($newHighestEducation, $updatedUser->graduation);
+        self::assertFalse(Hash::check($newPassword, $updatedUser->password));
+        $requestPath = $updatedUser->getVerificationUrl();
+        $response = $this->get($requestPath);
+        $response->assertStatus(302);
+        $pwUpdatedUser = User::find($user->id);
+        self::assertTrue(Hash::check($newPassword, $pwUpdatedUser->password));
+    }
+
+    public function testUpdatingUser()
+    {
+        $firstPassword = '123!xyzz';
+        $user = factory(User::class)->create([
+            'password' => Hash::make($firstPassword)
+        ]);
+
+        $newMail = 'leazedev@gmail.com';
+        $newPassword = 'abcc123!';
+        $newLastName = 'Santana';
+        $newResidence = 'Wien';
+        $newJob = 'Dunno';
+        $newHighestEducation = 'Forschungszentrum für Bildungsbekämpfung, Krems';
+
+        Passport::actingAs($user);
+
+        $response = $this->patch($user->getResourcePath(), [
+            'email' => $newMail,
+            'password' => $newPassword,
+            'old_password' => $firstPassword,
+            'last_name' => $newLastName,
+            'residence' => $newResidence,
+            'job' => $newJob,
+            'highest_education' => $newHighestEducation
+        ]);
+
+        $response->assertStatus(204);
     }
 
     /**

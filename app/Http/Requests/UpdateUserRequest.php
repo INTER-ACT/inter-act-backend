@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 
 use App\Exceptions\CustomExceptions\InvalidValueException;
+use App\User;
 use Auth;
 use Hash;
 use Illuminate\Http\Request;
@@ -66,8 +67,7 @@ class UpdateUserRequest extends AUserRequest
     public function getData()
     {
         $data = $this->request->all();
-        $data['password'] = Hash::make($data['password']);
-
+        $data['pending_password'] = $data['password'];
         $this->exchangeKey($data, 'residence', 'city');
         $this->exchangeKey($data, 'highest_education', 'graduation');
 

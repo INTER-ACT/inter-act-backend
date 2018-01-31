@@ -39,6 +39,8 @@ Route::get('/users/{user_id}/comments', 'UserController@listComments');
 Route::get('/users/{user_id}/discussions', 'UserController@listDiscussions');
 Route::get('/users/{user_id}/statistics', 'UserController@showStatistics');
 
+Route::get('/verify_user/{verification_token}', 'UserController@verifyUser');
+Route::get('/update_password/{verification_token}', 'UserController@updatePassword');
 //endregion
 
 //region discussions

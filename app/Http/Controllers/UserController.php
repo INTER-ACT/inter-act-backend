@@ -11,12 +11,16 @@ use App\Exceptions\CustomExceptions\NotPermittedException;
 use App\Http\Requests\CreateUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use App\Http\Requests\UpdateUserRoleRequest;
+use App\Http\Resources\PendingUserCreatedResponse;
 use App\Http\Resources\SuccessfulCreationResource;
 use App\Http\Resources\UserResources\UserCollection;
+use App\Mail\VerifyUser;
+use App\PendingUser;
 use App\Permission;
 use App\User;
 use Auth;
 use Illuminate\Http\Request;
+use Mail;
 
 class UserController extends Controller
 {
@@ -43,18 +47,24 @@ class UserController extends Controller
 
     /**
      * @param CreateUserRequest $request
-     * @return SuccessfulCreationResource
+     * @return PendingUserCreatedResponse
      * @throws InternalServerError
      */
     public function store(CreateUserRequest $request)
     {
-        // TODO send verification email
-
         $request->validate();
+        UserManipulator::create($request->getData());
+        return new PendingUserCreatedResponse();
+    }
 
-        $user = UserManipulator::create($request->getData());
-
-        return new SuccessfulCreationResource($user);
+    /**
+     * @param string $verification_token
+     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
+     */
+    public function verifyUser(string $verification_token)
+    {
+        $user = UserManipulator::verifyUser($verification_token);
+        return redirect(config('app.home_url'));
     }
 
     public function show(int $id)
@@ -82,7 +92,15 @@ class UserController extends Controller
         return response('', 204);
     }
 
-    // TODO patch method  -  what is the difference to update??
+    /**
+     * @param string $verification_token
+     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
+     */
+    public function updatePassword(string $verification_token)
+    {
+        $user = UserManipulator::verifyPasswordUpdate($verification_token);
+        return redirect(config('app.home_url'));
+    }
 
     public function destroy(int $id)
     {

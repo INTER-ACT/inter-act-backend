@@ -23,7 +23,7 @@ class User extends AuthRestModel
      * @var array
      */
     protected $fillable = [
-        'username', 'email', 'password', 'first_name', 'last_name', 'is_male', 'postal_code', 'city', 'job', 'graduation', 'year_of_birth'
+        'username', 'email', 'first_name', 'last_name', 'is_male', 'postal_code', 'city', 'job', 'graduation', 'year_of_birth'
     ];//TODO: should email and password be mass-assignable?
 
     /**
@@ -32,7 +32,7 @@ class User extends AuthRestModel
      * @var array
      */
     protected $hidden = [
-        'password', 'remember_token',
+        'password', 'remember_token', 'pending_password', 'pending_token'
     ];
 
     public function getSex(){
@@ -98,12 +98,20 @@ class User extends AuthRestModel
     }
     //endregion
 
-    public function hasRole(Role $role)
+    /**
+     * @param Role $role
+     * @return bool
+     */
+    public function hasRole(Role $role) : bool
     {
         return $this->role->id == $role->id;
     }
 
-    public function hasPermission(Permission $permission)
+    /**
+     * @param Permission $permission
+     * @return bool
+     */
+    public function hasPermission(Permission $permission) : bool
     {
         return $this->role->hasPermission($permission);
     }
@@ -127,14 +135,46 @@ class User extends AuthRestModel
         });*/
     }
 
-    public function getFullName()
+    /**
+     * @return string
+     */
+    public function getFullName() : string
     {
         return $this->first_name . ' ' . $this->last_name;
     }
 
-    public function getAge()
+    /**
+     * @return int
+     */
+    public function getAge() : int
     {
         return Carbon::now()->year - $this->year_of_birth;
+    }
+
+    /**
+     * @return string
+     */
+    public function getVerificationUrl() : string
+    {
+        return self::getVerificationUrlForToken($this->pending_token);
+    }
+
+    /**
+     * @param string $validation_token
+     * @return string
+     */
+    public static function getVerificationUrlForToken(string $validation_token) : string
+    {
+        return config('app.url') . '/update_password/' . $validation_token;
+    }
+
+    /**
+     * @param string $password
+     * @return string
+     */
+    public static function getNewToken(string $password) : string
+    {
+        return sha1(uniqid($password, true));
     }
 
     /**

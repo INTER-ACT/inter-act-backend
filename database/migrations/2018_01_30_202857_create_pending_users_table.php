@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateUsersTable extends Migration
+class CreatePendingUsersTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,9 +13,8 @@ class CreateUsersTable extends Migration
      */
     public function up()
     {
-        Schema::create('users', function (Blueprint $table) {
-            $table->increments('id');
-            $table->integer('role_id')->unsigned();//TODO: set not nullable if not default
+        Schema::create('pending_users', function (Blueprint $table) {
+            $table->string('validation_token', 40)->unique();
             $table->string('username', 64)->unique();
             $table->string('email', 254)->unique();
             $table->text('password');
@@ -27,10 +26,9 @@ class CreateUsersTable extends Migration
             $table->string('job', 254);
             $table->string('graduation', 254);
             $table->integer('year_of_birth')->unsigned();
-            $table->rememberToken();    //TODO: is this needed with OAuth2?
-            $table->text('pending_password')->nullable();
-            $table->string('pending_token', 40)->nullable()->unique();
             $table->timestamps();
+
+            $table->primary('validation_token');
         });
     }
 
@@ -41,7 +39,6 @@ class CreateUsersTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('users');
-        //TODO: Drop foreign keys in down-methods???
+        Schema::dropIfExists('pending_users');
     }
 }
