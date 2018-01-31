@@ -952,7 +952,7 @@ class CommentTests extends FeatureTestCase
             'tags' => $tag_ids
         ];
         $response = $this->json('POST', $requestPath, $inputData);
-        $response->assertStatus(InvalidValueException::HTTP_CODE)->assertJson(['code' => InvalidValueException::ERROR_CODE]);
+        $response->assertStatus(CannotResolveDependenciesException::HTTP_CODE)->assertJson(['code' => CannotResolveDependenciesException::ERROR_CODE]);
     }
 
     /** @test */
