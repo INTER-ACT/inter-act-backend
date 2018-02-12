@@ -32,7 +32,7 @@ class VerifyUser extends Mailable
      */
     public function build()
     {
-        return $this->from(config('mail.from.address'), config('mail.from.name'))#
+        return $this->from(config('mail.from.address'), config('mail.from.name'))
             ->to($this->pendingUser->email, $this->pendingUser->username)
             ->subject('Account Bestätigen')
             ->markdown('emails.verify_user')

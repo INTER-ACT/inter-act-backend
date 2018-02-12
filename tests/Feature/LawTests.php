@@ -16,9 +16,10 @@ use App\Exceptions\CustomExceptions\PayloadTooLargeException;
 use App\User;
 use Laravel\Passport\Passport;
 use Tests\ApiTestTrait;
+use Tests\FeatureTestCase;
 use Tests\TestCase;
 
-class LawTests extends TestCase
+class LawTests extends FeatureTestCase
 {
     use ApiTestTrait;
 
@@ -29,7 +30,7 @@ class LawTests extends TestCase
         Passport::actingAs(
             factory(User::class)->create(), ['*']
         );
-        $resourcePath = $this->baseURI . '/law_texts';
+        $resourcePath = $this->getUrl('/law_texts');
         $response = $this->get($resourcePath);
         $response->assertStatus(200)
             ->assertSee('NOR')
@@ -41,7 +42,7 @@ class LawTests extends TestCase
             ])
             ->assertJson([
                 'data' => [
-                    'href' => $this->baseURI . '/law_texts'
+                    'href' => $this->getUrl('/law_texts')
                 ]
             ]);
     }
@@ -54,7 +55,8 @@ class LawTests extends TestCase
         Passport::actingAs(
             factory(User::class)->create(), ['*']
         );
-        $resourcePath = $this->baseURI . '/law_texts?start=' . $page_number . '&count=' . $per_page;
+        $resourcePath = $this->getUrl('/law_texts?start=' . $page_number . '&count=' . $per_page);
+        var_dump($resourcePath);
         $response = $this->get($resourcePath);
         $response->assertStatus(200)
             ->assertSee('NOR')
@@ -79,7 +81,7 @@ class LawTests extends TestCase
         Passport::actingAs(
             factory(User::class)->create(), ['*']
         );
-        $resourcePath = $this->baseURI . '/law_texts?start=' . $page_number . '&count=' . $per_page;
+        $resourcePath = $this->getUrl('/law_texts?start=' . $page_number . '&count=' . $per_page);
         $response = $this->get($resourcePath);
         $response->assertStatus(InvalidPaginationException::HTTP_CODE)->assertJson(['code' => InvalidPaginationException::ERROR_CODE]);
     }
@@ -92,7 +94,7 @@ class LawTests extends TestCase
         Passport::actingAs(
             factory(User::class)->create(), ['*']
         );
-        $resourcePath = $this->baseURI . '/law_texts?start=' . $page_number . '&count=' . $per_page;
+        $resourcePath = $this->getUrl('/law_texts?start=' . $page_number . '&count=' . $per_page);
         $response = $this->get($resourcePath);
         $response->assertStatus(PayloadTooLargeException::HTTP_CODE)->assertJson(['code' => PayloadTooLargeException::ERROR_CODE]);
     }
@@ -105,7 +107,7 @@ class LawTests extends TestCase
         Passport::actingAs(
             factory(User::class)->create(), ['*']
         );
-        $resourcePath = $this->baseURI . '/law_texts?start=' . $page_number . '&count=' . $per_page;
+        $resourcePath = $this->getUrl('/law_texts?start=' . $page_number . '&count=' . $per_page);
         $response = $this->get($resourcePath);
         $response->assertStatus(InvalidPaginationException::HTTP_CODE)->assertJson(['code' => InvalidPaginationException::ERROR_CODE]);
     }
@@ -118,7 +120,7 @@ class LawTests extends TestCase
         Passport::actingAs(
             factory(User::class)->create(), ['*']
         );
-        $resourcePath = $this->baseURI . '/law_texts?start=' . $page_number . '&count=' . $per_page;
+        $resourcePath = $this->getUrl('/law_texts?start=' . $page_number . '&count=' . $per_page);
         $response = $this->get($resourcePath);
         $response->assertStatus(InvalidPaginationException::HTTP_CODE)->assertJson(['code' => InvalidPaginationException::ERROR_CODE]);
     }

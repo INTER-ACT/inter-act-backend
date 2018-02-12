@@ -12,6 +12,7 @@ namespace App\Domain\Manipulators;
 use App\Comments\Comment;
 use App\Domain\CommentRepository;
 use App\Domain\IlaiApi;
+use App\Domain\UserRepository;
 use App\Exceptions\CustomExceptions\ApiException;
 use App\Exceptions\CustomExceptions\InternalServerError;
 use App\Http\Resources\NoContentResource;
@@ -50,12 +51,13 @@ class CommentManipulator
     /**
      * @param int $id
      * @param array $data
+     * @param int $user_id
      * @return SuccessfulCreationResource
      * @throws InternalServerError
      */
-    public static function createComment(int $id, array $data) : SuccessfulCreationResource
+    public static function createComment(int $id, array $data, int $user_id) : SuccessfulCreationResource
     {
-        $user = \Auth::user();
+        $user = UserRepository::getByIdOrThrowError($user_id);
         $comment = CommentRepository::getCommentByIdOrThrowError($id);
         $sub_comment = new Comment();
         $sub_comment->fill($data);
@@ -64,6 +66,7 @@ class CommentManipulator
         if(!$comment->comments()->save($sub_comment))
             throw new InternalServerError("Could not create a comment with the given data.");
         $sub_comment->tags()->sync($data['tags']);
+        IlaiApi::sendTags($sub_comment->content, $sub_comment->tags->pluck('name')->all());
         return new SuccessfulCreationResource($sub_comment);
     }
 
@@ -104,15 +107,5 @@ class CommentManipulator
         $comment = CommentRepository::getCommentByIdOrThrowError($id);
         $comment->rating_users()->detach([$user_id]);
         return new NoContentResource();
-    }
-
-    /**
-     * @param int $id
-     * @param int $tag_id
-     */
-    public static function addTag(int $id, int $tag_id) //TODO: remove addTag() if unnecessary or update params in docs
-    {
-        $comment = CommentRepository::getCommentByIdOrThrowError($id);
-        $comment->tags()->attach($tag_id);
     }
 }

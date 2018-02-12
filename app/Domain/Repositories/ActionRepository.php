@@ -40,7 +40,7 @@ use DB;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
-class ActionRepository implements IRestRepository   //TODO: Exceptions missing?
+class ActionRepository implements IRestRepository
 {
     use CustomPaginationTrait;
 
@@ -58,9 +58,9 @@ class ActionRepository implements IRestRepository   //TODO: Exceptions missing?
     /**
      * @return string
      */
-    public function getRestResourcePath()   //TODO: IRestRepository is useless here
+    public function getRestResourcePath()
     {
-        return "/search";
+        return "/";
     }
 
     /**
@@ -68,7 +68,7 @@ class ActionRepository implements IRestRepository   //TODO: Exceptions missing?
      */
     public function getRestResourceName()
     {
-        return "search";
+        return "Statistics";
     }
 
     /**

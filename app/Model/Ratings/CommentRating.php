@@ -8,8 +8,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class CommentRating extends RestModel
 {
-    //protected $primaryKey = ['user_id', 'comment_id'];    //TODO: update to composite primary key? (causes problems in collections)
-
     protected $table = "comment_ratings";
 
     protected $fillable = ['rating_score'];

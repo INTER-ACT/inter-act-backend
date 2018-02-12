@@ -25,7 +25,7 @@ class DiscussionResource extends ApiResource
             'id' => $this->id,
             'title' => $this->title,
             'created_at' => $this->created_at->toAtomString(),   //Format: 1975-12-25T14:15:16-05:00
-            'updated_at' => $this->updated_at->toAtomString(),   //TODO: change time format as described in the detailed api doc
+            'updated_at' => $this->updated_at->toAtomString(),
             'law_text' => $this->law_text,
             'law_explanation' => $this->law_explanation,
 

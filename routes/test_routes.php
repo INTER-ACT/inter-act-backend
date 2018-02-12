@@ -183,10 +183,6 @@ Route::get('/search', function(\Illuminate\Http\Request $request){
     $search_term = $request->search_term;
     if($search_term == null)
         throw new ApiException(ApiExceptionMeta::getRequestInvalidValue(), 'Parameter search_term not provided.');
-    $type = $request->type;
-    $post_type = $request->post_type;
-    $pag_start = $request->start;
-    $pag_count = $request->count;
     $discussions = Discussion::where('title', 'LIKE', '%' . $search_term . '%')
         ->orWhere('law_text', 'LIKE', '%' . $search_term . '%')
         ->orWhere('law_explanation', 'LIKE', '%' . $search_term . '%')->get();
@@ -195,9 +191,8 @@ Route::get('/search', function(\Illuminate\Http\Request $request){
     $sub_amendments = SubAmendment::where('updated_text', 'LIKE', '%' . $search_term . '%')
         ->orWhere('explanation', 'LIKE', '%' . $search_term . '%')->get();
     $comments = Comment::where('content', 'LIKE', '%' . $search_term . '%')->get();
-    //return get_class($discussions);
-    $data = new SearchResourceData($discussions, $amendments, $sub_amendments, $comments);
-    return new SearchResource($data);
+    $total = $discussions->merge($amendments->merge($sub_amendments->merge($comments)));
+    return new SearchResource($total);
 });
 //endregion
 

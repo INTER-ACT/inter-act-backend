@@ -24,15 +24,25 @@ class SearchResource extends ApiCollectionResource
     {
         $thisURI = url($request->getRequestUri());
 
+        return $this->getResponseArray($thisURI);
+    }
+
+    public function toArrayCustomUrl(string $url)
+    {
+        return $this->getResponseArray($url);
+    }
+
+    protected function getResponseArray(string $fullUrl)
+    {
         return [
-            'href' => $thisURI,
+            'href' => $fullUrl,
             'search_results' => $this->collection->transform(function(IRestResource $item){
                 return [
                     'href' => $this->getUrl($item->getResourcePath()),
                     'id' => $item->getId(),
                     'type' => $item->getApiFriendlyType()
                 ];
-            })
+            })->toArray()
         ];
     }
 }

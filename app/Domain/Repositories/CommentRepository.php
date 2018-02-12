@@ -20,9 +20,8 @@ use App\Http\Resources\RatingResources\CommentRatingResource;
 use App\Tags\Tag;
 use Mockery\Exception;
 
-class CommentRepository implements IRestRepository   //TODO: Exceptions missing?
+class CommentRepository implements IRestRepository
 {
-    //TODO: according to functional specification: sortable by popularity
     use CustomPaginationTrait;
     use RepositoryFilterTrait;
 

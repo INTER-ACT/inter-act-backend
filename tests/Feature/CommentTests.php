@@ -901,7 +901,6 @@ class CommentTests extends FeatureTestCase
         );
         $discussion = ModelFactory::CreateDiscussion(ModelFactory::CreateUser(Role::getAdmin()));
         $parent_comment = ModelFactory::CreateComment(\Auth::user(), $discussion);
-
         $requestPath = $this->getUrl($parent_comment->getResourcePath() . '/comments');
         $inputData = [
             'content' => $content,
@@ -984,7 +983,8 @@ class CommentTests extends FeatureTestCase
         Passport::actingAs(
             ModelFactory::CreateUser(Role::getAdmin()), ['*']
         );
-        $text = "Was das Internet in der Schule betrifft, kann ich nur zustimmen!";
+        //$text = "Was das Internet in der Schule betrifft, kann ich nur zustimmen!";
+        $text = "Internet Google Netz und was sonst so das Herz begehrt.";
         $request_path = $this->getUrl('/tag_recommendations');
         $response = $this->json('POST', $request_path, ['text' => $text]);
         $response->assertStatus(200);

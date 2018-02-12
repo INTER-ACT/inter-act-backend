@@ -242,5 +242,6 @@ return [
     |
     */
     'ilai_token' => env('ILAI_TOKEN', 'abcdef'),
+    'ilai_path' => env('ILAI_PATH', 'http://inter-act-ilai.net:8000'),
     'home_url' => env('HOME', 'www.inter-act.at')
 ];

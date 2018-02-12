@@ -75,7 +75,7 @@ class UserManipulator
             $user->pending_password = Hash::make($data['pending_password']);
         }
         if(!$user->save())
-            throw new InternalServerError("The User $id couldn't be updated.");
+            throw new InternalServerError("The User $id could not be updated.");
         Mail::send(new VerifyPasswordUpdate($user));
     }
 
@@ -90,7 +90,7 @@ class UserManipulator
         $user->pending_password = null;
         $user->pending_token = null;
         if(!$user->save())
-            throw new InternalServerError("The User $id couldn't be updated.");
+            throw new InternalServerError("Could not update the password");
         return $user;
     }
 

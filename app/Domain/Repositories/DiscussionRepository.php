@@ -24,7 +24,7 @@ use App\Http\Resources\MultiAspectRatingResource;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Contracts\Pagination\Paginator as IPaginator;
 
-class DiscussionRepository implements IRestRepository   //TODO: Exceptions missing?
+class DiscussionRepository implements IRestRepository
 {
     use CustomPaginationTrait;
 
@@ -125,15 +125,6 @@ class DiscussionRepository implements IRestRepository   //TODO: Exceptions missi
         $comments = $discussion->comments()->orderBy('created_at', 'desc');
         $comments = $this->updatePagination($comments->paginate($pageRequest->perPage, ['*'], 'start', $pageRequest->pageNumber));
         return new CommentCollection($comments);
-    }
-
-    /**
-     * @param int $id
-     * @return DiscussionStatisticsResource
-     */
-    public function getStatistics(int $id) : DiscussionStatisticsResource   //TODO: delete if not needed (now an action in ActionRepository?)
-    {
-        return new DiscussionStatisticsResource(['not implemented!']);
     }
 
     /**

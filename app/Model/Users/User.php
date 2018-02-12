@@ -116,24 +116,17 @@ class User extends AuthRestModel
         return $this->role->hasPermission($permission);
     }
 
-    //TODO: change in documentation (was planned as scope)
-    public static function ofRole(Role $role)
+    /*public static function ofRole(Role $role)
     {
         return User::with('role')->where('role.role_name', '=', $role->name)->get();
     }
 
-    //TODO: change in documentation (was planned as scope)
     public static function withPermission(string $permission)  //TODO: enum instead of string
     {
         return User::with(['role.permissions' => function($query) use ($permission){
             $query->where('name', $permission);
         }]);
-
-        /*$users = User::with('role.permissions')->get();
-        $users->filter(function($user){
-           return $user->role()->permissions()->contains('name', '$permission');
-        });*/
-    }
+    }*/
 
     /**
      * @return string

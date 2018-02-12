@@ -68,9 +68,9 @@ Route::get('/discussions/{discussion_id}/comments', 'DiscussionController@listCo
 
 Route::post('/discussions/{discussion_id}/comments', 'DiscussionController@createComment')->middleware('auth:api');
 
-Route::get('/law_texts', 'DiscussionController@listLawTexts');//->middleware('auth:api');
+Route::get('/law_texts', 'DiscussionController@listLawTexts')->middleware('auth:api');
 
-Route::get('/law_texts/{id}', 'DiscussionController@showLawText');//->middleware('auth:api');
+Route::get('/law_texts/{id}', 'DiscussionController@showLawText')->middleware('auth:api');
 //endregion
 
 //region amendments

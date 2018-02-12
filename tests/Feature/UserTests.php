@@ -7,6 +7,7 @@ use App\Amendments\SubAmendment;
 use App\Comments\Comment;
 use App\Discussions\Discussion;
 use App\Domain\Manipulators\UserManipulator;
+use App\Exceptions\CustomExceptions\InvalidValueException;
 use App\Exceptions\CustomExceptions\NotFoundException;
 use App\Exceptions\CustomExceptions\ResourceNotFoundException;
 use App\Http\Resources\UserResources\ShortUserResource;
@@ -231,6 +232,35 @@ class UserTests extends FeatureTestCase
         ]);
 
         $response->assertStatus(204);
+    }
+
+    public function testUpdatingUserWithInvalidOldPassword()
+    {
+        $firstPassword = '123!xyzz';
+        $user = factory(User::class)->create([
+            'password' => Hash::make($firstPassword)
+        ]);
+
+        $newMail = 'leazedev@gmail.com';
+        $newPassword = 'abcc123!';
+        $newLastName = 'Santana';
+        $newResidence = 'Wien';
+        $newJob = 'Dunno';
+        $newHighestEducation = 'Forschungszentrum für Bildungsbekämpfung, Krems';
+
+        Passport::actingAs($user);
+
+        $response = $this->patch($user->getResourcePath(), [
+            'email' => $newMail,
+            'password' => $newPassword,
+            'old_password' => 'notfirstpassword',
+            'last_name' => $newLastName,
+            'residence' => $newResidence,
+            'job' => $newJob,
+            'highest_education' => $newHighestEducation
+        ]);
+
+        $response->assertStatus(InvalidValueException::HTTP_CODE)->assertJson(['code' => InvalidValueException::ERROR_CODE]);
     }
 
     /**

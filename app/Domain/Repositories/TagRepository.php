@@ -9,11 +9,14 @@
 namespace App\Domain;
 
 
+use App\Exceptions\CustomExceptions\InvalidValueException;
+use App\Exceptions\CustomExceptions\NotPermittedException;
+use App\Exceptions\CustomExceptions\ResourceNotFoundException;
 use App\Http\Resources\PostResources\TagCollection;
 use App\Http\Resources\PostResources\TagResource;
 use App\Tags\Tag;
 
-class TagRepository implements IRestRepository   //TODO: Exceptions missing?
+class TagRepository implements IRestRepository
 {
     use CustomPaginationTrait;
 
@@ -56,5 +59,37 @@ class TagRepository implements IRestRepository   //TODO: Exceptions missing?
     public function getById(int $id) : TagResource
     {
         return new TagResource(Tag::find($id));
+    }
+
+    /**
+     * @param int $id
+     * @return Tag
+     * @throws InvalidValueException
+     * @throws ResourceNotFoundException
+     */
+    public static function getByIdOrThrowError(int $id) : Tag
+    {
+        if(!isset($id) or !is_numeric($id))
+            throw new InvalidValueException("The given id was invalid.");
+        $id = (int)$id;
+        /** @var Tag $tag */
+        $tag = Tag::find($id);
+        if($tag === null)
+            throw new ResourceNotFoundException('Tag with id ' . $id . ' not found.');
+        return $tag;
+    }
+
+    /**
+     * @param string $name
+     * @return Tag
+     * @throws ResourceNotFoundException
+     */
+    public static function getByName(string $name) : Tag
+    {
+        /** @var Tag $tag */
+        $tag = Tag::where('name', '=', $name)->first();
+        if($tag === null)
+            throw new ResourceNotFoundException('Tag with name ' . $name . ' not found.');
+        return $tag;
     }
 }

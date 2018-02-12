@@ -37,16 +37,6 @@ class Discussion extends RestModel implements ITaggable, ICommentable, IHasActiv
     }
 
     //region Getters and Setters
-    /*public function getCreatedAtAttribute($date)
-    {
-        return Carbon::parse($date);
-    }
-
-    public function getUpdatedAtAttribute($date)
-    {
-        return Carbon::parse($date);
-    }*/ //TODO: Carbon or string returned for dates?
-
     /**
      * @return int
      */

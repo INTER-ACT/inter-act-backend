@@ -34,7 +34,6 @@ class DiscussionManipulator
     {
         $discussion = new Discussion();
         $discussion->fill($data);
-        //Log::info(var_dump($data));
         $discussion->user_id = $user->id;
         if(!$discussion->save())
             throw new InternalServerError("Could not create a Discussion with the given data.");
@@ -53,7 +52,7 @@ class DiscussionManipulator
         if(!$discussion->update($data))
             throw new ApiException(ApiExceptionMeta::getAInternalServerError(), 'Discussion with id ' . $id . ' could not be updated.');
         $tag_ids = $data['tags'];
-        if(isset($tag_ids)) //TODO: test if this works
+        if(isset($tag_ids))
             $discussion->tags()->sync($tag_ids);
     }
 

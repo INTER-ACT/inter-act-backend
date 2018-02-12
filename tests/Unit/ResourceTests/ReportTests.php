@@ -33,7 +33,6 @@ class ReportTests extends TestCase
         $response->assertJson([
             'href' => $resourcePath,
             'id' => $report->id,
-
             'user' => [
                 'href' => $this->getUrl($report->user->getResourcePath()),
                 'id' => $report->user->id

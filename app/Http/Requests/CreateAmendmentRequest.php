@@ -17,7 +17,6 @@ class CreateAmendmentRequest extends ApiRequest
      */
     public function authorize()
     {
-        return true;    //TODO: change to below? (guest is no user at all usually)
         return $this->user()->can('create', Amendment::class);
     }
 

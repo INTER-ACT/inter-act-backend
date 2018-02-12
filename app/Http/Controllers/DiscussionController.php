@@ -94,7 +94,7 @@ class DiscussionController extends Controller
     public function update(UpdateDiscussionRequest $request, int $id) : NoContentResource
     {
         DiscussionManipulator::update($id, $request->all());
-        return new NoContentResource($request);
+        return new NoContentResource();
     }
 
     /**
@@ -105,7 +105,7 @@ class DiscussionController extends Controller
     public function destroy(DeleteDiscussionRequest $request, int $id) : NoContentResource
     {
         DiscussionManipulator::delete($id);
-        return new NoContentResource($request);
+        return new NoContentResource();
     }
 
     /**
@@ -113,7 +113,7 @@ class DiscussionController extends Controller
      * @param int $id
      * @return MultiAspectRatingResource
      */
-    public function getRating(Request $request, int $id) : MultiAspectRatingResource //TODO: care that id is passed or just leave InternalServerError?
+    public function getRating(Request $request, int $id) : MultiAspectRatingResource
     {
         return $this->repository->getRating($id);
     }
@@ -143,7 +143,7 @@ class DiscussionController extends Controller
      * @param CreateAmendmentRequest $request
      * @return SuccessfulCreationResource
      */
-    public function createAmendment(CreateAmendmentRequest $request, int $id) : SuccessfulCreationResource    //TODO: change to CreateAmendmentRequest
+    public function createAmendment(CreateAmendmentRequest $request, int $id) : SuccessfulCreationResource
     {
         return DiscussionManipulator::createAmendment($id, $request->all(), \Auth::id());
     }
@@ -165,18 +165,9 @@ class DiscussionController extends Controller
      * @param CreateCommentRequest $request
      * @return SuccessfulCreationResource
      */
-    public function createComment(CreateCommentRequest $request, int $id) : SuccessfulCreationResource    //TODO: change to CreateCommentRequest
+    public function createComment(CreateCommentRequest $request, int $id) : SuccessfulCreationResource
     {
         return DiscussionManipulator::createComment($id, $request->all(), \Auth::id());
-    }
-
-    /**
-     * @param int $id
-     * @return DiscussionStatisticsResource
-     */
-    public function showStatistics(int $id) : DiscussionStatisticsResource  //TODO: remove if not needed
-    {
-        return $this->repository->getStatistics($id);
     }
 
     /**

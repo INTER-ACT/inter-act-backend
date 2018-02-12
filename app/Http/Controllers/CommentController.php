@@ -46,17 +46,6 @@ class CommentController extends Controller
 
     /**
      * @param Request $request
-     * @return SuccessfulCreationResource
-     * @throws \Exception
-     */
-    public function store(Request $request) : SuccessfulCreationResource   //TODO: implement or remove CommentController->store()
-    {
-        throw new \Exception("function store not implemented in CommentController.");
-        //CommentManipulator::create($request);
-    }
-
-    /**
-     * @param Request $request
      * @param int $id
      * @return CommentResource
      * @throws InvalidValueException
@@ -109,7 +98,7 @@ class CommentController extends Controller
      */
     public function createComment(CreateCommentRequest $request, int $id) : SuccessfulCreationResource
     {
-        return CommentManipulator::createComment($id, $request->all());
+        return CommentManipulator::createComment($id, $request->all(), Auth::id());
     }
 
     /*public function showRating(Request $request, int $id)
@@ -117,7 +106,6 @@ class CommentController extends Controller
         return $this->repository->getRating($id, 1)->toArray($request, User::find(1));
     }*/
 
-    //TODO: change UpdateMARatingRequest to UpdateCommentRatingRequest in docs
     /**
      * @param UpdateCommentRatingRequest $request
      * @param int $id
@@ -138,11 +126,6 @@ class CommentController extends Controller
     public function listReports(int $id) : ReportCollection
     {
         return $this->repository->getReports($id);
-    }
-
-    public function createReport(int $id, CreateReportRequest $request)
-    {
-        CommentManipulator::createReport($id, $request->all(), Auth::id()); //TODO: implement
     }
 
     /**

@@ -14,10 +14,11 @@ use DOMXPath;
 use GuzzleHttp\Client;
 use SimpleXMLElement;
 
-class OgdRisApiBridge   //TODO: add timeout for response
+class OgdRisApiBridge
 {
     public const NORM_FETCH_PATH = 'https://data.bka.gv.at/ris/api/v2.5/bundesnormen';
     public const DOC_FETCH_PATH = 'https://www.ris.bka.gv.at/Dokumente/Bundesnormen';
+    private const OPTIONS_ARRAY = ['timeout' => 60, 'connect_timeout' => 10];
 
     public static function getAllTexts(PageRequest $pageRequest) : array
     {
@@ -28,7 +29,7 @@ class OgdRisApiBridge   //TODO: add timeout for response
         $totalFetched = 0;
         do {
             $pageNumber++;
-            $res = $client->get(self::NORM_FETCH_PATH . '?Gesetzesnummer=10001848&DokumenteProSeite=OneHundred&Seitennummer=' . $pageNumber);
+            $res = $client->get(self::NORM_FETCH_PATH . '?Gesetzesnummer=10001848&DokumenteProSeite=OneHundred&Seitennummer=' . $pageNumber, self::OPTIONS_ARRAY);
             $responseData = \GuzzleHttp\json_decode($res->getBody(), true);
             $hits = $responseData["OgdSearchResult"]["OgdDocumentResults"]["Hits"];
             $pageNumber = (int)$hits["@pageNumber"];
@@ -52,7 +53,7 @@ class OgdRisApiBridge   //TODO: add timeout for response
         $header = self::getTitleById($id);
         $client = new Client();
         $fetch_path = self::DOC_FETCH_PATH. '/' . $id . '/' . $id . '.html';
-        $res = $client->get($fetch_path);
+        $res = $client->get($fetch_path, self::OPTIONS_ARRAY);
         $content = $res->getBody()->getContents();
         /*$d = new DOMDocument;
         $mock = new DOMDocument;
@@ -77,7 +78,7 @@ class OgdRisApiBridge   //TODO: add timeout for response
         $header = self::getTitleById($id);
         $client = new Client();
         $fetch_path = self::DOC_FETCH_PATH. '/' . $id . '/' . $id . '.html';
-        $res = $client->get($fetch_path);
+        $res = $client->get($fetch_path, self::OPTIONS_ARRAY);
         $content = $res->getBody()->getContents();
         $d = new DOMDocument;
         $mock = new DOMDocument;
@@ -102,7 +103,7 @@ class OgdRisApiBridge   //TODO: add timeout for response
     {
         $client = new Client();
         $fetch_path = self::DOC_FETCH_PATH. '/' . $id . '/' . $id . '.xml';
-        $res = $client->get($fetch_path);
+        $res = $client->get($fetch_path, self::OPTIONS_ARRAY);
         $xmlString = $res->getBody()->getContents();
         $doc = new SimpleXMLElement($xmlString);
         $doc->registerXPathNamespace('a', 'http://www.bka.gv.at');

@@ -204,25 +204,6 @@ class Comment extends RestModel implements IReportable, ICommentable, IHasActivi
     {
         return $this->ratings()->where('rating_score', '<=', -1)->count();
     }
-
-    //returns the sum of all rating_scores related to this comment
-//    public function rating_sum()
-//    {//TODO update left join?
-//        $rating_sum = DB::selectOne('select sum(cr.rating_score) as rating_sum from users
-//                                left join comment_ratings cr on users.id = cr.user_id
-//                                WHERE cr.comment_id = :comment_id
-//                                GROUP BY cr.comment_id;', ['comment_id' => $this->id]);
-//        return ($rating_sum === null) ? 0 : (int)$rating_sum->rating_sum;
-//
-//        /*return $this->belongsToMany(User::class, 'comment_ratings', 'user_id', 'comment_id')
-//            ->selectRaw('sum(comment_ratings.rating_score) as rating_sum, count(comment_ratings.user_id) as rating_count')
-//            ->groupBy('pivot_comment_id');*/
-//    }
-//
-//    public function getRatingSumAttribute()
-//    {
-//        return $this->rating_sum();
-//    }
     //endregion
 
     public function scopeBetweenDates(Builder $query, Carbon $start_date, Carbon $end_date)

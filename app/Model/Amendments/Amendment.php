@@ -167,7 +167,7 @@ class Amendment extends RestModel implements ITaggable, IReportable, IRatable, I
 
     public function sub_amendments()
     {
-        return $this->hasMany(SubAmendment::class); //TODO: make sortable by status
+        return $this->hasMany(SubAmendment::class);
     }
 
     public function changes()
@@ -220,24 +220,6 @@ class Amendment extends RestModel implements ITaggable, IReportable, IRatable, I
     {
         return $this->ratings()->where('user_id', '=', \Auth::id())->first();
     }
-
-    /*public function ratable_rating_aspects()
-    {
-        return $this->morphMany(RatableRatingAspect::class, 'ratable');
-    }
-
-    public function rating_aspects()
-    {
-        return $this->morphToMany(RatingAspect::class, 'ratable', 'ratable_rating_aspects', 'rating_aspect_id', 'ratable_id');
-    }//TODO: not sure if it works if keys of pivot are not pk*/
-
-    /*public function ratings()
-    {
-        $this->loadMissing('ratable_rating_aspects:id');
-        return $this->ratable_rating_aspects()->get()->transform(function($item){
-            return $item->rating_sum;
-        });
-    }*/
 
     public function reports()
     {

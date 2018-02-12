@@ -2,7 +2,6 @@
 
 namespace Tests\Unit\ResourceTests;
 
-
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Foundation\Testing\WithoutMiddleware;
 
