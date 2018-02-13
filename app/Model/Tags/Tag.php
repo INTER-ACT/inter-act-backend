@@ -33,12 +33,6 @@ class Tag extends RestModel implements IHasActivity
 
     protected $hidden = ['pivot'];
 
-    protected static function boot()
-    {
-        parent::boot();//TODO: This has to be executed before first request with tags!
-        self::createBaseTags();
-    }
-
     //region constant_entries
 
     /**
@@ -249,7 +243,7 @@ class Tag extends RestModel implements IHasActivity
     /**
      * return @void
      */
-    private static function createBaseTags() : void
+    private static function createBaseTags() : void     //UNUSED
     {
         Tag::firstOrCreate(['name' => Tag::NUTZUNG_FREMDER_INHALTE_NAME, 'description' => 'Alles rund um die Nutzung fremder Inhalte']);
         Tag::firstOrCreate(['name' => Tag::SOZIALE_MEDIEN_NAME, 'description' => 'Alles rund um Soziale Medien']);

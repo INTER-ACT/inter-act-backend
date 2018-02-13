@@ -13,6 +13,8 @@ use App\Domain\PageRequest;
 use App\Exceptions\CustomExceptions\InvalidPaginationException;
 use App\Exceptions\CustomExceptions\InvalidValueException;
 use App\Exceptions\CustomExceptions\PayloadTooLargeException;
+use App\Model\ModelFactory;
+use App\Role;
 use App\User;
 use Laravel\Passport\Passport;
 use Tests\ApiTestTrait;
@@ -28,7 +30,7 @@ class LawTests extends FeatureTestCase
     public function LawTextsResponseNoParameters()
     {
         Passport::actingAs(
-            factory(User::class)->create(), ['*']
+            ModelFactory::CreateUser(Role::getAdmin()), ['*']
         );
         $resourcePath = $this->getUrl('/law_texts');
         $response = $this->get($resourcePath);
@@ -53,10 +55,9 @@ class LawTests extends FeatureTestCase
         $page_number = 1;
         $per_page = PageRequest::MAX_PER_PAGE;
         Passport::actingAs(
-            factory(User::class)->create(), ['*']
+            ModelFactory::CreateUser(Role::getAdmin()), ['*']
         );
         $resourcePath = $this->getUrl('/law_texts?start=' . $page_number . '&count=' . $per_page);
-        var_dump($resourcePath);
         $response = $this->get($resourcePath);
         $response->assertStatus(200)
             ->assertSee('NOR')

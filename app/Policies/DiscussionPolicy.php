@@ -49,7 +49,7 @@ class DiscussionPolicy
      */
     public function update(User $user, Discussion $discussion)
     {
-        return $user->hasPermission(Permission::getCreateExpertExplanations());   //TODO: test if expert can update discussions (or @ least the explanation)
+        return $user->hasPermission(Permission::getCreateExpertExplanations());
     }
 
     /**

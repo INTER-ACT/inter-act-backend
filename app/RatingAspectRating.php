@@ -3,6 +3,7 @@
 namespace App;
 
 use App\Amendments\RatableRatingAspect;
+use App\Model\IRestResource;
 use Illuminate\Database\Eloquent\Model;
 
 class RatingAspectRating extends Model implements IRestResource
@@ -16,13 +17,13 @@ class RatingAspectRating extends Model implements IRestResource
      */
     function getIdProperty()
     {
-        return 0; //TODO: remove or implement
+        return 0;
     }
 
     /**
      * @return string
      */
-    function getType()
+    function getType() : string
     {
         return get_class($this);
     }
@@ -30,7 +31,7 @@ class RatingAspectRating extends Model implements IRestResource
     /**
      * @return string
      */
-    function getResourcePath()
+    function getResourcePath() : string
     {
         return '-';
         /*$rra = ($this->ratable_rating_aspect() === null) ? RatableRatingAspect::find($this->ratable_rating_aspect_id)->first(['id', 'discussion_id']) : $this->amendment;
@@ -48,5 +49,29 @@ class RatingAspectRating extends Model implements IRestResource
     function ratable_rating_aspect()
     {
         return $this->belongsTo(RatableRatingAspect::class, 'ratable_rating_aspect_id');
+    }
+
+    /**
+     * @return int
+     */
+    function getId(): int
+    {
+        return 0;
+    }
+
+    /**
+     * @return string
+     */
+    function getApiFriendlyType(): string
+    {
+        return 'Multi-Aspect-Rating';
+    }
+
+    /**
+     * @return string
+     */
+    function getApiFriendlyTypeGer(): string
+    {
+        return 'Multi-Aspect-Bewertung';
     }
 }

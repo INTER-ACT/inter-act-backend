@@ -440,7 +440,7 @@ class CommentTests extends FeatureTestCase
     /** @test */
     public function testPatchCommentWithValidValuesAndAuthenticated()
     {
-        Tag::getWirtschaftlicheInteressen();//TODO: create tags at startup
+        Tag::getWirtschaftlicheInteressen();
         $new_tag_ids = [1, 3];
 
         Passport::actingAs(

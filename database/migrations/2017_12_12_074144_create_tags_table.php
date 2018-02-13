@@ -17,14 +17,14 @@ class CreateTagsTable extends Migration
             $table->increments('id');
             $table->string('name', 64)->unique('name_unique');
             $table->text('description');
-            $table->timestamps();   //TODO: remove?
+            $table->timestamps();
         });
 
         Schema::create('taggables', function (Blueprint $table) {
             $table->morphs('taggable');
             $table->integer('tag_id')->unsigned();
 
-            $table->foreign('tag_id')->references('id')->on('tags');
+            $table->foreign('tag_id')->references('id')->on('tags')->onDelete('cascade');
             $table->primary(['tag_id', 'taggable_id', 'taggable_type']);
         });
     }

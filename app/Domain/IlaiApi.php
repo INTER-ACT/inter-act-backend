@@ -92,7 +92,6 @@ class IlaiApi
     {
         $client = new Client();
         $token = config('app.ilai_token');
-        var_dump(json_encode($inputData));
         $request = new Request($method, $url, ['content-type' => 'application/json', 'Authorization' => 'Token ' . $token], json_encode($inputData));
         return $client->send($request, ['timeout' => 15, 'connect_timeout' => 5]);
     }

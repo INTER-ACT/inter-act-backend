@@ -593,6 +593,32 @@ class DiscussionTests extends FeatureTestCase
     }
 
     /** @test */
+    public function testPatchDiscussionWithValidValuesAsExpert()
+    {
+        $new_tag_ids = [Tag::getWirtschaftlicheInteressen()->id, Tag::getUserGeneratedContent()->id];
+        $new_law_explanation = "new explanation";
+
+        Passport::actingAs(
+            ModelFactory::CreateUser(Role::getExpert()), ['*']
+        );
+        $discussion = ModelFactory::CreateDiscussion(\Auth::user(), null, []);
+        $requestPath = $this->getUrl('/discussions/' . $discussion->id);
+        $inputData = [
+            'law_explanation' => $new_law_explanation,
+            'tags' => $new_tag_ids
+        ];
+        $response = $this->json('PATCH', $requestPath, $inputData);
+        $response->assertStatus(204);
+        $getData = $this->json('GET', $requestPath);
+        $getData->assertJson([
+            'law_explanation' => $new_law_explanation,
+            'tags' => array_map(function($item){
+                return TagCollection::getSubResourceItemArray(Tag::find($item));
+            }, $new_tag_ids)
+        ]);
+    }
+
+    /** @test */
     public function testPatchDiscussionWithInvalidValuesAndAuthenticated()
     {
         Tag::getWirtschaftlicheInteressen();

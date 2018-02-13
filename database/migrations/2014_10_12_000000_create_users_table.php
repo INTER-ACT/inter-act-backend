@@ -15,7 +15,7 @@ class CreateUsersTable extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->increments('id');
-            $table->integer('role_id')->unsigned();//TODO: set not nullable if not default
+            $table->integer('role_id')->unsigned();
             $table->string('username', 64)->unique();
             $table->string('email', 254)->unique();
             $table->text('password');
@@ -27,7 +27,7 @@ class CreateUsersTable extends Migration
             $table->string('job', 254);
             $table->string('graduation', 254);
             $table->integer('year_of_birth')->unsigned();
-            $table->rememberToken();    //TODO: is this needed with OAuth2?
+            $table->rememberToken();
             $table->text('pending_password')->nullable();
             $table->string('pending_token', 40)->nullable()->unique();
             $table->timestamps();
@@ -42,6 +42,5 @@ class CreateUsersTable extends Migration
     public function down()
     {
         Schema::dropIfExists('users');
-        //TODO: Drop foreign keys in down-methods???
     }
 }

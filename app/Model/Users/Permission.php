@@ -8,7 +8,7 @@ class Permission extends RestModel
 {
     //region constants
     const READ_NAME = 'read';
-    const CREATE_ARTICLES_NAME = 'create_articles';  //TODO: imo it should be called posts instead of articles, but would have to be changed in documentation
+    const CREATE_ARTICLES_NAME = 'create_articles';
     const CREATE_DISCUSSIONS_NAME = 'create_discussions';
     const ANALYZE_NAME = 'analyze';
     const CREATE_EXPERT_EXPLANATIONS_NAME = 'create_expert_explanations';
