@@ -17,7 +17,7 @@ use App\Exceptions\CustomExceptions\PayloadTooLargeException;
 class PageRequest
 {
     public const MAX_PER_PAGE = 100;
-    public const DEFAULT_PER_PAGE = 20;
+    public const DEFAULT_PER_PAGE = 100;
     public const DEFAULT_PAGE_NUMBER = 1;
 
     /** @var int */

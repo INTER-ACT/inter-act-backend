@@ -911,7 +911,7 @@ class ActionTests extends FeatureTestCase
     /** @test */
     public function testRelevantDiscussionsValid()
     {
-        Passport::actingAs(ModelFactory::CreateUser(Role::getAdmin()), ['*']);
+        Passport::actingAs(ModelFactory::CreateUser(Role::getStandardUser()), ['*']);
         $requestPath = $this->getUrl('/users/' . \Auth::id() . '/relevant');
         $response = $this->get($requestPath);
         $response->assertStatus(200);
