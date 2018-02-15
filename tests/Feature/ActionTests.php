@@ -29,6 +29,7 @@ use Tests\FeatureTestCase;
 
 class ActionTests extends FeatureTestCase
 {
+    //TODO: test begin and end for other statistics but generalActivity
     //region get /search
     /** @test */
     public function testSearchValidSearchTermOnly()
@@ -859,7 +860,7 @@ class ActionTests extends FeatureTestCase
         $request_path = $this->getUrl('/statistics/user_activity');
         $response = $this->get($request_path);
         $response->assertStatus(200);
-    }
+    }   //TODO: test user_id
 
     /** @test */
     public function testUserActivityNotAuthenticated()

@@ -55,11 +55,13 @@ class OgdRisApiBridge
         $fetch_path = self::DOC_FETCH_PATH. '/' . $id . '/' . $id . '.html';
         $res = $client->get($fetch_path, self::OPTIONS_ARRAY);
         $content = $res->getBody()->getContents();
-        /*$d = new DOMDocument;
+        $d = new DOMDocument;
         $mock = new DOMDocument;
         $d->loadHTML($content);
         $body = $d->getElementsByTagName('body')->item(0);
-        foreach ($body->childNodes as $child){
+        $mock->appendChild($mock->importNode($body, true));
+        $content = $mock->saveHTML();
+        /*foreach ($body->childNodes as $child){
             $mock->appendChild($mock->importNode($child, true));
         }
         $domx = new DOMXPath($mock);
@@ -73,7 +75,11 @@ class OgdRisApiBridge
         return new LawInformation($id, '/law_texts/' . $id, $header, $content);
     }
 
-    public static function test(string $id) : string
+    /**
+     * @param string $id
+     * @return string
+     */
+    public static function test(string $id) : string    //TODO remove?
     {
         $header = self::getTitleById($id);
         $client = new Client();
