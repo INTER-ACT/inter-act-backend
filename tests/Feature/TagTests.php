@@ -9,6 +9,7 @@
 namespace Tests\Feature;
 
 
+use App\Exceptions\CustomExceptions\ResourceNotFoundException;
 use App\Model\ModelFactory;
 use App\Role;
 use Laravel\Passport\Passport;
@@ -16,6 +17,7 @@ use Tests\FeatureTestCase;
 
 class TagTests extends FeatureTestCase
 {
+    //region get /tags
     /** @test */
     public function testTagsRouteResponse()
     {
@@ -38,7 +40,9 @@ class TagTests extends FeatureTestCase
         $tags = json_decode($response->getContent(), true)['tags'];
         self::assertEquals(sizeof($tags), 10);
     }
+    //endregion
 
+    //region /tags/{id}
     /** @test */
     public function testOneTagRouteResponse()
     {
@@ -50,4 +54,14 @@ class TagTests extends FeatureTestCase
             $response->assertStatus(200)->assertJsonStructure(['id', 'href', 'name', 'description']);
         }
     }
+
+    /** @test */
+    public function testOneNonexistentTagRouteResponse()
+    {
+        $resourcePath = url('/tags/' . 101);
+        $requestPath = $resourcePath;
+        $response = $this->get($requestPath);
+        $response->assertStatus(ResourceNotFoundException::HTTP_CODE)->assertJson(['code' => ResourceNotFoundException::ERROR_CODE]);
+    }
+    //endregion
 }

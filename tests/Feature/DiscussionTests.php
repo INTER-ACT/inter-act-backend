@@ -433,37 +433,12 @@ class DiscussionTests extends FeatureTestCase
             'law_explanation' => 1,
             'tags' => [
                 $tag1->id,
-                "abc"
+                $tag2->id
             ]
         ];
         $response = $this->json('POST', $requestPath, $inputData);
-        $response->assertStatus(CannotResolveDependenciesException::HTTP_CODE)
-            ->assertJson(['code' => CannotResolveDependenciesException::ERROR_CODE]);
-    }
-
-    /** @test */
-    public function testPostDiscussionSQLInjection()
-    {
-        $tag_ids = Tag::all()->pluck('id');
-        $inputData = [
-            'title' => 'Titel',
-            'law_text' => 'this and that',
-            'law_explanation' => "new exp'; DROP TABLE DISCUSSIONS;'",
-            'tags' => $tag_ids
-        ];
-
-        Passport::actingAs(
-            ModelFactory::CreateUser(Role::getAdmin()), ['*']
-        );
-        $requestPath = $this->getUrl('/discussions');
-        $response = $this->json('POST', $requestPath, $inputData);
-        $response->assertStatus(201);
-        $response = $this->json('GET', $requestPath . '/' . 1);
-        $response->assertStatus(200)->assertJson([
-            'title' => $inputData['title'],
-            'law_text' => $inputData['law_text'],
-            'law_explanation' => $inputData['law_explanation']
-        ]);
+        $response->assertStatus(InvalidValueException::HTTP_CODE)
+            ->assertJson(['code' => InvalidValueException::ERROR_CODE]);
     }
 
     /** @test */
@@ -690,31 +665,6 @@ class DiscussionTests extends FeatureTestCase
         $requestPath = $this->getUrl('/discussions/' . 1000);
         $response = $this->json('PATCH', $requestPath, $inputData);
         $response->assertStatus(ResourceNotFoundException::HTTP_CODE)->assertJson(['code' => ResourceNotFoundException::ERROR_CODE]);
-    }
-
-    /** @test */
-    public function testPatchDiscussionSQLInjection()
-    {
-        $new_tag_ids = [1, 3];
-        $new_law_explanation = "new exp'; DROP TABLE DISCUSSIONS;'";
-
-        Passport::actingAs(
-            ModelFactory::CreateUser(Role::getAdmin()), ['*']
-        );
-        $discussion = ModelFactory::CreateDiscussion(\Auth::user(), null, []);
-        $old_explanation = $discussion->law_explanation;
-        $old_tags = $discussion->tags();
-        $inputData = [
-            'law_explanation' => $new_law_explanation,
-            'tags' => $new_tag_ids
-        ];
-        $requestPath = $this->getUrl('/discussions/' . 1);
-        $response = $this->json('PATCH', $requestPath, $inputData);
-        $response->assertStatus(204);
-        $response = $this->json('GET', $requestPath);
-        $response->assertStatus(200)->assertJson([
-            'law_explanation' => $new_law_explanation
-        ]);
     }
 
     /** @test */
@@ -1131,6 +1081,7 @@ class DiscussionTests extends FeatureTestCase
         $params = 'count=' . $count . '&sort_direction=' . $sort_direction . '&start=' . $start;
         $resourcePath = $this->getUrl($discussion->getResourcePath() . '/amendments');
         $requestPath = $resourcePath . '?' . $params;
+        var_dump($requestPath);
         $response = $this->get($requestPath);
         $response->assertStatus(200)
             ->assertJson([
@@ -1183,6 +1134,7 @@ class DiscussionTests extends FeatureTestCase
         $params = 'sorted_by=' . $sorted_by;
         $resourcePath = $this->getUrl($discussion->getResourcePath() . '/amendments');
         $requestPath = $resourcePath . '?' . $params;
+        var_dump($requestPath);
         $response = $this->get($requestPath);
         $response->assertStatus(200)
             ->assertJson([
@@ -1508,7 +1460,7 @@ class DiscussionTests extends FeatureTestCase
 
     //region put /discussions/{id}/rating
     /** @test */
-    public function createMultiAspectRatingValid()
+    public function testPutMultiAspectRatingValid()
     {
         Passport::actingAs(ModelFactory::CreateUser(Role::getStandardUser()), ['*']);
         $discussion = ModelFactory::CreateDiscussion(\Auth::user());
@@ -1538,7 +1490,7 @@ class DiscussionTests extends FeatureTestCase
     }
 
     /** @test */
-    public function createMultiAspectRatingValidRatingAlreadyExisting()
+    public function testPutMultiAspectRatingValidRatingAlreadyExisting()
     {
         Passport::actingAs(ModelFactory::CreateUser(Role::getStandardUser()), ['*']);
         $discussion = ModelFactory::CreateDiscussion(\Auth::user());
@@ -1569,7 +1521,7 @@ class DiscussionTests extends FeatureTestCase
     }
 
     /** @test */
-    public function createMultiAspectRatingNotAuthenticated()
+    public function testPutMultiAspectRatingNotAuthenticated()
     {
         $discussion = ModelFactory::CreateDiscussion(ModelFactory::CreateUser(Role::getStandardUser()));
         $inputData = [
@@ -1590,7 +1542,7 @@ class DiscussionTests extends FeatureTestCase
     }
 
     /** @test */
-    public function createMultiAspectRatingOneInputMissing()
+    public function testPutMultiAspectRatingOneInputMissing()
     {
         Passport::actingAs(ModelFactory::CreateUser(Role::getStandardUser()), ['*']);
         $discussion = ModelFactory::CreateDiscussion(\Auth::user());
@@ -1611,7 +1563,7 @@ class DiscussionTests extends FeatureTestCase
     }
 
     /** @test */
-    public function createMultiAspectRatingInputMissing()
+    public function testPutMultiAspectRatingInputMissing()
     {
         Passport::actingAs(ModelFactory::CreateUser(Role::getStandardUser()), ['*']);
         $discussion = ModelFactory::CreateDiscussion(\Auth::user());
@@ -1623,7 +1575,7 @@ class DiscussionTests extends FeatureTestCase
     }
 
     /** @test */
-    public function createMultiAspectRatingInputWrongType()
+    public function testPutMultiAspectRatingInputWrongType()
     {
         Passport::actingAs(ModelFactory::CreateUser(Role::getStandardUser()), ['*']);
         $discussion = ModelFactory::CreateDiscussion(\Auth::user());

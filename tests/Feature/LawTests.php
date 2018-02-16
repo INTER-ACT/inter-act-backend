@@ -25,9 +25,9 @@ class LawTests extends FeatureTestCase
 {
     use ApiTestTrait;
 
-    //region Discussions
+    //region get /law_texts
     /** @test */
-    public function LawTextsResponseNoParameters()
+    public function testLawTextsResponseNoParameters()
     {
         Passport::actingAs(
             ModelFactory::CreateUser(Role::getAdmin()), ['*']
@@ -50,7 +50,7 @@ class LawTests extends FeatureTestCase
     }
 
     /** @test */
-    public function LawTextsResponseWithValidPagination()
+    public function testLawTextsResponseWithValidPagination()
     {
         $page_number = 1;
         $per_page = PageRequest::MAX_PER_PAGE;
@@ -75,7 +75,7 @@ class LawTests extends FeatureTestCase
     }
 
     /** @test */
-    public function LawTextsResponseWithInvalidPaginationMin()
+    public function testLawTextsResponseWithInvalidPaginationMin()
     {
         $page_number = 1;
         $per_page = 0;
@@ -88,7 +88,7 @@ class LawTests extends FeatureTestCase
     }
 
     /** @test */
-    public function LawTextsResponseWithInvalidPaginationMax()
+    public function testLawTextsResponseWithInvalidPaginationMax()
     {
         $page_number = 1;
         $per_page = PageRequest::MAX_PER_PAGE + 1;
@@ -101,7 +101,7 @@ class LawTests extends FeatureTestCase
     }
 
     /** @test */
-    public function LawTextsResponseWithInvalidPaginationWrongCountType()
+    public function testLawTextsResponseWithInvalidPaginationCountWrong()
     {
         $page_number = 1;
         $per_page = "asd";
@@ -114,7 +114,7 @@ class LawTests extends FeatureTestCase
     }
 
     /** @test */
-    public function LawTextsResponseWithInvalidPaginationWrongStartType()
+    public function testLawTextsResponseWithInvalidPaginationStartWrong()
     {
         $page_number = "asd";
         $per_page = 1;
@@ -126,4 +126,6 @@ class LawTests extends FeatureTestCase
         $response->assertStatus(InvalidPaginationException::HTTP_CODE)->assertJson(['code' => InvalidPaginationException::ERROR_CODE]);
     }
     //endregion
+
+    //TODO: test get law_texts/{id}
 }

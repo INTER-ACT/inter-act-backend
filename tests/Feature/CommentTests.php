@@ -989,6 +989,7 @@ class CommentTests extends FeatureTestCase
         $response = $this->json('POST', $request_path, ['text' => $text]);
         $response->assertStatus(200);
         $data = (array)json_decode($response->content(), true);
+        var_dump($data['tags']);
         foreach ($data['tags'] as $key => $value) {
             $this->assertArrayHasKey('id', $value);
             $this->assertArrayHasKey('href', $value);
@@ -1001,7 +1002,6 @@ class CommentTests extends FeatureTestCase
         Passport::actingAs(
             ModelFactory::CreateUser(Role::getAdmin()), ['*']
         );
-        $text = "Was das Internet in der Schule betrifft, kann ich nur zustimmen!";
         $request_path = $this->getUrl('/tag_recommendations');
         $response = $this->json('POST', $request_path, []);
         $response->assertStatus(InvalidValueException::HTTP_CODE)->assertJson(['code' => InvalidValueException::ERROR_CODE]);

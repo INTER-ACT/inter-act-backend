@@ -25,8 +25,9 @@ use Tests\FeatureTestCase;
 class ReportTests extends FeatureTestCase
 {
     //region get /reports
+    //TODO? test pagination
     /** @test */
-    public function getAllReportsValid()
+    public function testGetAllReportsValid()
     {
         Passport::actingAs(ModelFactory::CreateUser(Role::getAdmin()));
         $user = \Auth::user();
@@ -60,7 +61,7 @@ class ReportTests extends FeatureTestCase
     }
 
     /** @test */
-    public function getAllReportsValidWithTypeAmendments()
+    public function testGetAllReportsValidWithTypeAmendments()
     {
         Passport::actingAs(ModelFactory::CreateUser(Role::getAdmin()));
         $user = \Auth::user();
@@ -94,7 +95,7 @@ class ReportTests extends FeatureTestCase
     }
 
     /** @test */
-    public function getAllReportsValidWithTypeSubAmendments()
+    public function testGetAllReportsValidWithTypeSubAmendments()
     {
         Passport::actingAs(ModelFactory::CreateUser(Role::getAdmin()));
         $user = \Auth::user();
@@ -128,7 +129,7 @@ class ReportTests extends FeatureTestCase
     }
 
     /** @test */
-    public function getAllReportsValidWithTypeComments()
+    public function testGetAllReportsValidWithTypeComments()
     {
         Passport::actingAs(ModelFactory::CreateUser(Role::getAdmin()));
         $user = \Auth::user();
@@ -162,7 +163,7 @@ class ReportTests extends FeatureTestCase
     }
 
     /** @test */
-    public function getAllReportsValidFromOneUser()
+    public function testGetAllReportsValidFromOneUser()
     {
         Passport::actingAs(ModelFactory::CreateUser(Role::getAdmin()));
         $user = \Auth::user();
@@ -201,7 +202,7 @@ class ReportTests extends FeatureTestCase
     }
 
     /** @test */
-    public function getAllReportsValidFromOneUserWithTypeAmendments()
+    public function testGetAllReportsValidFromOneUserWithTypeAmendments()
     {
         Passport::actingAs(ModelFactory::CreateUser(Role::getAdmin()));
         $user = \Auth::user();
@@ -240,7 +241,7 @@ class ReportTests extends FeatureTestCase
     }
 
     /** @test */
-    public function getAllReportsNotAuthenticated()
+    public function testGetAllReportsNotAuthenticated()
     {
         $requestPath = $this->getUrl('/reports');
         $response = $this->get($requestPath);
@@ -248,7 +249,7 @@ class ReportTests extends FeatureTestCase
     }
 
     /** @test */
-    public function getAllReportsNotPermitted()
+    public function testGetAllReportsNotPermitted()
     {
         Passport::actingAs(ModelFactory::CreateUser(Role::getExpert()));
         $requestPath = $this->getUrl('/reports');
@@ -259,7 +260,7 @@ class ReportTests extends FeatureTestCase
 
     //region get /reports/{id}
     /** @test */
-    public function getOneReportValid()
+    public function testGetOneReportValid()
     {
         Passport::actingAs(ModelFactory::CreateUser(Role::getAdmin()));
         $user = \Auth::user();
@@ -273,7 +274,7 @@ class ReportTests extends FeatureTestCase
     }
 
     /** @test */
-    public function getOneReportNonexistent()
+    public function testGetOneReportNonexistent()
     {
         Passport::actingAs(ModelFactory::CreateUser(Role::getAdmin()));
         $user = \Auth::user();
@@ -286,7 +287,7 @@ class ReportTests extends FeatureTestCase
     }
 
     /** @test */
-    public function getOneReportNotAuthenticated()
+    public function testGetOneReportNotAuthenticated()
     {
         $user = ModelFactory::CreateUser(Role::getAdmin());
         $discussion = ModelFactory::CreateDiscussion($user);
@@ -298,7 +299,7 @@ class ReportTests extends FeatureTestCase
     }
 
     /** @test */
-    public function getOneReportNotPermitted()
+    public function testGetOneReportNotPermitted()
     {
         Passport::actingAs(ModelFactory::CreateUser(Role::getExpert()));
         $user = \Auth::user();
@@ -313,7 +314,7 @@ class ReportTests extends FeatureTestCase
 
     //region post /reports
     /** @test */
-    public function createReportValid()
+    public function testPostReportsValid()
     {
         $description = 'some report description';
         Passport::actingAs(ModelFactory::CreateUser(Role::getAdmin()));
@@ -342,7 +343,7 @@ class ReportTests extends FeatureTestCase
     }
 
     /** @test */
-    public function createReportInvalidId()
+    public function testPostReportsInvalidId()
     {
         $description = 'some report description';
         Passport::actingAs(ModelFactory::CreateUser(Role::getAdmin()));
@@ -361,7 +362,7 @@ class ReportTests extends FeatureTestCase
     }
 
     /** @test */
-    public function createReportInvalidType()
+    public function testPostReportsInvalidType()
     {
         $description = 'some report description';
         Passport::actingAs(ModelFactory::CreateUser(Role::getAdmin()));
@@ -380,7 +381,7 @@ class ReportTests extends FeatureTestCase
     }
 
     /** @test */
-    public function createReportTwiceSamePost()
+    public function testPostReportsTwiceSamePost()
     {
         $description = 'some report description';
         Passport::actingAs(ModelFactory::CreateUser(Role::getAdmin()));
@@ -426,6 +427,41 @@ class ReportTests extends FeatureTestCase
             'id' => 1,
             'description' => $description2
         ]);
+    }
+
+    /** @test */
+    public function testPostReportsNotAuthenticated()
+    {
+        $description = 'some report description';
+        $user = ModelFactory::CreateUser(Role::getAdmin());
+        $discussion = ModelFactory::CreateDiscussion($user);
+        $amendment = ModelFactory::CreateAmendment($user, $discussion);
+        $inputData = [
+            'reported_type' => $amendment->getApiFriendlyType(),
+            'reported_id' => 2,
+            'description' => $description
+        ];
+        $requestPath = $this->getUrl('/reports');
+        $response = $this->json('POST', $requestPath, $inputData);
+        $response->assertStatus(NotAuthorizedException::HTTP_CODE)->assertJson(['code' => NotAuthorizedException::ERROR_CODE]);
+    }
+
+    /** @test */
+    public function testPostReportsNotPermitted()
+    {
+        $description = 'some report description';
+        Passport::actingAs(ModelFactory::CreateUser(Role::getExpert()));
+        $user = \Auth::user();
+        $discussion = ModelFactory::CreateDiscussion($user);
+        $amendment = ModelFactory::CreateAmendment($user, $discussion);
+        $inputData = [
+            'reported_type' => $amendment->getApiFriendlyType(),
+            'reported_id' => 2,
+            'description' => $description
+        ];
+        $requestPath = $this->getUrl('/reports');
+        $response = $this->json('POST', $requestPath, $inputData);
+        $response->assertStatus(NotPermittedException::HTTP_CODE)->assertJson(['code' => NotPermittedException::ERROR_CODE]);
     }
     //endregion
 }

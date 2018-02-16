@@ -59,7 +59,7 @@ class TagCollection extends ApiCollectionResource
     {
         return $this->collection->transform(function ($tag){
             return [
-                'href' => $tag->getResourcePath(),
+                'href' => $this->getUrl($tag->getResourcePath()),
                 'id' => $tag->id,
                 'name' => $tag->name,
                 'description' => $tag->description

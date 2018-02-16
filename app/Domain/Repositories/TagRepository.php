@@ -58,7 +58,7 @@ class TagRepository implements IRestRepository
      */
     public function getById(int $id) : TagResource
     {
-        return new TagResource(Tag::find($id));
+        return new TagResource(self::getByIdOrThrowError($id));
     }
 
     /**
