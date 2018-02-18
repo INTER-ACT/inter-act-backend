@@ -17,6 +17,7 @@ use App\Http\Resources\UserResources\UserCollection;
 use App\Mail\VerifyUser;
 use App\PendingUser;
 use App\Permission;
+use App\Role;
 use App\User;
 use Auth;
 use Illuminate\Http\Request;
@@ -39,9 +40,13 @@ class UserController extends Controller
     /**
      * @param PageGetRequest $getRequest
      * @return UserCollection
+     * @throws NotPermittedException
      */
     public function index(PageGetRequest $getRequest)
     {
+        if(!$this->isAdmin())
+            throw new NotPermittedException('Only admins can get a list of all Users.');
+
         return $this->repository->getAll($getRequest);
     }
 
@@ -197,7 +202,7 @@ class UserController extends Controller
     protected function isAdmin()
     {
         $user = Auth::user();
-        return $user->checkPermission(Permission::getAdministrate());
+        return $user->hasRole(Role::getAdmin());
     }
 
 }

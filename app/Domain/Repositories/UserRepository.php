@@ -59,7 +59,7 @@ class UserRepository implements IRestRepository
      */
     public function getAll(PageGetRequest $pageRequest)
     {
-        $users = new UserCollection($this->paginate(User::all(), $pageRequest->perPage, $pageRequest->pageNumber, 'users'));
+        $users = new UserCollection($this->paginate(User::select()->orderBy('username', 'desc')->get(), $pageRequest->perPage, $pageRequest->pageNumber, 'users'));
 
         return $users;
     }
@@ -151,7 +151,7 @@ class UserRepository implements IRestRepository
 
     /**
      * @param int $id
-     * @return mixed
+     * @return User
      * @throws NotFoundException
      */
     public static function getByIdOrThrowError(int $id)

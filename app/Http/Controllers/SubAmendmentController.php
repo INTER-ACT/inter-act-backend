@@ -28,11 +28,6 @@ class SubAmendmentController extends Controller
         $this->repository = $repository;
     }
 
-    public function index()
-    {
-        // Not needed
-    }
-
     /**
      * Fetches the SubAmendment and returns its resource
      *

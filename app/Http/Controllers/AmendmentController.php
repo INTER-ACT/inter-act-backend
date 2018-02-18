@@ -51,14 +51,24 @@ class AmendmentController extends Controller
         return $this->repository->getById($id);
     }
 
+    /**
+     * Deletes the Amendment
+     *
+     * @param int $id
+     * @param Request $request
+     * @return NoContentResource
+     * @throws NotPermittedException
+     */
     public function destroy(int $id, Request $request)
     {
+        // TODO Amendments shouldn't be deleted, just archived
+
         if(!Auth::user()->hasRole(Role::getAdmin()))
             throw new NotPermittedException('Amendments can only be deleted by Admins');
 
         AmendmentManipulator::delete($id);
 
-        return new NoContentResource($request);
+        return new NoContentResource();
     }
 
     /**

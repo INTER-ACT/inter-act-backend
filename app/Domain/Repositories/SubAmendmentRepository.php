@@ -49,7 +49,6 @@ class SubAmendmentRepository implements IRestRepository
 
     public function getChangeById(int $id)
     {
-        // TODO what is this supposed to do?
     }
 
     public function getRejectionById(int $id)
@@ -68,7 +67,7 @@ class SubAmendmentRepository implements IRestRepository
     {
         $subamendment = self::getByIdOrThrowError($id);
 
-        return new CommentCollection($this->paginate($subamendment->comments));
+        return new CommentCollection($this->paginate($subamendment->comments, $request->perPage, $request->pageNumber));
     }
 
     /**

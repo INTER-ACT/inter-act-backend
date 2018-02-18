@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 
+use App\Exceptions\CustomExceptions\CannotResolveDependenciesException;
 use App\Exceptions\CustomExceptions\InvalidValueException;
 use App\Exceptions\CustomExceptions\NotAuthorizedException;
 use Auth;
@@ -28,8 +29,8 @@ class CreateAmendmentCommentRequest implements IRequest
     /**
      * Validates the Request and throws an Exception, if the request
      * is ambiguous
-     *
      * @return Null
+     * @throws CannotResolveDependenciesException
      * @throws InvalidValueException
      */
     public function validate()
@@ -40,6 +41,8 @@ class CreateAmendmentCommentRequest implements IRequest
             'tags.*' => 'required|integer|exists:tags,id|distinct'
         ]);
 
+        if($validator->errors()->has('tags.*'))
+            throw new CannotResolveDependenciesException('Tags could not be found.' . $validator->errors()->get('tags.*'));
         if($validator->fails())
             throw new InvalidValueException($validator->errors());
     }

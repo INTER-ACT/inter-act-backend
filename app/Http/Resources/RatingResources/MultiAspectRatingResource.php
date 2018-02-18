@@ -32,8 +32,8 @@ class MultiAspectRatingResource extends ApiResource
         $thisUrl = $this->getUrl($this->ratable->getRatingPath());
         return [
             'href' => $thisUrl,
-            'user_rating' => $this->when(\Auth::check(), $this->getUserRatingRepresentation($this->ratable->user_rating)),  // TODO move authentication out of this class
-            'total_rating' => $this->ratable->rating_sum
+            'user_rating' => $this->when(\Auth::check(), $this->getUserRatingRepresentation($this->ratable->user_rating())),  // TODO move authentication out of this class
+            'total_rating' => $this->ratable->rating_sum()
         ];
     }
 
