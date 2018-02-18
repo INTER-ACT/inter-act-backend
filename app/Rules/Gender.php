@@ -16,7 +16,7 @@ class Gender implements Rule
      */
     public function passes($attribute, $value)
     {
-        return ($value === 'm' || $value === 'w');
+        return ($value === 'm' || $value === 'f');
     }
 
     /**
