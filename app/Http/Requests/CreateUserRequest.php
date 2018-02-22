@@ -49,16 +49,16 @@ class CreateUserRequest extends AUserRequest
     private function checkFields()
     {
         $validator = Validator::make($this->request->all(),[
-            'username' => 'required|unique:users|min:3|max:64|string',
-            'email' => 'required|unique:users|max:256|email',
-            'password' => 'required|min:8|max:25|string',
-            'first_name' => 'required|string',
-            'last_name' => 'required|string',
+            'username' => 'required|unique:users|unique:pending_users|min:3|max:64|string',
+            'email' => 'required|unique:users|max:254|email',
+            'password' => 'required|min:10|max:25|string',
+            'first_name' => 'required|string|min:1|max:64',
+            'last_name' => 'required|string|min:1|max:64',
             'sex' => ['required', 'string', 'size:1', new Gender],
             'postal_code' => 'required|min:1000|max:9999|numeric',     // TODO check whether place exists
-            'residence' => 'required|string',
-            'job' => 'required',
-            'highest_education' => 'required',               // TODO check whether the education exists
+            'residence' => 'required|string|min:1|max:254',
+            'job' => 'required|string|min:1|max:254',
+            'highest_education' => 'required|string|min:1|max:254',               // TODO check whether the education exists
             'year_of_birth' => 'required|numeric|min:1900|max:' . date('YYYY')
         ]);
 
