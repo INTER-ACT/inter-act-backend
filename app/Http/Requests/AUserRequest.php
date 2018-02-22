@@ -13,6 +13,9 @@ use App\Exceptions\CustomExceptions\InvalidValueException;
  */
 abstract class AUserRequest implements IRequest
 {
+    const MIN_PASSWORD_LENGTH = 10;
+    const MIN_SYMBOLS = 1;
+
     /**
      * Checks whether the password fulfills all requirements:
      * Min 8 Symbols, 3 Letters, 2 numbers, 1 special character
@@ -25,32 +28,23 @@ abstract class AUserRequest implements IRequest
      */
     protected function checkPasswordValidity(string $password)
     {
-        if(strlen($password) <  8)
+        if(strlen($password) <  self::MIN_PASSWORD_LENGTH)
             throw new InvalidValueException('The password is too short!');
 
         $specialChars = 0;
-        $numbers = 0;
-        $letters = 0;
-
 
         for ($i = 0, $j = strlen($password); $i < $j; $i++) {
             $c = substr($password, $i,1);
 
             if (preg_match('#[a-zA-Z]#',$c)) {
-                $letters++;
             } elseif (preg_match('/^[[:digit:]]$/',$c)) {
-                $numbers++;
             } else {
                 $specialChars++;
             }
         }
 
-        if($specialChars < 1)
+        if($specialChars < self::MIN_SYMBOLS)
             throw new InvalidValueException('The password must include at least 1 special character!');
-        if($letters < 3)
-            throw new InvalidValueException('The password must include at least 3 letters!');
-        if($numbers < 2)
-            throw new InvalidValueException('The password must include at least 2 numbers!');
     }
 
     protected function checkEmailSyntax(string $email)
