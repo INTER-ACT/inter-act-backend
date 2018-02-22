@@ -64,9 +64,12 @@ class SubAmendmentManipulator
     {
         $subamendment = SubAmendmentRepository::getByIdOrThrowError($id);
 
-        $rating = $subamendment->ratings()->where('user_id', '=', $user_id)->get();
-        if($rating === Null)
-            $rating = new MultiAspectRating();
+        $rating = $subamendment->ratings()->where('user_id', '=', $user_id)->first();
+        if($rating !== Null){
+            if(!$rating->delete())
+                throw new InternalServerError('The old rating could not be deleted.');
+        }
+        $rating = new MultiAspectRating();
 
         $rating->fill($data);
         $rating->user_id = $user_id;
