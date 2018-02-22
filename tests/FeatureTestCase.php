@@ -15,6 +15,9 @@ abstract class FeatureTestCase extends BaseTestCase
 {
     use ApiTestTrait;
 
+    const DEFAULT_PAGINATION_COUNT = 100; // Default value for items per page
+    const MAX_PAGINATION_COUNT = 100;
+
     /**
      * Creates the application.
      *
