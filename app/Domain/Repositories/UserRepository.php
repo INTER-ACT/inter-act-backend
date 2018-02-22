@@ -109,6 +109,11 @@ class UserRepository implements IRestRepository
         return new DiscussionCollection($discussions);
     }
 
+    /**
+     * @param int $id
+     * @param \App\Domain\SortablePageGetRequest $request
+     * @return AmendmentCollection
+     */
     public function getAmendments(int $id, SortablePageGetRequest $request)
     {
         $amendments = User::find($id)->amendments()->paginate($request->perPage, ['*'], 'amendments', $request->pageNumber);
@@ -116,6 +121,11 @@ class UserRepository implements IRestRepository
         return new AmendmentCollection($amendments);
     }
 
+    /**
+     * @param int $id
+     * @param \App\Domain\SortablePageGetRequest $request
+     * @return SubAmendmentCollection
+     */
     public function getSubAmendments(int $id, SortablePageGetRequest $request)
     {
         $subAmendments = User::find($id)->sub_amendments()->paginate($request->perPage, ['*'], 'sub_amendments', $request->pageNumber);
@@ -123,6 +133,11 @@ class UserRepository implements IRestRepository
         return new SubAmendmentCollection($subAmendments);
     }
 
+    /**
+     * @param int $id
+     * @param \App\Domain\SortablePageGetRequest $request
+     * @return CommentCollection
+     */
     public function getComments(int $id, SortablePageGetRequest $request)
     {
         $comments = User::find($id)->comments()->paginate($request->perPage, ['*'], 'comments', $request->pageNumber);
@@ -130,11 +145,22 @@ class UserRepository implements IRestRepository
         return new CommentCollection($comments);
     }
 
+    /**
+     * @param int $id
+     * @param \App\Domain\SortablePageGetRequest $request
+     * @return DiscussionCollection
+     */
     public function getRelevantDiscussions(int $id, SortablePageGetRequest $request)
     {
-        // TODO check whether this exists in api doc; maybe add it to discussions instead : Popularity or relevance
+        $foo = new ActionRepository();
+        return $foo->getRelevantDiscussions($id);
     }
 
+    /**
+     * @param int $id
+     * @param \App\Domain\SortablePageGetRequest $request
+     * @return ReportCollection
+     */
     public function getReports(int $id, SortablePageGetRequest $request)
     {
         $reports = User::find($id)->reports()->paginate($request->perPage, ['*'], 'reports', $request->pageNumber);
@@ -142,6 +168,10 @@ class UserRepository implements IRestRepository
         return new ReportCollection($reports);
     }
 
+    /**
+     * @param int $id
+     * @return UserStatisticsResource
+     */
     public function getStatistics(int $id)
     {
         $user = User::find($id);
