@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Resources\UserResources\SelfResource;
 use Illuminate\Http\Request;
+use Laravel\Passport\Passport;
 
 /*
 |--------------------------------------------------------------------------
@@ -17,13 +19,24 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
 
+Route::get('/self', function(){
+    $user = Auth::user();
+    return new SelfResource($user);
+})->middleware('auth:api');
+
+Route::delete('/oauth/token', function(Request $request){
+    $request->user()->token()->revoke();
+})->middleware('auth:api');
+
 Route::get('/ping', function ()
 {
     return "Test-API ping response";
 })->middleware('auth:api');
 
+Route::post('/verify_recaptcha', 'CaptchaController@verify');
+
 //region users
-Route::get('/users', 'UserController@index');
+Route::get('/users', 'UserController@index')->middleware('auth:api');
 Route::post('/users', 'UserController@store');
 
 Route::get('/users/{user_id}', 'UserController@show');
