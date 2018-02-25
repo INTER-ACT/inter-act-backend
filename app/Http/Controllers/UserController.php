@@ -69,7 +69,7 @@ class UserController extends Controller
     public function verifyUser(string $verification_token)
     {
         $user = UserManipulator::verifyUser($verification_token);
-        return redirect(config('app.home_url'));
+        return redirect(config('app.url'));
     }
 
     public function show(int $id)
@@ -104,7 +104,7 @@ class UserController extends Controller
     public function updatePassword(string $verification_token)
     {
         $user = UserManipulator::verifyPasswordUpdate($verification_token);
-        return redirect(config('app.home_url'));
+        return redirect(config('app.url'));
     }
 
     public function destroy(int $id)

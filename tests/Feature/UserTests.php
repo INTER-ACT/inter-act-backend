@@ -47,14 +47,14 @@ class UserTests extends FeatureTestCase
         $userData = [
             'username' => $username,
             'email' => 'leazedev@gmail.com',
-            'password' => 'abcd123!',
+            'password' => 'abcdefg123!',
             'first_name' => 'Hans',
             'last_name' => 'Wurst',
             'sex' => 'm',
             'postal_code' => 3500,
             'residence' => 'Pfaffings',
             'job' => 'Schüler',
-            'highest_education' => 2,
+            'highest_education' => "Höhere Technische Lehranstalt",
             'year_of_birth' => 1999
         ];
 
@@ -79,7 +79,7 @@ class UserTests extends FeatureTestCase
             'postal_code' => 3500,
             'residence' => 'Pfaffings',
             'job' => 'Schüler',
-            'highest_education' => 2,
+            'highest_education' => "Höhere Technische Lehranstalt",
             'year_of_birth' => 1999
         ];
         $pendingUser = UserManipulator::create($userData);
@@ -107,14 +107,14 @@ class UserTests extends FeatureTestCase
         $userData = [
             'username' => 'TestUser00',
             'email' => 'me12@me.com',
-            'password' => 'abcd123!',
+            'password' => 'abcdefg123!',
             'first_name' => 'Hans',
             'last_name' => 'Nachname',
             'sex' => 'm',
             'postal_code' => 3500,
             'residence' => 'Krems',
             'job' => 'Maurer',
-            'highest_education' => 2,       //TODO use actual data, as soon as the graduation levels are known
+            'highest_education' => "Höhere Technische Lehranstalt",
             'year_of_birth' => 1996
         ];
 
@@ -163,13 +163,13 @@ class UserTests extends FeatureTestCase
      */
     public function testUpdatingUserAndValidate()
     {
-        $firstPassword = '123!xyzz';
+        $firstPassword = '123!xyzzzz';
         $user = factory(User::class)->create([
             'password' => Hash::make($firstPassword)
         ]);
 
         $newMail = 'nonexistent@nonexistent.com';
-        $newPassword = 'abcc123!';
+        $newPassword = 'abcdefg123!';
         $newLastName = 'Santana';
         $newResidence = 'Wien';
         $newJob = 'Dunno';
@@ -207,13 +207,13 @@ class UserTests extends FeatureTestCase
 
     public function testUpdatingUser()
     {
-        $firstPassword = '123!xyzz';
+        $firstPassword = '123!xyzzzz';
         $user = factory(User::class)->create([
             'password' => Hash::make($firstPassword)
         ]);
 
         $newMail = 'leazedev@gmail.com';
-        $newPassword = 'abcc123!';
+        $newPassword = 'abcdefg123!';
         $newLastName = 'Santana';
         $newResidence = 'Wien';
         $newJob = 'Dunno';

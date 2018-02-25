@@ -29,7 +29,7 @@ return [
     |
     */
 
-    'host' => env('MAIL_HOST', 'smtp.gmail.com'),
+    'host' => env('MAIL_HOST', 's120.server4all.de'),
 
     /*
     |--------------------------------------------------------------------------
@@ -56,7 +56,7 @@ return [
     */
 
     'from' => [
-        'address' => env('MAIL_FROM_ADDRESS', 'office@inter-act.net'),
+        'address' => env('MAIL_FROM_ADDRESS', 'test@inter-act.net'),
         'name' => env('MAIL_FROM_NAME', 'Inter-Act'),
     ],
 
