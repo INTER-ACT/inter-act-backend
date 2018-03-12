@@ -197,12 +197,7 @@ class UserTests extends FeatureTestCase
         self::assertEquals($newResidence, $updatedUser->city);
         self::assertEquals($newJob, $updatedUser->job);
         self::assertEquals($newHighestEducation, $updatedUser->graduation);
-        self::assertFalse(Hash::check($newPassword, $updatedUser->password));
-        $requestPath = $updatedUser->getVerificationUrl();
-        $response = $this->get($requestPath);
-        $response->assertStatus(302);
-        $pwUpdatedUser = User::find($user->id);
-        self::assertTrue(Hash::check($newPassword, $pwUpdatedUser->password));
+        self::assertTrue(Hash::check($newPassword, $updatedUser->password));
     }
 
     public function testUpdatingUser()

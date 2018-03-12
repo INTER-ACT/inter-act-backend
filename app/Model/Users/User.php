@@ -32,7 +32,7 @@ class User extends AuthRestModel
      * @var array
      */
     protected $hidden = [
-        'password', 'remember_token', 'pending_password', 'pending_token'
+        'password', 'remember_token'//, 'pending_password', 'pending_token'
     ];
 
     public function getSex(){
@@ -132,13 +132,10 @@ class User extends AuthRestModel
         return Carbon::now()->year - $this->year_of_birth;
     }
 
-    /**
-     * @return string
-     */
-    public function getVerificationUrl() : string
+    /*public function getVerificationUrl() : string
     {
         return self::getVerificationUrlForToken($this->pending_token);
-    }
+    }*/
 
     /**
      * @param string $validation_token

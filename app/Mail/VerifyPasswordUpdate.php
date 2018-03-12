@@ -36,6 +36,6 @@ class VerifyPasswordUpdate extends Mailable
             ->to($this->user->email, $this->user->username)
             ->subject('Account Bestätigen')
             ->markdown('emails.verify_password_update')
-            ->with(['verificationUrl' => $this->user->getVerificationUrl()]);
+            ->with(['verificationUrl' => config('app.home_url')/*$this->user->getVerificationUrl()*/]);
     }
 }

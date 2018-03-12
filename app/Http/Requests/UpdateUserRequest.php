@@ -51,9 +51,9 @@ class UpdateUserRequest extends AUserRequest
     {
         $validator = Validator::make($this->request->all(),[
             'email' => 'sometimes|required|unique:users|max:254|email',
-            'password' => 'sometimes|required|min:8|max:25|string',// TODO implement more sophisticated password updates
+            'password' => 'sometimes|required|min:8|max:25|string',     // TODO implement more sophisticated password updates
             'old_password' => 'required_with:password|string|min:8|max:25',
-            'postal_code' => 'sometimes|required|size:4|numeric',     // TODO check whether place exists
+            'postal_code' => 'sometimes|required|size:4|numeric',       // TODO check whether place exists
             'residence' => 'sometimes|required|string|min:1|max:254',
             'job' => 'sometimes|required|string|min:1|max:254',
             'highest_education' => 'sometimes|required|string|min:1|max:254'               // TODO check whether the education exists
@@ -67,7 +67,8 @@ class UpdateUserRequest extends AUserRequest
     public function getData()
     {
         $data = $this->request->all();
-        $data['pending_password'] = $data['password'];
+        //if(array_key_exists('password', $data))
+        //    $data['pending_password'] = $data['password'];
         $this->exchangeKey($data, 'residence', 'city');
         $this->exchangeKey($data, 'highest_education', 'graduation');
 

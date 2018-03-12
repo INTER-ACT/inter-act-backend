@@ -19,7 +19,7 @@ class Discussion extends RestModel implements ITaggable, ICommentable, IHasActiv
 {
     use TTaggablePost;
 
-    protected $fillable = ['title', 'law_text', 'law_explanation'];
+    protected $fillable = ['title', 'law_number', 'law_text', 'law_explanation'];
 
     public function getApiFriendlyType() : string
     {

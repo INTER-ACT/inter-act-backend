@@ -46,12 +46,11 @@ class DiscussionTests extends FeatureTestCase
         //default is count=100&start=1&sorted_by=popularity&sort_direction=desc
         $discussion_count = 2;
 
-        Passport::actingAs(
-            factory(User::class)->create(), ['*']
-        );
-        $discussion1 = factory(Discussion::class)->create(['user_id' => \Auth::id()]);
-        $discussion2 = factory(Discussion::class)->create(['user_id' => \Auth::id()]);
-        $discussion3 = ModelFactory::CreateDiscussion(\Auth::user(), Carbon::createFromDate(2017, 10, 10));
+        $user = ModelFactory::CreateUser(Role::getAdmin());
+        $discussion1 = factory(Discussion::class)->create(['user_id' => $user->id]);
+        $discussion2 = factory(Discussion::class)->create(['user_id' => $user->id]);
+        //archived discussion
+        $discussion3 = ModelFactory::CreateDiscussion($user, Carbon::createFromDate(2017, 10, 10));
         factory(Amendment::class)->states('user')->create(['discussion_id' => $discussion2->id]);
 
         $resourcePath = url('/discussions');
@@ -103,7 +102,7 @@ class DiscussionTests extends FeatureTestCase
         $start = 0;
         $sorted_by = 'popularity';
         $sort_direction = 'asc';
-        $discussion_count = 3;  //without wrong tag discussion
+        $discussion_count = 3;  //without wrongly tagged discussion
 
         $tag = Tag::getSozialeMedien();
         $discussion1 = ModelFactory::CreateDiscussion(\Auth::user(), null, [$tag], Carbon::createFromDate(2017, 1, 1, 2));
@@ -330,6 +329,32 @@ class DiscussionTests extends FeatureTestCase
                 ]
             ]);
     }
+
+    /** @test */
+    public function testDiscussionsRouteResponseInvalidSortedByParameter()
+    {
+        Passport::actingAs(
+            factory(User::class)->create(), ['*']
+        );
+
+        $perPage = 2;
+        $start = 1;
+        $sorted_by = 'popolarity';
+        $sort_direction = 'asc';
+        $tag_id = 10;
+
+        $tag = Tag::getSozialeMedien();
+        $discussion1 = ModelFactory::CreateDiscussion(\Auth::user(), null, [$tag], Carbon::createFromDate(2017, 1, 1, 2));
+        $discussion2 = ModelFactory::CreateDiscussion(\Auth::user(), null, [$tag], Carbon::createFromDate(2017, 1, 1, 2));
+        $discussion3 = ModelFactory::CreateDiscussion(\Auth::user(), null, [$tag], Carbon::createFromDate(2017, 1, 1, 2));
+        $discussion4 = ModelFactory::CreateDiscussion(\Auth::user(), null, [Tag::getUserGeneratedContent()]);
+        $resourcePath = url('/discussions');
+        $pathParams = 'count=' . $perPage . '&sorted_by=' . $sorted_by . '&sort_direction=' . $sort_direction . '&tag_id=' . $tag_id;
+        $requestPath = $resourcePath . '?start=' . $start . '&' . $pathParams;
+        $response = $this->get($requestPath);
+        if($start == 0) $start = 1;
+        $response->assertStatus(InvalidValueException::HTTP_CODE)->assertJson(['code' => InvalidValueException::ERROR_CODE]);
+    }
     //endregion
 
     //region post /discussions
@@ -340,6 +365,7 @@ class DiscussionTests extends FeatureTestCase
         $tag2 = Tag::getUserGeneratedContent();
 
         $title = 'Titel';
+        $law_number = '§ 2';
         $law_text = 'this and that';
         $law_explanation = 'Law Explanation';
         $tag_ids = [
@@ -354,6 +380,7 @@ class DiscussionTests extends FeatureTestCase
 
         $inputData = [
             'title' => $title,
+            'law_number' => $law_number,
             'law_text' => $law_text,
             'law_explanation' => $law_explanation,
             'tags' => $tag_ids
@@ -370,6 +397,7 @@ class DiscussionTests extends FeatureTestCase
             'href' => $newUrl,
             'id' => 1,
             'title' => $title,
+            'law_number' => $law_number,
             'law_text' => $law_text,
             'law_explanation' => $law_explanation,
         ]);
@@ -379,13 +407,15 @@ class DiscussionTests extends FeatureTestCase
     public function testPostDiscussionsWithValidValuesNotPermitted()
     {
         Passport::actingAs(
-            ModelFactory::CreateUser(Role::getStandardUser()), ['*']
+            ModelFactory::CreateUser(Role::getScientist()), ['*']
         );
+        $law_number = '§ 2';
         $requestPath = $this->getUrl('/discussions');
         $tag1 = Tag::getSozialeMedien();
         $tag2 = Tag::getUserGeneratedContent();
         $inputData = [
             'title' => 'Titel',
+            'law_number' => $law_number,
             'law_text' => 'this and that',
             'law_explanation' => 'Law Explanation',
             'tags' => [
@@ -406,6 +436,7 @@ class DiscussionTests extends FeatureTestCase
         $tag2 = Tag::getUserGeneratedContent();
         $inputData = [
             'title' => 'Titel',
+            'law_number' => '§ 2',
             'law_text' => 'this and that',
             'law_explanation' => 'Law Explanation',
             'tags' => [
@@ -429,6 +460,7 @@ class DiscussionTests extends FeatureTestCase
         $tag2 = Tag::getUserGeneratedContent();
         $inputData = [
             'title' => 'Titel',
+            'law_number' => '§ 2',
             'law_text' => 'this and that',
             'law_explanation' => 1,
             'tags' => [
@@ -446,6 +478,7 @@ class DiscussionTests extends FeatureTestCase
     {
         $inputData = [
             'title' => 'Titel',
+            'law_number' => '§ 2',
             'law_text' => 'this and that',
             'law_explanation' => "new exp",
             'tags' => [
@@ -465,7 +498,7 @@ class DiscussionTests extends FeatureTestCase
     //region get /discussions/{id}
 
     /** @test */
-    public function testOneDiscussionResponse()
+    public function testOneDiscussionResponseAuthenticated()
     {
         $tags = [Tag::getSozialeMedien(), Tag::getUserGeneratedContent()];
         Passport::actingAs(
@@ -483,6 +516,7 @@ class DiscussionTests extends FeatureTestCase
                     'title' => $discussion->title,
                     'created_at' => $discussion->created_at->toAtomString(),
                     'updated_at' => $discussion->updated_at->toAtomString(),
+                    'law_number' => $discussion->law_number,
                     'law_text' => $discussion->law_text,
                     'law_explanation' => $discussion->law_explanation,
                     'author' => [
@@ -516,7 +550,7 @@ class DiscussionTests extends FeatureTestCase
     }
 
     /** @test */
-    public function testOneDiscussionWhenNotAuthenticatedResponse()
+    public function testOneDiscussionResponseNotAuthenticated()
     {
         $tags = [Tag::getUserGeneratedContent(), Tag::getSozialeMedien()];
         $discussion = ModelFactory::CreateDiscussion(factory(User::class)->create(), null, $tags, Carbon::createFromDate(2017, 1, 1, 2));
@@ -1081,7 +1115,6 @@ class DiscussionTests extends FeatureTestCase
         $params = 'count=' . $count . '&sort_direction=' . $sort_direction . '&start=' . $start;
         $resourcePath = $this->getUrl($discussion->getResourcePath() . '/amendments');
         $requestPath = $resourcePath . '?' . $params;
-        var_dump($requestPath);
         $response = $this->get($requestPath);
         $response->assertStatus(200)
             ->assertJson([
@@ -1134,7 +1167,6 @@ class DiscussionTests extends FeatureTestCase
         $params = 'sorted_by=' . $sorted_by;
         $resourcePath = $this->getUrl($discussion->getResourcePath() . '/amendments');
         $requestPath = $resourcePath . '?' . $params;
-        var_dump($requestPath);
         $response = $this->get($requestPath);
         $response->assertStatus(200)
             ->assertJson([
@@ -1456,7 +1488,8 @@ class DiscussionTests extends FeatureTestCase
         $response = $this->get($requestPath);
         $response->assertStatus(ResourceNotFoundException::HTTP_CODE)->assertJson(['code' => ResourceNotFoundException::ERROR_CODE]);
     }
-    //endregion
+    //endregionh
+
 
     //region put /discussions/{id}/rating
     /** @test */

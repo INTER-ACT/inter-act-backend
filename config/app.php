@@ -171,6 +171,7 @@ return [
          */
         Barryvdh\LaravelIdeHelper\IdeHelperServiceProvider::class,
         Orchestra\Parser\XmlServiceProvider::class,
+        //\Laravel\Passport\PassportServiceProvider::class,
 
         /*
          * Application Service Providers...
@@ -243,7 +244,7 @@ return [
     */
     'ilai_token' => env('ILAI_TOKEN', 'abcdef'),
     'ilai_path' => env('ILAI_PATH', 'http://inter-act-ilai.net:8000'),
-    'home_url' => env('HOME', 'www.inter-act.at'),
+    'home_url' => env('HOME_URL', 'www.inter-act.net'),
     'recaptcha_secret' => env('RECAPTCHA_SECRET', Null),
     'recaptcha_site_key' => env('RECAPTCHA_SITE_KEY', Null)
 ];

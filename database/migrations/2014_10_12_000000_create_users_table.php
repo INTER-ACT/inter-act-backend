@@ -28,8 +28,8 @@ class CreateUsersTable extends Migration
             $table->string('graduation', 254);
             $table->integer('year_of_birth')->unsigned();
             $table->rememberToken();
-            $table->text('pending_password')->nullable();
-            $table->string('pending_token', 40)->nullable()->unique();
+            //$table->text('pending_password')->nullable();
+            //$table->string('pending_token', 40)->nullable()->unique();
             $table->timestamps();
         });
     }

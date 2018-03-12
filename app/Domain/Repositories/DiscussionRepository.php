@@ -133,11 +133,17 @@ class DiscussionRepository implements IRestRepository
      * @param string $sort_by
      * @param string $sort_dir
      * @return IPaginator
+     * @throws InvalidValueException
      */
     protected function queryToPaginatedCollection(Builder $query, PageRequest $pageRequest, string $sort_by, string $sort_dir) : IPaginator
     {
-        $sort_dir = (strtoupper($sort_dir) == 'ASC') ? $sort_dir : self::DEFAULT_SORT_DIRECTION;
-        $sort_by = (strtolower($sort_by) == 'chronological') ? 'created_at' : self::DEFAULT_SORT_FIELD;
+        $sort_by = strtolower($sort_by);
+        $sort_dir = strtolower($sort_dir);
+        if($sort_dir != 'asc' && $sort_dir != 'desc')
+            throw new InvalidValueException("Invalid value given for the parameter 'sort_direction'");
+        if($sort_by == 'chronological') $sort_by = 'created_at';
+        if($sort_by != 'created_at' && $sort_by != self::DEFAULT_SORT_FIELD)
+            throw new InvalidValueException("Invalid value given for the parameter 'sorted_by'");
 
         if($sort_by == self::DEFAULT_SORT_FIELD) {
             $collection = ($sort_dir == 'asc') ? $query->get()->sortBy('activity') : $query->get()->sortByDesc('activity');

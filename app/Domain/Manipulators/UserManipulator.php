@@ -70,16 +70,14 @@ class UserManipulator
         /** @var User $user */
         $user = UserRepository::getByIdOrThrowError($id);
         $user->fill($data);
-        if(array_key_exists('pending_password', $data)) {
-            $user->pending_token = User::getNewToken($data['pending_password']);
-            $user->pending_password = Hash::make($data['pending_password']);
-        }
+        if(isset($data['password']))
+            $user->password = Hash::make($data['password']);
         if(!$user->save())
             throw new InternalServerError("The User $id could not be updated.");
-        Mail::send(new VerifyPasswordUpdate($user));
+        //Mail::send(new VerifyPasswordUpdate($user));
     }
 
-    public static function verifyPasswordUpdate(string $token) : User
+    /*public static function verifyPasswordUpdate(string $token) : User
     {
         $user = User::where('pending_token', '=', $token)->first();
         if(!isset($user))
@@ -92,7 +90,7 @@ class UserManipulator
         if(!$user->save())
             throw new InternalServerError("Could not update the password");
         return $user;
-    }
+    }*/
 
     public static function delete(int $id)
     {

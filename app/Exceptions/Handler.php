@@ -2,13 +2,20 @@
 
 namespace App\Exceptions;
 
+use App\Exceptions\CustomExceptions\ApiException;
+use App\Exceptions\CustomExceptions\ApiExceptionMeta;
 use App\Exceptions\CustomExceptions\CannotResolveDependenciesException;
 use App\Exceptions\CustomExceptions\InternalServerError;
 use App\Exceptions\CustomExceptions\NotAuthorizedException;
+use App\Exceptions\CustomExceptions\NotFoundException;
+use App\Exceptions\CustomExceptions\ResourceNotFoundException;
 use Exception;
 use Illuminate\Auth\AuthenticationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Illuminate\Foundation\Testing\HttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class Handler extends ExceptionHandler
 {
@@ -49,17 +56,19 @@ class Handler extends ExceptionHandler
      * @param  \Illuminate\Http\Request $request
      * @param  \Exception $exception
      * @return \Illuminate\Http\Response
-     * @throws CannotResolveDependenciesException
+     * @throws ApiException
      * @throws NotAuthorizedException
      */
     public function render($request, Exception $exception)
     {
-        //TODO: Change errors that have not been caught to Internal Server Error?
+        //TODO Change errors that have not been caught to Internal Server Error?
+        //TODO make sure that the return type is always json (see commented code below)
         if($exception instanceof AuthenticationException)
             throw new NotAuthorizedException('The user is not authenticated');
-        //if($exception instanceof QueryException and $exception->getCode() == 23000)
-        //    throw new CannotResolveDependenciesException($exception->getMessage());
-
+        //if($exception instanceof NotFoundHttpException)
+        //    throw new ResourceNotFoundException($exception->getTraceAsString());
+        //if(!$exception instanceof ApiException and method_exists($exception, 'getStatusCode'))
+        //    throw new ApiException(new ApiExceptionMeta($exception->getStatusCode(), $exception->getStatusCode(), $exception->getMessage()), $exception->getTraceAsString());
         //if($exception instanceof \ErrorException)
         //    throw new InternalServerError("The server could not resolve your request.");
         return parent::render($request, $exception);

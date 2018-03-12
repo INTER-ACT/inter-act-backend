@@ -44,8 +44,8 @@ class ActionRepository implements IRestRepository
 {
     use CustomPaginationTrait;
 
-    const JOB_LIST = ['Universitäts-Professor', 'Lehrer', 'Schüler'];
-    const GRADUATION_LIST = ['Grund-/Volksschule', 'Pflichtschule', 'Reife- und Diplomprüfung', 'Bachelor-Studium', 'Master-Studium', 'Doktor'];
+    const JOB_LIST = ['Schülerin/Schüler', 'Studentin/Student', 'Lehrling', 'Angestellte/Angestellter', 'Arbeiterin/Arbeiter', 'Facharbeiterin/Facharbeiter', 'Beamte/Beamter', 'Selbständige/Selbständiger', 'Hausfrau/Hausmann', 'Pensionistin/Pensionist', 'Arbeitslose/Arbeitsloser', 'Sonstige'];
+    const GRADUATION_LIST = ['Volksschulabschluss', 'Hauptschulabschluss', 'Lehrabschluss', 'Matura/Abitur', 'Hochschulabschluss', 'Sonstige'];
 
     const SEARCH_TYPE_TAG = 'tag';
     const SEARCH_TYPE_CONTENT = 'content';
