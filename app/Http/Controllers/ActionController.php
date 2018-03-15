@@ -9,6 +9,7 @@ use App\Exceptions\CustomExceptions\InvalidValueException;
 use App\Http\Requests\SearchRequest;
 use App\Http\Requests\ViewStatisticsRequest;
 use App\Http\Requests\ViewUserDetailsRequest;
+use App\Http\Resources\AspectListResource;
 use App\Http\Resources\DiscussionResources\DiscussionCollection;
 use App\Http\Resources\GeneralResources\SearchResource;
 use App\Http\Resources\GraduationListResource;
@@ -209,5 +210,13 @@ class ActionController extends Controller
     public function getGraduationList() : GraduationListResource
     {
         return $this->repository->getGraduationList();
+    }
+
+    /**
+     * @return AspectListResource
+     */
+    public function getAspects() : AspectListResource
+    {
+        return $this->repository->getAspects();
     }
 }

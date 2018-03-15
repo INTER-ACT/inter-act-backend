@@ -161,6 +161,14 @@ Route::get('/statistics/object_activity', 'ActionController@getObjectActivitySta
 Route::get('/job_list', 'ActionController@getJobList');
 
 Route::get('/graduation_list', 'ActionController@getGraduationList');
+
+Route::get('/aspects', 'ActionController@getAspects');
 //endregion
 
 Route::get('/users/{user_id}/relevant', 'ActionController@getRelevantDiscussions')->middleware('auth:api');
+
+//region Short URLs
+Route::get('/amendments/{id}', 'AmendmentController@showShort');
+
+Route::get('/subamendments/{id}', 'SubAmendmentController@showShort');
+//endregion
