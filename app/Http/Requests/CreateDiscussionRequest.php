@@ -35,9 +35,9 @@ class CreateDiscussionRequest extends ApiRequest
     public function rules()
     {
         return [
-            'title' => 'required|string',
+            'title' => 'required|string|max:254',
             'law_number' => 'required|string|max:64',
-            'law_text' => 'required|string|max:254',
+            'law_text' => 'required|string',
             'law_explanation' => 'required|string',
             'tags' => 'required|array',
             'tags.*' => 'integer|exists:tags,id|distinct'
