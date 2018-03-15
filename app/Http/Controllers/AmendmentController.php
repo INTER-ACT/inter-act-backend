@@ -46,7 +46,7 @@ class AmendmentController extends Controller
         return $this->repository->getAll($discussion_id, $request, $request->sortDirection, $request->sortedBy);
     }
 
-    public function show(int $id)
+    public function show(int $discussion_id, int $id)
     {
         return $this->repository->getById($id);
     }
