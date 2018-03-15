@@ -13,8 +13,9 @@ class LawResource extends ApiResource
     public function toArray($request)
     {
         return [
-            'href' => $this->getUrl($this->href),
-            'id' => $this->id,
+            'href' => $this->getUrl($this->getResourcePath()),
+            'id' => $this->law_id,
+            'articleParagraphUnit' => $this->articleParagraphUnit,
             'title' => $this->title,
             'content' => $this->content
         ];

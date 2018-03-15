@@ -17,6 +17,7 @@ use App\Http\Resources\StatisticsResources\StatisticsResource;
 use App\Http\Resources\StatisticsResources\UserActivityStatisticsResource;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\StreamedResponse;
+use App\Http\Resources\AspectListResource;
 
 class ActionController extends Controller
 {
@@ -209,5 +210,13 @@ class ActionController extends Controller
     public function getGraduationList() : GraduationListResource
     {
         return $this->repository->getGraduationList();
+    }
+
+    /**
+     * @return AspectListResource
+     */
+    public function getAspects() : AspectListResource
+    {
+        return $this->repository->getAspects();
     }
 }

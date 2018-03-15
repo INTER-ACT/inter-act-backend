@@ -12,6 +12,7 @@ use App\Domain\PageRequest;
 use App\Domain\SortablePageGetRequest;
 use App\Exceptions\CustomExceptions\InvalidValueException;
 use App\Exceptions\CustomExceptions\NotAuthorizedException;
+use App\Exceptions\CustomExceptions\NotPermittedException;
 use App\Http\Requests\CreateAmendmentRequest;
 use App\Http\Requests\CreateCommentRequest;
 use App\Http\Requests\CreateDiscussionRequest;
@@ -32,6 +33,8 @@ use App\Http\Resources\LawResource;
 use App\Http\Resources\MultiAspectRatingResource;
 use App\Http\Resources\NoContentResource;
 use App\Http\Resources\SuccessfulCreationResource;
+use App\Role;
+use Auth;
 use Exception;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Http\Request;
@@ -189,5 +192,17 @@ class DiscussionController extends Controller
     public function showLawText(ShowLawTextRequest $request, LawRepository $lawRepository, string $id) : LawResource
     {
         return $lawRepository->getOne($id);
+    }
+
+    /**
+     * @return NoContentResource
+     * @throws NotPermittedException
+     */
+    public function reloadLawTexts() : NoContentResource
+    {
+        //if(!Auth::user()->hasRole(Role::getAdmin()))
+        //    throw new NotPermittedException('The logged in user is not permitted to perform this action.');
+        LawRepository::reloadLawTexts();
+        return new NoContentResource();
     }
 }

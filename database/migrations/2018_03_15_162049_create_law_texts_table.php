@@ -18,7 +18,7 @@ class CreateLawTextsTable extends Migration
             $table->string('law_id', 191)->unique();
             $table->string('articleParagraphUnit', 64)->default('-');
             $table->string('title')->default('-');
-            $table->text('content')->default('-');
+            $table->text('content');
             $table->timestamps();
         });
     }

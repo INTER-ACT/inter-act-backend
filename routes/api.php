@@ -84,6 +84,8 @@ Route::post('/discussions/{discussion_id}/comments', 'DiscussionController@creat
 Route::get('/law_texts', 'DiscussionController@listLawTexts')->middleware('auth:api');
 
 Route::get('/law_texts/{id}', 'DiscussionController@showLawText')->middleware('auth:api');
+
+Route::get('/reload_law_texts', 'DiscussionController@reloadLawTexts')->middleware('auth:api');
 //endregion
 
 //region amendments
@@ -161,6 +163,14 @@ Route::get('/statistics/object_activity', 'ActionController@getObjectActivitySta
 Route::get('/job_list', 'ActionController@getJobList');
 
 Route::get('/graduation_list', 'ActionController@getGraduationList');
+
+Route::get('/aspects', 'ActionController@getAspects');
 //endregion
 
 Route::get('/users/{user_id}/relevant', 'ActionController@getRelevantDiscussions')->middleware('auth:api');
+
+//region Short URLs
+Route::get('/amendments/{id}', 'AmendmentController@showShort');
+
+Route::get('/subamendments/{id}', 'SubAmendmentController@showShort');
+//endregion
