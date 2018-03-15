@@ -34,7 +34,7 @@ class SubAmendmentController extends Controller
      * @param int $id
      * @return \App\Http\Resources\SubAmendmentResources\SubAmendmentResource
      */
-    public function show(int $id)
+    public function show(int $discussion_id, int $amendment_id, int $id)
     {
         // TODO implement restriction to returned fields
         return $this->repository->getById($id);
@@ -46,7 +46,7 @@ class SubAmendmentController extends Controller
      */
     public function showShort(int $id)
     {
-        return $this->show($id);
+        return $this->show(-1, -1, $id);
     }
 
     /**
