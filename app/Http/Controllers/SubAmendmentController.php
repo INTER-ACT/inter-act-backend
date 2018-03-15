@@ -41,6 +41,15 @@ class SubAmendmentController extends Controller
     }
 
     /**
+     * @param int $id
+     * @return \App\Http\Resources\SubAmendmentResources\SubAmendmentResource
+     */
+    public function showShort(int $id)
+    {
+        return $this->show($id);
+    }
+
+    /**
      * Changes the status of the SubAmendment (accept / reject)
      *
      * @param int $id

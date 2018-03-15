@@ -46,9 +46,23 @@ class AmendmentController extends Controller
         return $this->repository->getAll($discussion_id, $request, $request->sortDirection, $request->sortedBy);
     }
 
+    /**
+     * @param int $discussion_id
+     * @param int $id
+     * @return \App\Http\Resources\AmendmentResources\AmendmentResource
+     */
     public function show(int $discussion_id, int $id)
     {
         return $this->repository->getById($id);
+    }
+
+    /**
+     * @param int $id
+     * @return \App\Http\Resources\AmendmentResources\AmendmentResource
+     */
+    public function showShort(int $id)
+    {
+        return $this->show(-1, $id);
     }
 
     /**
@@ -148,16 +162,7 @@ class AmendmentController extends Controller
 
         AmendmentManipulator::updateRating($id, $request, $user->id);
 
-        return new NoContentResource($request);
+        return new NoContentResource();
     }
 
-    public function listReports(int $id, PageGetRequest $request)
-    {
-        // TODO check whether this is still required
-    }
-
-    public function createReport(int $id, CreateReportRequest $request)
-    {
-        // TODO check whether this is still required
-    }
 }
