@@ -12,6 +12,7 @@ use App\Http\Requests\ViewUserDetailsRequest;
 use App\Http\Resources\DiscussionResources\DiscussionCollection;
 use App\Http\Resources\GeneralResources\SearchResource;
 use App\Http\Resources\GraduationListResource;
+use App\Http\Resources\IndexResource;
 use App\Http\Resources\JobListResource;
 use App\Http\Resources\StatisticsResources\StatisticsResource;
 use App\Http\Resources\StatisticsResources\UserActivityStatisticsResource;
@@ -31,6 +32,14 @@ class ActionController extends Controller
     public function __construct(ActionRepository $repository)
     {
         $this->repository = $repository;
+    }
+
+    /**
+     * @return IndexResource
+     */
+    public function index() : IndexResource
+    {
+        return new IndexResource(null);
     }
 
     /**

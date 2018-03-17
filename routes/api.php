@@ -19,6 +19,8 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
 
+Route::get('/', 'ActionController@index');
+
 Route::get('/self', function(){
     $user = Auth::user();
     return new SelfResource($user);
@@ -138,7 +140,7 @@ Route::get('/reports', 'ReportController@index')->middleware('auth:api');
 
 Route::get('/reports/{report_id}', 'ReportController@show')->middleware('auth:api');
 
-Route::post('/reports', 'ReportController@create');
+Route::post('/reports', 'ReportController@create')->middleware('auth:api');
 //endregion
 
 //region tags
