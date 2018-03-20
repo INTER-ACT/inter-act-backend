@@ -64,6 +64,7 @@ class LawRepository
             LawText::truncate();
             foreach ($final_texts as $text)
                 $text->save();
+            \Log::info("Law Texts reloaded.");
         }
     }
 }

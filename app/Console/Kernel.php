@@ -27,7 +27,7 @@ class Kernel extends ConsoleKernel
     {
         $schedule->call(function(){
             LawRepository::reloadLawTexts();
-        })->dailyAt('04:00');
+        })->dailyAt('02:00');
     }
 
     /**

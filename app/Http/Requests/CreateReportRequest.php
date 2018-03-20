@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Validator;
 
+/** DEPRECATED */
 class CreateReportRequest implements IRequest
 {
     public $request;
