@@ -12,6 +12,7 @@ namespace App\Domain\Manipulators;
 use App\Amendments\Amendment;
 use App\Comments\Comment;
 use App\Discussions\Discussion;
+use App\Domain\CommentRepository;
 use App\Domain\DiscussionRepository;
 use App\Exceptions\CustomExceptions\ApiException;
 use App\Exceptions\CustomExceptions\ApiExceptionMeta;
@@ -118,12 +119,7 @@ class DiscussionManipulator
     public static function createComment(int $id, array $data, int $user_id) : SuccessfulCreationResource
     {
         $discussion = DiscussionRepository::getDiscussionByIdOrThrowError($id);
-        $comment = new Comment();
-        $comment->fill($data);
-        $comment->user_id = $user_id;
-        if(!$discussion->comments()->save($comment))
-            throw new InternalServerError("Could not create a comment with the given data.");
-        $comment->tags()->sync($data['tags']);
+        $comment = CommentManipulator::createNewComment($discussion, $data, $user_id);
         return new SuccessfulCreationResource($comment);
     }
 }

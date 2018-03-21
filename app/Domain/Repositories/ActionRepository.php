@@ -39,6 +39,7 @@ use Carbon\Carbon;
 use DB;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
+use App\Http\Resources\AspectListResource;
 
 class ActionRepository implements IRestRepository
 {
@@ -266,6 +267,23 @@ class ActionRepository implements IRestRepository
         return new GraduationListResource(self::GRADUATION_LIST);
     }
 
+    public function getAspects() : AspectListResource
+    {
+        $data = [
+            MultiAspectRating::ASPECT1 => config('app.aspect1'),
+            MultiAspectRating::ASPECT2 => config('app.aspect2'),
+            MultiAspectRating::ASPECT3 => config('app.aspect3'),
+            MultiAspectRating::ASPECT4 => config('app.aspect4'),
+            MultiAspectRating::ASPECT5 => config('app.aspect5'),
+            MultiAspectRating::ASPECT6 => config('app.aspect6'),
+            MultiAspectRating::ASPECT7 => config('app.aspect7'),
+            MultiAspectRating::ASPECT8 => config('app.aspect8'),
+            MultiAspectRating::ASPECT9 => config('app.aspect9'),
+            MultiAspectRating::ASPECT10 => config('app.aspect10')
+        ];
+        return new AspectListResource($data);
+    }
+
     //region searchHelpers
     /**
      * @param string $search_term
@@ -309,7 +327,7 @@ class ActionRepository implements IRestRepository
      */
     protected function searchDiscussionsByContent(string $search_term) : array
     {
-        return Discussion::select(['id'])->where('title', 'LIKE', '%' . $search_term . '%')
+        return Discussion::active()->select(['id'])->where('title', 'LIKE', '%' . $search_term . '%')
             ->orWhere('law_text', 'LIKE', '%' . $search_term . '%')
             ->orWhere('law_explanation', 'LIKE', '%' . $search_term . '%')->get()->all()    ;
     }
@@ -320,7 +338,7 @@ class ActionRepository implements IRestRepository
      */
     protected function searchDiscussionsByTag(string $search_term) : array
     {
-        return Discussion::select(['id'])->whereHas('tags', function(Builder $query) use($search_term){
+        return Discussion::active()->select(['id'])->whereHas('tags', function(Builder $query) use($search_term){
             $query->where('name', 'LIKE', '%' . $search_term . '%');
         })->get()->all();
     }

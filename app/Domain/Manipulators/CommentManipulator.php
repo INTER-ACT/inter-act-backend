@@ -10,6 +10,7 @@ namespace App\Domain\Manipulators;
 
 
 use App\Comments\Comment;
+use App\Comments\ICommentable;
 use App\Domain\CommentRepository;
 use App\Domain\IlaiApi;
 use App\Domain\UserRepository;
@@ -57,12 +58,8 @@ class CommentManipulator
      */
     public static function createComment(int $id, array $data, int $user_id) : SuccessfulCreationResource
     {
-        $user = UserRepository::getByIdOrThrowError($user_id);
         $comment = CommentRepository::getCommentByIdOrThrowError($id);
-        $sub_comment = new Comment();
-        $sub_comment->fill($data);
-        $sub_comment->user_id = $user->id;
-        $sub_comment->sentiment = IlaiApi::getSentimentForText($sub_comment->content);
+        $sub_comment = self::getNewComment($data, $user_id);
         if(!$comment->comments()->save($sub_comment))
             throw new InternalServerError("Could not create a comment with the given data.");
         $sub_comment->tags()->sync($data['tags']);
@@ -107,5 +104,29 @@ class CommentManipulator
         $comment = CommentRepository::getCommentByIdOrThrowError($id);
         $comment->rating_users()->detach([$user_id]);
         return new NoContentResource();
+    }
+
+    /**
+     * Creates a Comment without storing it in the database.
+     * Also fetches a sentiment from the ILAI API
+     *
+     * @param ICommentable $commentable
+     * @param array $data
+     * @param int $user_id
+     * @return Comment
+     * @throws InternalServerError
+     */
+    public static function createNewComment(ICommentable $commentable, array $data, int $user_id) : Comment
+    {
+        $user = UserRepository::getByIdOrThrowError($user_id);
+        $new_comment = new Comment();
+        $new_comment->fill($data);
+        $new_comment->user_id = $user->id;
+        $new_comment->sentiment = IlaiApi::getSentimentForText($new_comment->content);
+        if(!$commentable->comments()->save($new_comment))
+            throw new InternalServerError("Could not create a comment with the given data.");
+        $new_comment->tags()->sync($data['tags']);
+        IlaiApi::sendTags($new_comment->content, $new_comment->tags()->pluck('name')->all());
+        return $new_comment;
     }
 }

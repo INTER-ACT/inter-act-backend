@@ -323,7 +323,7 @@ class ReportTests extends FeatureTestCase
         $amendment = ModelFactory::CreateAmendment($user, $discussion);
         $inputData = [
             'reported_type' => $amendment->getApiFriendlyType(),
-            'reported_id' => $amendment->id,
+            'reportable_id' => $amendment->id,
             'description' => $description
         ];
         $requestPath = $this->getUrl('/reports');
@@ -352,7 +352,7 @@ class ReportTests extends FeatureTestCase
         $amendment = ModelFactory::CreateAmendment($user, $discussion);
         $inputData = [
             'reported_type' => $amendment->getApiFriendlyType(),
-            'reported_id' => 2,
+            'reportable_id' => 2,
             'description' => $description
         ];
         $requestPath = $this->getUrl('/reports');
@@ -371,7 +371,7 @@ class ReportTests extends FeatureTestCase
         $amendment = ModelFactory::CreateAmendment($user, $discussion);
         $inputData = [
             'reported_type' => 'emendment',
-            'reported_id' => $amendment->id,
+            'reportable_id' => $amendment->id,
             'description' => $description
         ];
         $requestPath = $this->getUrl('/reports');
@@ -390,7 +390,7 @@ class ReportTests extends FeatureTestCase
         $amendment = ModelFactory::CreateAmendment($user, $discussion);
         $inputData = [
             'reported_type' => $amendment->getApiFriendlyType(),
-            'reported_id' => $amendment->id,
+            'reportable_id' => $amendment->id,
             'description' => $description
         ];
         $requestPath = $this->getUrl('/reports');
@@ -410,7 +410,7 @@ class ReportTests extends FeatureTestCase
         $description2 = 'some other report description';
         $inputData = [
             'reported_type' => $amendment->getApiFriendlyType(),
-            'reported_id' => $amendment->id,
+            'reportable_id' => $amendment->id,
             'description' => $description2
         ];
         $requestPath = $this->getUrl('/reports');
@@ -438,30 +438,12 @@ class ReportTests extends FeatureTestCase
         $amendment = ModelFactory::CreateAmendment($user, $discussion);
         $inputData = [
             'reported_type' => $amendment->getApiFriendlyType(),
-            'reported_id' => 2,
+            'reportable_id' => 2,
             'description' => $description
         ];
         $requestPath = $this->getUrl('/reports');
         $response = $this->json('POST', $requestPath, $inputData);
         $response->assertStatus(NotAuthorizedException::HTTP_CODE)->assertJson(['code' => NotAuthorizedException::ERROR_CODE]);
-    }
-
-    /** @test */
-    public function testPostReportsNotPermitted()
-    {
-        $description = 'some report description';
-        Passport::actingAs(ModelFactory::CreateUser(Role::getExpert()));
-        $user = \Auth::user();
-        $discussion = ModelFactory::CreateDiscussion($user);
-        $amendment = ModelFactory::CreateAmendment($user, $discussion);
-        $inputData = [
-            'reported_type' => $amendment->getApiFriendlyType(),
-            'reported_id' => 2,
-            'description' => $description
-        ];
-        $requestPath = $this->getUrl('/reports');
-        $response = $this->json('POST', $requestPath, $inputData);
-        $response->assertStatus(NotPermittedException::HTTP_CODE)->assertJson(['code' => NotPermittedException::ERROR_CODE]);
     }
     //endregion
 }

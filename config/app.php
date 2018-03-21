@@ -243,8 +243,20 @@ return [
     |
     */
     'ilai_token' => env('ILAI_TOKEN', 'abcdef'),
-    'ilai_path' => env('ILAI_PATH', 'http://inter-act-ilai.net:8000'),
+    'ilai_path' => env('ILAI_PATH', 'http://inter-act-ilai.de:8000'),
     'home_url' => env('HOME_URL', 'www.inter-act.net'),
     'recaptcha_secret' => env('RECAPTCHA_SECRET', Null),
-    'recaptcha_site_key' => env('RECAPTCHA_SITE_KEY', Null)
+    'recaptcha_site_key' => env('RECAPTCHA_SITE_KEY', Null),
+
+    // Multi-Aspect-Rating names
+    'aspect1' => env('ASPECT1', 'aspect1'),
+    'aspect2' => env('ASPECT2', 'aspect2'),
+    'aspect3' => env('ASPECT3', 'aspect3'),
+    'aspect4' => env('ASPECT4', 'aspect4'),
+    'aspect5' => env('ASPECT5', 'aspect5'),
+    'aspect6' => env('ASPECT6', 'aspect6'),
+    'aspect7' => env('ASPECT7', 'aspect7'),
+    'aspect8' => env('ASPECT8', 'aspect8'),
+    'aspect9' => env('ASPECT9', 'aspect9'),
+    'aspect10' => env('ASPECT10', 'aspect10'),
 ];

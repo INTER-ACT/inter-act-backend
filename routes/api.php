@@ -19,6 +19,8 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
 
+Route::get('/', 'ActionController@index');
+
 Route::get('/self', function(){
     $user = Auth::user();
     return new SelfResource($user);
@@ -84,6 +86,8 @@ Route::post('/discussions/{discussion_id}/comments', 'DiscussionController@creat
 Route::get('/law_texts', 'DiscussionController@listLawTexts')->middleware('auth:api');
 
 Route::get('/law_texts/{id}', 'DiscussionController@showLawText')->middleware('auth:api');
+
+Route::get('/reload_law_texts', 'DiscussionController@reloadLawTexts')->middleware('auth:api');
 //endregion
 
 //region amendments
@@ -136,7 +140,7 @@ Route::get('/reports', 'ReportController@index')->middleware('auth:api');
 
 Route::get('/reports/{report_id}', 'ReportController@show')->middleware('auth:api');
 
-Route::post('/reports', 'ReportController@create');
+Route::post('/reports', 'ReportController@create')->middleware('auth:api');
 //endregion
 
 //region tags
@@ -161,6 +165,14 @@ Route::get('/statistics/object_activity', 'ActionController@getObjectActivitySta
 Route::get('/job_list', 'ActionController@getJobList');
 
 Route::get('/graduation_list', 'ActionController@getGraduationList');
+
+Route::get('/aspects', 'ActionController@getAspects');
 //endregion
 
 Route::get('/users/{user_id}/relevant', 'ActionController@getRelevantDiscussions')->middleware('auth:api');
+
+//region Short URLs
+Route::get('/amendments/{id}', 'AmendmentController@showShort');
+
+Route::get('/subamendments/{id}', 'SubAmendmentController@showShort');
+//endregion

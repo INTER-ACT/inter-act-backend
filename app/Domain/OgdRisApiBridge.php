@@ -20,9 +20,8 @@ class OgdRisApiBridge
     public const DOC_FETCH_PATH = 'https://www.ris.bka.gv.at/Dokumente/Bundesnormen';
     private const OPTIONS_ARRAY = ['timeout' => 60, 'connect_timeout' => 10];
 
-    public static function getAllTexts(PageRequest $pageRequest) : array
+    public static function getAllTexts() : array
     {
-        //TODO if time left: fetch only as much as needed for pagination (care though)
         $client = new Client();
         $documents = [];
         $pageNumber = 0;
