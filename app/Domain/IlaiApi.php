@@ -35,7 +35,6 @@ class IlaiApi
         $res = self::getResponseForRequest('POST', self::getIlaiPath('/tagging/predict'), $inputData);
         $responseData = \GuzzleHttp\json_decode($res->getBody(), true);
         $tag_array = $responseData[0]['tags'];
-        var_dump($tag_array);
         return array_map(function($item){
             return TagRepository::getByName($item);
         }, $tag_array);

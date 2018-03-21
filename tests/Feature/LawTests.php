@@ -9,9 +9,12 @@
 namespace Tests\Feature;
 
 
+use App\Domain\LawRepository;
 use App\Domain\PageRequest;
 use App\Exceptions\CustomExceptions\InvalidPaginationException;
 use App\Exceptions\CustomExceptions\InvalidValueException;
+use App\Exceptions\CustomExceptions\NotAuthorizedException;
+use App\Exceptions\CustomExceptions\NotPermittedException;
 use App\Exceptions\CustomExceptions\PayloadTooLargeException;
 use App\Model\ModelFactory;
 use App\Role;
@@ -32,10 +35,11 @@ class LawTests extends FeatureTestCase
         Passport::actingAs(
             ModelFactory::CreateUser(Role::getAdmin()), ['*']
         );
+        //LawRepository::reloadLawTexts();
         $resourcePath = $this->getUrl('/law_texts');
         $response = $this->get($resourcePath);
         $response->assertStatus(200)
-            ->assertSee('NOR')
+            //->assertSee('NOR')
             ->assertJsonFragment([
                 'current_page' => PageRequest::DEFAULT_PAGE_NUMBER
             ])
@@ -57,10 +61,11 @@ class LawTests extends FeatureTestCase
         Passport::actingAs(
             ModelFactory::CreateUser(Role::getAdmin()), ['*']
         );
+        //LawRepository::reloadLawTexts();
         $resourcePath = $this->getUrl('/law_texts?start=' . $page_number . '&count=' . $per_page);
         $response = $this->get($resourcePath);
         $response->assertStatus(200)
-            ->assertSee('NOR')
+            //->assertSee('NOR')
             ->assertJsonFragment([
                 'current_page' => 1
             ])
@@ -127,5 +132,32 @@ class LawTests extends FeatureTestCase
     }
     //endregion
 
-    //TODO: test get law_texts/{id}
+    //region GET /law_texts/{id}
+    /** @test */
+    public function testSingleLawTextResponseValid()
+    {
+        Passport::actingAs(
+            ModelFactory::CreateUser(Role::getAdmin()), ['*']
+        );
+        LawRepository::reloadLawTexts();
+        $requestPath = $this->getUrl('/law_texts/NOR12024402');
+        $response = $this->get($requestPath);
+        $response->assertStatus(200)
+            ->assertJsonStructure([
+                'href',
+                'id',
+                'articleParagraphUnit',
+                'title',
+                'content'
+            ]);
+    }
+
+    /** @test */
+    public function testSingleLawTextResponseNotAuthenticated()
+    {
+        $requestPath = $this->getUrl('/law_texts/NOR12024402');
+        $response = $this->get($requestPath);
+        $response->assertStatus(NotAuthorizedException::HTTP_CODE)->assertJson(['code' => NotAuthorizedException::ERROR_CODE]);
+    }
+    //endregion
 }

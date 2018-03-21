@@ -59,11 +59,7 @@ class CommentManipulator
     public static function createComment(int $id, array $data, int $user_id) : SuccessfulCreationResource
     {
         $comment = CommentRepository::getCommentByIdOrThrowError($id);
-        $sub_comment = self::getNewComment($data, $user_id);
-        if(!$comment->comments()->save($sub_comment))
-            throw new InternalServerError("Could not create a comment with the given data.");
-        $sub_comment->tags()->sync($data['tags']);
-        IlaiApi::sendTags($sub_comment->content, $sub_comment->tags->pluck('name')->all());
+        $sub_comment = self::createNewComment($comment, $data, $user_id);
         return new SuccessfulCreationResource($sub_comment);
     }
 
