@@ -8,7 +8,10 @@
 
 namespace App\Comments;
 
+use Illuminate\Database\Eloquent\Relations\MorphMany;
+
 interface ICommentable
 {
+    /** @return MorphMany */
     function comments();
 }
