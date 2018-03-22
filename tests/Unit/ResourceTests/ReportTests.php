@@ -7,7 +7,9 @@ use App\Amendments\SubAmendment;
 use App\Discussions\Discussion;
 use App\Model\ModelFactory;
 use App\Reports\Report;
+use App\Role;
 use App\User;
+use Laravel\Passport\Passport;
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -20,7 +22,7 @@ class ReportTests extends TestCase
     /** @test */
     public function testReportResource()
     {
-        $user = factory(User::class)->create();
+        $user = ModelFactory::CreateUser(Role::getAdmin());
         $this->be($user);
         $discussion = factory(Discussion::class)->create([
             'user_id' => $user->id
