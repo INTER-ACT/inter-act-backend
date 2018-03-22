@@ -30,7 +30,7 @@ class CreateAmendmentRequest extends ApiRequest
     {
         return [
             'explanation' => 'required|string',
-            'updated_text' => 'required|string',
+            'updated_text' => 'required|string|unique:amendments,updated_text',     // TODO test unique is actually unique
             'tags' => 'required|array',
             'tags.*' => 'integer|exists:tags,id|distinct'
         ];
